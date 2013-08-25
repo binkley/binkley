@@ -1,22 +1,36 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>binkley.hm</groupId>
-  <artifactId>blog</artifactId>
-  <version>0.1-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <modules>
-   <module>configuration</module>
-  </modules>
-  <dependencyManagement>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>binkley.hm</groupId>
+    <artifactId>blog</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>configuration</module>
+    </modules>
+
+    <properties>
+        <jsr305.version>2.0.1</jsr305.version>
+    </properties>
+
     <dependencies>
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>configuration</artifactId>
-        <version>${project.version</version>
-      </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>${jsr305.version}</version>
+        </dependency>
     </dependencies>
-  </dependencyManagement>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>configuration</artifactId>
+                <version>${project.version</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
