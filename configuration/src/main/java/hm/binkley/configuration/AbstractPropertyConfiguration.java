@@ -10,18 +10,18 @@ import javax.annotation.Nonnull;
  */
 public abstract class AbstractPropertyConfiguration<T extends AbstractPropertyConfiguration<T, E>, E extends Exception>
         implements Configuration<T, E> {
-    private final PropertiesFetcher<E> fetcher;
-    private final PropertyGetter<E> getter;
+    private final PropertiesLoader<E> loader;
+    private final PropertyFetcher<E> fetcher;
 
-    protected AbstractPropertyConfiguration(@Nonnull final PropertiesFetcher<E> fetcher,
-            @Nonnull final PropertyGetter<E> getter) {
+    protected AbstractPropertyConfiguration(@Nonnull final PropertiesLoader<E> loader,
+            @Nonnull final PropertyFetcher<E> fetcher) {
+        this.loader = loader;
         this.fetcher = fetcher;
-        this.getter = getter;
     }
 
     @Override
     public String lookup(@Nonnull final Object key)
             throws E {
-        return getter.get(fetcher.fetch(), key);
+        return fetcher.fetch(loader.load(), key);
     }
 }

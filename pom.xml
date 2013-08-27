@@ -13,7 +13,9 @@
     </modules>
 
     <properties>
+        <guava.version>14.0.1</guava.version>
         <jsr305.version>2.0.1</jsr305.version>
+        <spring.version>3.2.4.RELEASE</spring.version>
     </properties>
 
     <dependencies>
@@ -30,6 +32,18 @@
                 <groupId>${project.groupId}</groupId>
                 <artifactId>configuration</artifactId>
                 <version>${project.version</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${spring.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
