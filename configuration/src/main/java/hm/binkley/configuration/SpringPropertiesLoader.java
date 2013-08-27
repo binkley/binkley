@@ -27,11 +27,12 @@ public final class SpringPropertiesLoader<E extends Exception>
     private final Function<IOException, E> converter;
 
     public SpringPropertiesLoader(@Nonnull final String locationPattern,
-            final Function<IOException, E> converter) {
+            @Nonnull final Function<IOException, E> converter) {
         this.locationPattern = locationPattern;
         this.converter = converter;
     }
 
+    @Nonnull
     @Override
     public Properties load()
             throws E {

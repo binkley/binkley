@@ -27,6 +27,6 @@ public final class FormatPropertyFetcher
         final Object[] params = new Object[this.params.length + 1];
         arraycopy(this.params, 0, params, 0, this.params.length);
         params[this.params.length] = key;
-        return format(format, params);
+        return properties.getProperty(format(format, params));
     }
 }
