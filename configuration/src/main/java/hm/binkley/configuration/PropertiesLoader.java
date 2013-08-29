@@ -1,5 +1,6 @@
 package hm.binkley.configuration;
 
+import javax.annotation.Nonnull;
 import java.util.Properties;
 
 /**
@@ -9,6 +10,7 @@ import java.util.Properties;
  * @todo Needs documentation.
  */
 public interface PropertiesLoader<E extends Exception> {
+    @Nonnull
     Properties load()
             throws E;
 }
