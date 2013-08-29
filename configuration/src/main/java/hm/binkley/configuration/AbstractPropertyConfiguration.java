@@ -8,19 +8,19 @@ import javax.annotation.Nonnull;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-public abstract class AbstractPropertyConfiguration<T extends AbstractPropertyConfiguration<T, E>, E extends Exception>
-        implements Configuration<T, E> {
+public abstract class AbstractPropertyConfiguration<T extends AbstractPropertyConfiguration<T, K, V, E>, K, V, E extends Exception>
+        implements Configuration<T, K, V, E> {
     private final PropertiesLoader<E> loader;
-    private final PropertyFetcher<E> fetcher;
+    private final PropertyFetcher<K, V, E> fetcher;
 
     protected AbstractPropertyConfiguration(@Nonnull final PropertiesLoader<E> loader,
-            @Nonnull final PropertyFetcher<E> fetcher) {
+            @Nonnull final PropertyFetcher<K, V, E> fetcher) {
         this.loader = loader;
         this.fetcher = fetcher;
     }
 
     @Override
-    public String lookup(@Nonnull final Object key)
+    public V lookup(@Nonnull final K key)
             throws E {
         return fetcher.fetch(loader.load(), key);
     }

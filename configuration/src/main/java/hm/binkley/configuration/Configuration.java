@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-public interface Configuration<T extends Configuration<T, E>, E extends Exception> {
-    String lookup(@Nonnull final Object key)
+public interface Configuration<T extends Configuration<T, K, V, E>, K, V, E extends Exception> {
+    V lookup(@Nonnull final K key)
             throws E;
 }
