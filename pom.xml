@@ -14,7 +14,9 @@
 
     <properties>
         <guava.version>14.0.1</guava.version>
+        <java.version>7</java.version>
         <jsr305.version>2.0.1</jsr305.version>
+        <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
         <spring.version>3.2.4.RELEASE</spring.version>
     </properties>
 
@@ -47,4 +49,17 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

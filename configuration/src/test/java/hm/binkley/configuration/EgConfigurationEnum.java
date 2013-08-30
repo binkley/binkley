@@ -12,7 +12,7 @@ import static java.lang.System.out;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public enum EgConfigurationEnum
-        implements Configuration<EgConfigurationEnum, EgException> {
+        implements Configuration<EgConfigurationEnum, Object, String, EgException> {
     FOO() {
         @Override
         public String lookup(@Nonnull final Object key)
