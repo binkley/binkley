@@ -4,12 +4,16 @@ import javax.annotation.Nonnull;
 import java.util.Properties;
 
 /**
- * {@code PropertyGetter} needs documentation.
+ * {@code PropertiesLoader} needs documentation.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-public interface PropertyGetter<E extends Exception> {
-    String get(@Nonnull final Properties properties, @Nonnull final Object key)
+public interface PropertiesLoader<E extends Exception> {
+    @Nonnull
+    Properties load()
             throws E;
+
+    @Nonnull
+    String describe();
 }
