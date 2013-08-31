@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Iterables.transform;
 import static hm.binkley.configuration.Conversions.unchecked;
 import static java.util.Arrays.asList;
 import static java.util.Collections.reverse;
@@ -52,6 +54,23 @@ public class SpringPropertiesLoader<E extends Exception>
             return properties;
         } catch (final IOException e) {
             throw exceptions.apply(e);
+        }
+    }
+
+    @Nonnull
+    @Override
+    public String describe() {
+        try {
+            return on(", ").join(transform(asList(resolver.getResources(locationPattern)),
+                    new Function<Resource, String>() {
+                        @Nonnull
+                        @Override
+                        public String apply(final Resource resource) {
+                            return resource.getDescription();
+                        }
+                    }));
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

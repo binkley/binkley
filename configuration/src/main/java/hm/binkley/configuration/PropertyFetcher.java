@@ -12,4 +12,7 @@ import java.util.Properties;
 public interface PropertyFetcher<K, V, E extends Exception> {
     V fetch(@Nonnull final Properties properties, @Nonnull final K key)
             throws E;
+
+    @Nonnull
+    String describe(@Nonnull final K key);
 }

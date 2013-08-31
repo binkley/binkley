@@ -7,6 +7,7 @@ import javax.annotation.Nonnull;
 import static hm.binkley.configuration.Conversions.strings;
 import static hm.binkley.configuration.Conversions.unchecked;
 import static hm.binkley.configuration.MergedPropertiesLoader.merge;
+import static java.lang.String.format;
 
 /**
  * {@code SpringFormatConfiguration} needs documentation.
@@ -25,10 +26,27 @@ public class SpringFormatConfiguration<K, V, E extends Exception>
                 new FormatPropertyFetcher<K, V, E>(returns, exceptions, format, params));
     }
 
-    public static SpringFormatConfiguration<Object, String, RuntimeException> springFormatConfiguration(
+    public static DefaultSpringFormatConfiguration springFormatConfiguration(
             @Nonnull final String locationPattern, @Nonnull final String format,
             final Object... params) {
-        return new SpringFormatConfiguration<>(strings(), unchecked(), locationPattern, format,
-                params);
+        return new DefaultSpringFormatConfiguration(locationPattern, format, params);
+    }
+
+    public static class DefaultSpringFormatConfiguration
+            extends SpringFormatConfiguration<Object, String, RuntimeException> {
+        public DefaultSpringFormatConfiguration(@Nonnull final String locationPattern,
+                @Nonnull final String format, final Object... params) {
+            super(strings(), unchecked(), locationPattern, format, params);
+        }
+
+        @Nonnull
+        @Override
+        public String lookup(@Nonnull final Object key) {
+            final String value = super.lookup(key);
+            if (null == value)
+                throw new RuntimeException(
+                        format("Cannot find %s in: %s", fetcher.describe(key), loader.describe()));
+            return value;
+        }
     }
 }

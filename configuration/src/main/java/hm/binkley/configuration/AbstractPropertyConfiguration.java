@@ -10,8 +10,8 @@ import javax.annotation.Nonnull;
  */
 public abstract class AbstractPropertyConfiguration<T extends AbstractPropertyConfiguration<T, K, V, E>, K, V, E extends Exception>
         implements Configuration<T, K, V, E> {
-    private final PropertiesLoader<E> loader;
-    private final PropertyFetcher<K, V, E> fetcher;
+    protected final PropertiesLoader<E> loader;
+    protected final PropertyFetcher<K, V, E> fetcher;
 
     protected AbstractPropertyConfiguration(@Nonnull final PropertiesLoader<E> loader,
             @Nonnull final PropertyFetcher<K, V, E> fetcher) {

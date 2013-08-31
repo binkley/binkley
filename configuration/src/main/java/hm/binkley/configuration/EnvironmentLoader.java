@@ -28,4 +28,10 @@ public final class EnvironmentLoader<E extends Exception>
         properties.putAll(getenv());
         return properties;
     }
+
+    @Nonnull
+    @Override
+    public String describe() {
+        return "environment";
+    }
 }

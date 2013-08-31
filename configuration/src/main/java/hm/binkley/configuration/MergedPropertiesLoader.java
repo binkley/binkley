@@ -1,10 +1,14 @@
 package hm.binkley.configuration;
 
+import com.google.common.base.Function;
+
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Iterables.transform;
 import static java.util.Arrays.asList;
 import static java.util.Collections.reverse;
 
@@ -44,5 +48,17 @@ public final class MergedPropertiesLoader<E extends Exception>
         for (final PropertiesLoader<E> loader : loaders)
             properties.putAll(loader.load());
         return properties;
+    }
+
+    @Nonnull
+    @Override
+    public String describe() {
+        return on(", ").join(transform(loaders, new Function<PropertiesLoader<E>, String>() {
+            @Nonnull
+            @Override
+            public String apply(final PropertiesLoader<E> loader) {
+                return loader.describe();
+            }
+        }));
     }
 }

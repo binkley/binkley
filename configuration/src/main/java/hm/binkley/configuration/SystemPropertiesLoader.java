@@ -24,4 +24,10 @@ public final class SystemPropertiesLoader<E extends Exception>
     public Properties load() {
         return System.getProperties();
     }
+
+    @Nonnull
+    @Override
+    public String describe() {
+        return "system properties";
+    }
 }

@@ -13,4 +13,7 @@ public interface PropertiesLoader<E extends Exception> {
     @Nonnull
     Properties load()
             throws E;
+
+    @Nonnull
+    String describe();
 }

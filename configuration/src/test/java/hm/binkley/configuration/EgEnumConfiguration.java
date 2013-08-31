@@ -1,53 +1,53 @@
 package hm.binkley.configuration;
 
-import hm.binkley.configuration.EgConfiguration.EgConfigurationEnum;
+import hm.binkley.configuration.EgEnumConfiguration.EgEnum;
+import hm.binkley.configuration.EgEnumConfiguration.EgException;
 
 import javax.annotation.Nonnull;
 
-import static hm.binkley.configuration.EgConfiguration.EgConfigurationEnum.*;
+import static hm.binkley.configuration.EgEnumConfiguration.EgEnum.*;
 import static java.lang.System.out;
 
 /**
- * {@code EgConfiguration} needs documentation.
+ * {@code EgEnumConfiguration} needs documentation.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-public class EgConfiguration
-        implements
-        Configuration<EgConfiguration, EgConfigurationEnum, Object, EgConfiguration.EgConfigurationException> {
+public class EgEnumConfiguration
+        implements Configuration<EgEnumConfiguration, EgEnum, Object, EgException> {
     public static void main(final String... args)
-            throws EgConfigurationException {
-        final EgConfiguration configuration = new EgConfiguration();
+            throws EgException {
+        final EgEnumConfiguration configuration = new EgEnumConfiguration();
         out.println(configuration.getFoo());
         out.println(configuration.getBar());
         out.println(configuration.getBaz());
     }
 
     public String getFoo()
-            throws EgConfigurationException {
+            throws EgException {
         return (String) lookup(FOO);
     }
 
     public int getBar()
-            throws EgConfigurationException {
+            throws EgException {
         return (int) lookup(BAR);
     }
 
     public Object getBaz()
-            throws EgConfigurationException {
+            throws EgException {
         return lookup(BAZ);
     }
 
     @Override
-    public Object lookup(@Nonnull final EgConfigurationEnum key)
-            throws EgConfigurationException {
+    public Object lookup(@Nonnull final EgEnum key)
+            throws EgException {
         if (null == key.value)
-            throw new EgConfigurationException(key);
+            throw new EgException(key);
         return key.value;
     }
 
-    public enum EgConfigurationEnum {
+    public enum EgEnum {
         FOO("Sally"), BAR(4) {
             @Override
             public String toString() {
@@ -56,14 +56,14 @@ public class EgConfiguration
         }, BAZ(null);
         private final Object value;
 
-        private EgConfigurationEnum(final Object value) {
+        private EgEnum(final Object value) {
             this.value = value;
         }
     }
 
-    public static class EgConfigurationException
+    public static class EgException
             extends Exception {
-        private EgConfigurationException(final EgConfigurationEnum e) {
+        private EgException(final EgEnum e) {
             super(e.toString());
         }
     }

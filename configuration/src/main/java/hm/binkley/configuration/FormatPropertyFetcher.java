@@ -34,12 +34,22 @@ public class FormatPropertyFetcher<K, V, E extends Exception>
     public V fetch(@Nonnull final Properties properties, @Nonnull final K key)
             throws E {
         try {
-            final Object[] params = new Object[this.params.length + 1];
-            arraycopy(this.params, 0, params, 0, this.params.length);
-            params[this.params.length] = key;
-            return returns.apply(properties.getProperty(format(format, params)));
+            return returns.apply(properties.getProperty(of(key)));
         } catch (final Exception e) {
             throw exceptions.apply(e);
         }
+    }
+
+    @Nonnull
+    @Override
+    public String describe(@Nonnull final K key) {
+        return of(key);
+    }
+
+    private String of(final K key) {
+        final Object[] params = new Object[this.params.length + 1];
+        arraycopy(this.params, 0, params, 0, this.params.length);
+        params[this.params.length] = key;
+        return format(format, params);
     }
 }
