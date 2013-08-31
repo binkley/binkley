@@ -3,6 +3,7 @@ package hm.binkley.configuration;
 import com.google.common.base.Function;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 import java.util.Properties;
 
 import static java.lang.String.format;
@@ -44,6 +45,12 @@ public class FormatPropertyFetcher<K, V, E extends Exception>
     @Override
     public String describe(@Nonnull final K key) {
         return of(key);
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return format("%s(%s%s)", getClass().getSimpleName(), format, Arrays.toString(params));
     }
 
     private String of(final K key) {

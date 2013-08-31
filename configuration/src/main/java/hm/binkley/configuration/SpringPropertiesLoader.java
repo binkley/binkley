@@ -14,6 +14,7 @@ import java.util.Properties;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Iterables.transform;
 import static hm.binkley.configuration.Conversions.unchecked;
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.reverse;
 
@@ -72,5 +73,11 @@ public class SpringPropertiesLoader<E extends Exception>
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return format("%s(%s)", getClass().getSimpleName(), locationPattern);
     }
 }

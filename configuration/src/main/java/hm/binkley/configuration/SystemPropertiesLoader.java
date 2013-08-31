@@ -30,4 +30,10 @@ public final class SystemPropertiesLoader<E extends Exception>
     public String describe() {
         return "system properties";
     }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 }

@@ -34,4 +34,10 @@ public final class EnvironmentLoader<E extends Exception>
     public String describe() {
         return "environment";
     }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 }

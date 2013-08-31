@@ -9,6 +9,7 @@ import java.util.Properties;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Iterables.transform;
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.reverse;
 
@@ -24,7 +25,7 @@ public final class MergedPropertiesLoader<E extends Exception>
 
     private MergedPropertiesLoader(@Nonnull final List<PropertiesLoader<E>> loaders) {
         this.loaders = new ArrayList<>(loaders);
-        reverse(loaders);
+        reverse(this.loaders);
     }
 
     @Nonnull
@@ -60,5 +61,11 @@ public final class MergedPropertiesLoader<E extends Exception>
                 return loader.describe();
             }
         }));
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return format("%s%s", getClass().getSimpleName(), loaders);
     }
 }

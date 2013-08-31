@@ -13,25 +13,31 @@ import static com.google.common.base.Functions.identity;
  * @todo Needs documentation.
  */
 public final class Conversions {
-    public static final Unchecked UNCHECKED = new Unchecked();
-
     private Conversions() {
     }
 
     public static Function<Exception, RuntimeException> unchecked() {
-        return UNCHECKED;
+        return Unchecked.UNCHECKED;
     }
 
     public static Function<String, String> strings() {
         return identity();
     }
 
-    private static class Unchecked
+    private static final class Unchecked
             implements Function<Exception, RuntimeException> {
+        private static final Unchecked UNCHECKED = new Unchecked();
+
         @Nonnull
         @Override
         public RuntimeException apply(final Exception input) {
             return new RuntimeException(input);
+        }
+
+        @Nonnull
+        @Override
+        public String toString() {
+            return getClass().getSimpleName();
         }
     }
 }
