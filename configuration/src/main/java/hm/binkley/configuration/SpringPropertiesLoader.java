@@ -13,18 +13,16 @@ import java.util.Properties;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Iterables.transform;
-import static hm.binkley.configuration.Conversions.unchecked;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.reverse;
 
 /**
- * {@code SpringPropertiesLoader} needs documentation.
+ * {@code SpringPropertiesLoader} loads properties using {@link PathMatchingResourcePatternResolver}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
-public class SpringPropertiesLoader<E extends Exception>
+public final class SpringPropertiesLoader<E extends Exception>
         implements PropertiesLoader<E> {
     private final ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
     private final Function<Exception, E> exceptions;
@@ -34,11 +32,6 @@ public class SpringPropertiesLoader<E extends Exception>
             @Nonnull final String locationPattern) {
         this.locationPattern = locationPattern;
         this.exceptions = exceptions;
-    }
-
-    public static SpringPropertiesLoader<RuntimeException> springPropertiesLoader(
-            @Nonnull final String locationPattern) {
-        return new SpringPropertiesLoader<>(unchecked(), locationPattern);
     }
 
     @Nonnull

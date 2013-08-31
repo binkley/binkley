@@ -2,6 +2,8 @@ package hm.binkley.configuration;
 
 import javax.annotation.Nonnull;
 
+import static java.lang.String.format;
+
 /**
  * {@code AbstractPropertyConfiguration} needs documentation.
  *
@@ -23,5 +25,10 @@ public abstract class AbstractPropertyConfiguration<T extends AbstractPropertyCo
     public V lookup(@Nonnull final K key)
             throws E {
         return fetcher.fetch(loader.load(), key);
+    }
+
+    @Nonnull
+    public String misskingKeyMessage(@Nonnull final K key) {
+        return format("Cannot find %s in: %s", fetcher.describe(key), loader.describe());
     }
 }

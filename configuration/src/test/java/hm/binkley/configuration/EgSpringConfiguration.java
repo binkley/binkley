@@ -2,6 +2,8 @@ package hm.binkley.configuration;
 
 import hm.binkley.configuration.SpringFormatConfiguration.DefaultSpringFormatConfiguration;
 
+import javax.annotation.Nonnull;
+
 import static java.lang.System.out;
 
 /**
@@ -23,14 +25,17 @@ public class EgSpringConfiguration
         out.println(configuration.getBaz());
     }
 
+    @Nonnull
     public String getFoo() {
         return lookup("foo");
     }
 
+    @Nonnull
     public int getBar() {
         return Integer.valueOf(lookup("bar"));
     }
 
+    @Nonnull
     public Object getBaz() {
         return lookup("baz");
     }

@@ -15,7 +15,7 @@ import static java.lang.System.arraycopy;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-public class FormatPropertyFetcher<K, V, E extends Exception>
+public final class FormatPropertyFetcher<K, V, E extends Exception>
         implements PropertyFetcher<K, V, E> {
     private final Function<String, V> returns;
     private final Function<Exception, E> exceptions;

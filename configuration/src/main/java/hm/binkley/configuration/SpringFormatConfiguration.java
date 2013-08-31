@@ -7,7 +7,6 @@ import javax.annotation.Nonnull;
 import static hm.binkley.configuration.Conversions.strings;
 import static hm.binkley.configuration.Conversions.unchecked;
 import static hm.binkley.configuration.MergedPropertiesLoader.merge;
-import static java.lang.String.format;
 
 /**
  * {@code SpringFormatConfiguration} needs documentation.
@@ -44,8 +43,7 @@ public class SpringFormatConfiguration<K, V, E extends Exception>
         public String lookup(@Nonnull final Object key) {
             final String value = super.lookup(key);
             if (null == value)
-                throw new RuntimeException(
-                        format("Cannot find %s in: %s", fetcher.describe(key), loader.describe()));
+                throw new MissingConfigurationKeyException(misskingKeyMessage(key));
             return value;
         }
     }
