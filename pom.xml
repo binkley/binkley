@@ -8,6 +8,32 @@
     <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <name>binkley's BLOG</name>
+    <description>Extended code samples from my blog</description>
+    <url>http://binkley.blogspot.com</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/binkley/binkley</url>
+        <connection>scm:git:git://github.com/binkley/binkley.git</connection>
+        <developerConnection>scm:git:git@github.com:binkley/binkley.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>binkley</id>
+            <name>B. K. Oxley (binkley)</name>
+            <email>binkley@alumni.rice.edu</email>
+        </developer>
+    </developers>
+
     <modules>
         <module>configuration</module>
     </modules>
@@ -19,6 +45,7 @@
         <jsr305.version>2.0.1</jsr305.version>
         <junit.version>4.11</junit.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+        <maven-jgitflow-plugin.version>1.0-alpha20</maven-jgitflow-plugin.version>
         <spring.version>3.2.4.RELEASE</spring.version>
     </properties>
 
@@ -72,6 +99,14 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>maven-jgitflow-plugin</artifactId>
+                <version>${maven-jgitflow-plugin.version}</version>
+                <configuration>
+                    <pushFeatures>true</pushFeatures>
                 </configuration>
             </plugin>
         </plugins>
