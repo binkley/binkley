@@ -11,27 +11,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Iterables.transform;
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.reverse;
 
 /**
- * {@code SpringPropertiesLoader} needs documentation.
+ * {@code SpringPropertiesLoader} loads properties using {@link PathMatchingResourcePatternResolver}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public final class SpringPropertiesLoader<E extends Exception>
         implements PropertiesLoader<E> {
     private final ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+    private final Function<Exception, E> exceptions;
     private final String locationPattern;
-    private final Function<IOException, E> converter;
 
-    public SpringPropertiesLoader(@Nonnull final String locationPattern,
-            final Function<IOException, E> converter) {
+    public SpringPropertiesLoader(@Nonnull final Function<Exception, E> exceptions,
+            @Nonnull final String locationPattern) {
         this.locationPattern = locationPattern;
-        this.converter = converter;
+        this.exceptions = exceptions;
     }
 
+    @Nonnull
     @Override
     public Properties load()
             throws E {
@@ -44,7 +47,30 @@ public final class SpringPropertiesLoader<E extends Exception>
                 properties.load(resource.getInputStream());
             return properties;
         } catch (final IOException e) {
-            throw converter.apply(e);
+            throw exceptions.apply(e);
         }
+    }
+
+    @Nonnull
+    @Override
+    public String describe() {
+        try {
+            return on(", ").join(transform(asList(resolver.getResources(locationPattern)),
+                    new Function<Resource, String>() {
+                        @Nonnull
+                        @Override
+                        public String apply(final Resource resource) {
+                            return resource.getDescription();
+                        }
+                    }));
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return format("%s(%s)", getClass().getSimpleName(), locationPattern);
     }
 }
