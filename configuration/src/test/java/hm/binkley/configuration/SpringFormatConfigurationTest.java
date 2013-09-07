@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public class SpringFormatConfigurationTest {
+public final class SpringFormatConfigurationTest {
     private static final String KEY = "eg.bar";
     @Rule
     public ExpectedException exception = ExpectedException.none();

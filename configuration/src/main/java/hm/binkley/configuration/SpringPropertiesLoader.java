@@ -28,10 +28,16 @@ public final class SpringPropertiesLoader<E extends Exception>
     private final Function<Exception, E> exceptions;
     private final String locationPattern;
 
-    public SpringPropertiesLoader(@Nonnull final Function<Exception, E> exceptions,
+    private SpringPropertiesLoader(@Nonnull final Function<Exception, E> exceptions,
             @Nonnull final String locationPattern) {
         this.locationPattern = locationPattern;
         this.exceptions = exceptions;
+    }
+
+    public static <E extends Exception> SpringPropertiesLoader<E> springPropertiesLoader(
+            @Nonnull final Function<Exception, E> exceptions,
+            @Nonnull final String locationPattern) {
+        return new SpringPropertiesLoader<>(exceptions, locationPattern);
     }
 
     @Nonnull

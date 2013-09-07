@@ -12,7 +12,7 @@ import static java.lang.System.out;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-public class EgSpringConfiguration
+public final class EgSpringConfiguration
         extends DefaultSpringFormatConfiguration {
     public EgSpringConfiguration() {
         super("hm/binkley/configuration/**/eg*.properties", "eg.%s");
@@ -30,7 +30,6 @@ public class EgSpringConfiguration
         return lookup("foo");
     }
 
-    @Nonnull
     public int getBar() {
         return Integer.valueOf(lookup("bar"));
     }
