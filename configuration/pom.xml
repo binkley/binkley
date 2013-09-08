@@ -22,5 +22,11 @@
             <scope>compile</scope>
             <optional>true</optional>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.jnr</groupId>
+            <artifactId>jnr-posix</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

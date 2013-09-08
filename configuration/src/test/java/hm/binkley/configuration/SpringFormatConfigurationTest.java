@@ -1,11 +1,12 @@
 package hm.binkley.configuration;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static java.lang.String.format;
+import static jnr.posix.POSIXFactory.getPOSIX;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
@@ -19,6 +20,12 @@ public final class SpringFormatConfigurationTest {
     @Rule
     public ExpectedException exception = ExpectedException.none();
     private EgSpringConfiguration configuration;
+
+    private static void setenv(final String name, final String value) {
+        final int setenv = getPOSIX().setenv(name, value, 1);
+        if (0 > setenv)
+            throw new RuntimeException(format("Cannot setenv (%d): %s: %s", setenv, name, value));
+    }
 
     @Before
     public void setUp()
@@ -38,16 +45,14 @@ public final class SpringFormatConfigurationTest {
     }
 
     @Test
-    @Ignore("How to test with putenv?")
     public void shouldReturnRightValueWhenEnvironmentOverridesProperties() {
-        System.getenv().put(KEY, "7");
+        setenv(KEY, "7");
         assertThat(configuration.getBar(), is(equalTo(7)));
     }
 
     @Test
-    @Ignore("How to test with putenv?")
     public void shouldReturnRightValueWhenSystemPropertiesOverridesEnvironment() {
-        System.getenv().put(KEY, "14");
+        setenv(KEY, "14");
         System.setProperty(KEY, "7");
         assertThat(configuration.getBar(), is(equalTo(7)));
     }
