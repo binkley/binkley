@@ -125,14 +125,12 @@
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>maven-jgitflow-plugin</artifactId>
                 <version>${maven-jgitflow-plugin.version}</version>
-                <configuration>
-                    <pushFeatures>true</pushFeatures>
-                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
+                    <debug/>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
