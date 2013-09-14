@@ -10,7 +10,7 @@
         <version>7</version>
     </parent>
 
-    <groupId>binkley.hm</groupId>
+    <groupId>hm.binkley</groupId>
     <artifactId>blog</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>

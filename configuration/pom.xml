@@ -4,7 +4,7 @@
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>binkley.hm</groupId>
+        <groupId>hm.binkley</groupId>
         <artifactId>blog</artifactId>
         <version>0.1-SNAPSHOT</version>
     </parent>
