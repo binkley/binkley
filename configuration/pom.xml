@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>hm.binkley</groupId>
-        <artifactId>blog</artifactId>
+        <artifactId>binkley-blog</artifactId>
         <version>0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>configuration</artifactId>
+    <artifactId>binkley-configuration</artifactId>
 
     <dependencies>
         <dependency>

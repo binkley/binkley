@@ -11,7 +11,7 @@
     </parent>
 
     <groupId>hm.binkley</groupId>
-    <artifactId>blog</artifactId>
+    <artifactId>binkley-blog</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -95,7 +95,7 @@
         <dependencies>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>configuration</artifactId>
+                <artifactId>binkley-configuration</artifactId>
                 <version>${project.version</version>
             </dependency>
 
