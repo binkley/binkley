@@ -22,13 +22,20 @@ public final class FormatPropertyFetcher<K, V, E extends Exception>
     private final String format;
     private final Object[] params;
 
-    public FormatPropertyFetcher(@Nonnull final Function<String, V> returns,
+    private FormatPropertyFetcher(@Nonnull final Function<String, V> returns,
             @Nonnull final Function<Exception, E> exceptions, @Nonnull final String format,
             final Object... params) {
         this.returns = returns;
         this.exceptions = exceptions;
         this.format = format;
         this.params = params;
+    }
+
+    public static <K, V, E extends Exception> FormatPropertyFetcher<K, V, E> formatPropertyFetcher(
+            @Nonnull final Function<String, V> returns,
+            @Nonnull final Function<Exception, E> exceptions, @Nonnull final String format,
+            final Object... params) {
+        return new FormatPropertyFetcher<>(returns, exceptions, format, params);
     }
 
     @Override
