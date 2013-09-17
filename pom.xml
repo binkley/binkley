@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
+=======
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+>>>>>>> develop
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -9,7 +13,11 @@
 
     <groupId>hm.binkley</groupId>
     <artifactId>binkley-blog</artifactId>
+<<<<<<< HEAD
     <version>0.1-logging-SNAPSHOT</version>
+=======
+    <version>0.1-SNAPSHOT</version>
+>>>>>>> develop
     <packaging>pom</packaging>
 
     <name>binkley's BLOG</name>
@@ -98,7 +106,11 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+<<<<<<< HEAD
                 <artifactId>xnum</artifactId>
+=======
+                <artifactId>binkley-xnum</artifactId>
+>>>>>>> develop
                 <version>${project.version</version>
             </dependency>
 
