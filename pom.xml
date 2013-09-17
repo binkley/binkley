@@ -49,6 +49,7 @@
 
     <modules>
         <module>configuration</module>
+        <module>logging</module>
         <module>xnum</module>
     </modules>
 
@@ -93,6 +94,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-configuration</artifactId>
+                <version>${project.version</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-logging</artifactId>
                 <version>${project.version</version>
             </dependency>
             <dependency>
