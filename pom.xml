@@ -98,7 +98,7 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>xnum</artifactId>
+                <artifactId>binkley-xnum</artifactId>
                 <version>${project.version</version>
             </dependency>
 

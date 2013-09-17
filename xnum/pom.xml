@@ -5,7 +5,7 @@
         <artifactId>binkley-blog</artifactId>
         <version>0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>xnum</artifactId>
+    <artifactId>binkley-xnum</artifactId>
 
     <dependencies>
         <dependency>
