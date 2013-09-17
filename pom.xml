@@ -9,6 +9,7 @@
 
     <groupId>hm.binkley</groupId>
     <artifactId>binkley-blog</artifactId>
+    <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>binkley's BLOG</name>
