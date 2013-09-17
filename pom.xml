@@ -9,6 +9,7 @@
 
     <groupId>hm.binkley</groupId>
     <artifactId>binkley-blog</artifactId>
+    <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>binkley's BLOG</name>
@@ -60,12 +61,14 @@
         <jnr.version>3.0.0</jnr.version>
         <jsr305.version>2.0.1</jsr305.version>
         <junit.version>4.11</junit.version>
+        <logback.version>1.0.13</logback.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
         <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
         <maven-jgitflow-plugin.version>1.0-alpha20</maven-jgitflow-plugin.version>
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+        <slf4j.version>1.7.5</slf4j.version>
         <spring.version>3.2.4.RELEASE</spring.version>
     </properties>
 
@@ -111,6 +114,22 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-ext</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
             </dependency>
 
             <dependency>
