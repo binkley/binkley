@@ -63,6 +63,7 @@
         <jsr305.version>2.0.1</jsr305.version>
         <junit.version>4.11</junit.version>
         <lifegycle.version>0.1</lifegycle.version>
+        <metainf-services.version>1.5</metainf-services.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
         <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
@@ -77,6 +78,8 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>${jsr305.version}</version>
+            <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -125,6 +128,13 @@
                 <groupId>org.99soft.guice</groupId>
                 <artifactId>lifegycle</artifactId>
                 <version>${lifegycle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.kohsuke.metainf-services</groupId>
+                <artifactId>metainf-services</artifactId>
+                <version>${metainf-services.version}</version>
+                <scope>compile</scope>
+                <optional>true</optional>
             </dependency>
 
             <dependency>
