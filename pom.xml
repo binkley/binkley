@@ -50,6 +50,7 @@
 
     <modules>
         <module>configuration</module>
+        <module>guice</module>
         <module>xnum</module>
     </modules>
 
