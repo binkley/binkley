@@ -2,6 +2,8 @@ package hm.binkley.inject;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
+import com.google.inject.Module;
+import org.kohsuke.MetaInfServices;
 import org.nnsoft.guice.lifegycle.AfterInjectionModule;
 import org.nnsoft.guice.lifegycle.DisposeModule;
 import org.nnsoft.guice.lifegycle.Disposer;
@@ -18,6 +20,7 @@ import static java.lang.Runtime.getRuntime;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
+@MetaInfServices(Module.class)
 public final class LifecycleModule
         extends AbstractModule {
     /**
