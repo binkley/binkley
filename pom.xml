@@ -10,6 +10,10 @@
         <version>7</version>
     </parent>
 
+    <prerequisites>
+        <maven>${maven.version}</maven>
+    </prerequisites>
+
     <groupId>hm.binkley</groupId>
     <artifactId>binkley-blog</artifactId>
     <version>0.1-SNAPSHOT</version>
@@ -54,6 +58,7 @@
     <modules>
         <module>configuration</module>
         <module>guice</module>
+        <module>logging</module>
         <module>xnum</module>
     </modules>
 
@@ -66,6 +71,8 @@
         <jsr305.version>2.0.1</jsr305.version>
         <junit.version>4.11</junit.version>
         <lifegycle.version>0.1</lifegycle.version>
+        <logback.version>1.0.13</logback.version>
+        <maven.version>3.1</maven.version>
         <metainf-services.version>1.5</metainf-services.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
         <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
@@ -73,6 +80,7 @@
         <maven-jgitflow-plugin.version>1.0-alpha20</maven-jgitflow-plugin.version>
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+        <slf4j.version>1.7.5</slf4j.version>
         <spring.version>3.2.4.RELEASE</spring.version>
     </properties>
 
@@ -112,6 +120,11 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-logging</artifactId>
+                <version>${project.version</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-xnum</artifactId>
                 <version>${project.version</version>
             </dependency>
@@ -120,6 +133,22 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-ext</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
             </dependency>
 
             <dependency>
