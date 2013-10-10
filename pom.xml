@@ -32,9 +32,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/binkley/binkley</url>
         <connection>scm:git:git://github.com/binkley/binkley.git</connection>
         <developerConnection>scm:git:git@github.com:binkley/binkley.git</developerConnection>
+        <url>https://github.com/binkley/binkley</url>
     </scm>
 
     <organization>
