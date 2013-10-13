@@ -6,22 +6,28 @@ import java.lang.reflect.ParameterizedType;
 import static java.lang.String.format;
 
 /**
- * {@code Xnum} ("extensible enum") shadows {@link Enum} permitting generic subclassing.
- * Construction of usable instances is identical to {@code enum} (called xnum here to distinguish):
- * <ol><li>Extend {@code Xnum} with an abstract base class for the xnum type.</li> <li>Implement
- * instances of the xnum base class as required as class constants.</li> <li>Implement a {@code
- * values()} class method to return the xnum instances in declartion order.</li> <li>Implement a
- * {@code valueOf(String)} class method to lookup xnum instances by name.  See {@link
- * #valueOf(Class, Iterable, String)} helper.</li></ol> Afterwards class hierarchy should be:
- * <blockquote>Xnum &lt;- Base class &lt;- Members</blockquote> The generic type information should
- * reside on the base class, specialized by the members.  If you do not need specialization type
- * generic type, use {@code enum} not this class.
+ * {@code Xnum} ("extensible enum") shadows {@link Enum} permitting generic subclassing.  This
+ * addresses the lack of covariant return for anonymous classes (enum instances instantiate
+ * anonymous subclasses of their declared enum type).
+ * <p/>
+ * Construction of usable {@code xnum} instances is identical to {@code enum}; the compiler carries
+ * out the work with {@code enum}, you carry out the work with {@code xnum}: <ol><li>Extend {@code
+ * Xnum} with an abstract base class for the xnum type.</li> <li>Implement instances of the xnum
+ * base class as required as class constants.</li> <li>Implement a {@code values()} class method to
+ * return the xnum instances in declartion order.</li> <li>Implement various {@code valueOf} class
+ * methods to lookup xnum instances by name.  See {@link #valueOf(Class, Iterable, String)} helper
+ * for the simplest case.</li></ol> Afterwards class hierarchy should be: <blockquote>Xnum &lt;-
+ * Base class &lt;- Members</blockquote> The generic type information should reside on the base
+ * class, specialized by the members.  If you do not need specialization type generic type, use
+ * {@code enum} not this class.
+ * <p/>
+ * There is no attempt at supporting serialization.
  *
  * @param <X> the extending enum type
  *
- * @author <a href="mailto:Brian.Oxley@Macquarie.COM">Brian Oxley</a>
- * @todo Implement {@code XnumMap} and {@code XnumSet}
- * @see hm.binkley.util.EgXnum Example xnum implementation
+ * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Implement {@code XnumMap} and {@code XnumSet} (uses package-level access into AbstractMap)
+ * @see EgXnum Example xnum implementation
  */
 public abstract class Xnum<X extends Xnum<X>>
         implements Comparable<X> {
@@ -45,8 +51,21 @@ public abstract class Xnum<X extends Xnum<X>>
         throw new IllegalArgumentException(format("No xnum of type %s for name: %s", type, name));
     }
 
+    /** Helper for imlementing {@code valueOf(String, Class)}. */
+    @Nonnull
+    protected static <X extends Xnum<X>, P> X valueOf(@Nonnull final Class<X> type,
+            final Iterable<? extends X> values, @Nonnull final String name, final int slot,
+            @Nonnull final Class<P> parameterType) {
+        final X xnum = valueOf(type, values, name);
+        if (!parameterType.isAssignableFrom(xnum.typeOf(slot)))
+            throw new ClassCastException(
+                    format("Wrong parameter type %s for name: %s", parameterType, name));
+        return xnum;
+    }
+
     /**
-     * Helper to find type parameter of xnum instance.
+     * Helper to find type parameter of xnum instance.  Index position 0 should always be the self
+     * type.
      *
      * @param parameter the 0-based index of types
      * @param <T> the type parameters
