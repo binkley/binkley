@@ -8,10 +8,11 @@ import org.aeonbits.owner.ConfigFactory;
 import javax.annotation.Nonnull;
 
 /**
- * {@code OwnerModule} needs documentation.
+ * {@code OwnerModule} is light-weight wiring of an OWNER API config instance into Guice.
+ * <p/>
+ * Guice does not support generic provider methods; each config needs to be separately configured.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public final class OwnerModule<C extends Config>
         extends AbstractModule {
@@ -21,6 +22,15 @@ public final class OwnerModule<C extends Config>
         this.configType = configType;
     }
 
+    /**
+     * Creates a new Guice module for the given OWNER API config class.
+     *
+     * @param configType the config class, never missing
+     * @param <C> the config type
+     *
+     * @return the Guice module, never missing
+     */
+    @Nonnull
     public static <C extends Config> Module ownerModule(@Nonnull final Class<C> configType) {
         return new OwnerModule<>(configType);
     }
