@@ -58,6 +58,7 @@
     <modules>
         <module>guice</module>
         <module>logging</module>
+        <module>mixin</module>
         <module>xnum</module>
     </modules>
 
@@ -120,6 +121,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-logging</artifactId>
+                <version>${project.version</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-mixin</artifactId>
                 <version>${project.version</version>
             </dependency>
             <dependency>
