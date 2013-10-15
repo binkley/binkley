@@ -28,6 +28,7 @@ import static java.lang.Runtime.getRuntime;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo References to alternative approaches
+ * @todo Work out relation to {@code ProvisionListener} in Guice 4
  */
 @MetaInfServices(Module.class)
 public final class LifecycleModule

@@ -10,9 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * {@code OwnerModule} is light-weight wiring of an OWNER API config instance into Guice.
+ * {@code OwnerModule} is light-weight wiring of an OWNER API {@link Config config} instance into
+ * Guice.
  * <p/>
  * Guice does not support generic provider methods; each config needs to be separately configured.
+ *
+ * @param <C> the config type
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
@@ -20,15 +23,6 @@ public final class OwnerModule<C extends Config>
         extends AbstractModule {
     private final Class<C> configType;
     private final Map<String, String> overrides = new HashMap<>();
-
-    private OwnerModule(final Class<C> configType) {
-        this.configType = configType;
-    }
-
-    private OwnerModule(final Class<C> configType, final Map<String, String> overrides) {
-        this.configType = configType;
-        this.overrides.putAll(overrides);
-    }
 
     /**
      * Creates a new Guice module for the given OWNER API config class.
@@ -57,6 +51,15 @@ public final class OwnerModule<C extends Config>
     public static <C extends Config> Module ownerModule(@Nonnull final Class<C> configType,
             @Nonnull final Map<String, String> overrides) {
         return new OwnerModule<>(configType, overrides);
+    }
+
+    private OwnerModule(final Class<C> configType) {
+        this.configType = configType;
+    }
+
+    private OwnerModule(final Class<C> configType, final Map<String, String> overrides) {
+        this.configType = configType;
+        this.overrides.putAll(overrides);
     }
 
     @Override
