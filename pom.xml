@@ -75,6 +75,7 @@
         <maven.version>3.1</maven.version>
         <metainf-services.version>1.5</metainf-services.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+        <maven-gpg-plugin.version>1.4</maven-gpg-plugin.version>
         <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
         <maven-jgitflow-plugin.version>1.0-alpha20</maven-jgitflow-plugin.version>
@@ -284,6 +285,7 @@
             <!-- TODO: Automate gpg passphrase w/o compromising security -->
             <plugin>
                 <artifactId>maven-gpg-plugin</artifactId>
+                <version>${maven-gpg-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
