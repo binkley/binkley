@@ -29,6 +29,7 @@ public final class LifecycleModule
      *
      * @param guice the Guice injector, never missing
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static void enablePreDestroy(@Nonnull final Injector guice) {
         getRuntime().addShutdownHook(new Thread() {
             @Override
