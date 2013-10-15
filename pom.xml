@@ -32,9 +32,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/binkley/binkley</url>
         <connection>scm:git:git://github.com/binkley/binkley.git</connection>
         <developerConnection>scm:git:git@github.com:binkley/binkley.git</developerConnection>
+        <url>https://github.com/binkley/binkley</url>
     </scm>
 
     <organization>
@@ -277,6 +277,19 @@
                         <goals>
                             <goal>jar</goal>
                             <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- TODO: Automate gpg passphrase w/o compromising security -->
+            <plugin>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
                         </goals>
                     </execution>
                 </executions>
