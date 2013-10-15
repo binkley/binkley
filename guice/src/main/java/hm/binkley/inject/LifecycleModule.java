@@ -16,9 +16,18 @@ import static com.google.inject.matcher.Matchers.any;
 import static java.lang.Runtime.getRuntime;
 
 /**
- * {@code LifecycleModule} enables {@link PostConstruct} and {@link PreDestroy} in Guice.
+ * {@code LifecycleModule} enables <a href="https://en.wikipedia.org/wiki/JSR_250">the JSR-250
+ * annotations</a>, &#64;{@link PostConstruct} and &#64;{@link PreDestroy}, in Guice via the <a
+ * href="http://99soft.github.io/lifegycle/">lifegycle library</a>.  Google shows several other,
+ * more fully featured soutions; this is the smallest implementation.
+ * <p/>
+ * Guice lacks shutdown hooks.  For {@code @PreDestroy} to work you must {@link
+ * #enablePreDestroy(Injector) install one yourself}: <pre>
+ * Injector guice = Guice.createInjector(new LifecycleModule());
+ * LifecycleModule.enablePreDestroy(guice);</pre>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo References to alternative approaches
  */
 @MetaInfServices(Module.class)
 public final class LifecycleModule
