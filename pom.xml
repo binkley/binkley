@@ -288,7 +288,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- TODO: Automate gpg passphrase w/o compromising security -->
             <plugin>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>${maven-gpg-plugin.version}</version>
@@ -306,7 +305,9 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>${maven-release-plugin.version}</version>
                 <configuration>
-                    <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
+                    <arguments>-Psonatype-oss-release -Dgpg.passphrase=${gpg.passphrase}</arguments>
+                    <mavenExecutorId>forked-path</mavenExecutorId>
+                    <useReleaseProfile>false</useReleaseProfile>
                 </configuration>
             </plugin>
         </plugins>
