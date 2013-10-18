@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+
+read -er -p 'Passphrase: ' gpg_passphrase
+echo # Get back newline
+GPG_PASSPHRASE="$gpg_passphrase" exec "$@"
