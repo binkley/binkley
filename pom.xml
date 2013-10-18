@@ -182,6 +182,12 @@
             </dependency>
 
             <dependency>
+                <groupId>net.sf.jopt-simple</groupId>
+                <artifactId>jopt-simple</artifactId>
+                <version>4.5</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.github.jnr</groupId>
                 <artifactId>jnr-posix</artifactId>
                 <version>${jnr.version}</version>
