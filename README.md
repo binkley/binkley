@@ -1,7 +1,9 @@
 binkley's BLOG
 ==============
 
-http://binkley.blogspot.com
+<http://binkley.blogspot.com>
+
+This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
 
 *Modules:*
 

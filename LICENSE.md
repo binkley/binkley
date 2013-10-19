@@ -1,27 +1,29 @@
 # License #
 
-binkley-blog is free software, licensed under the Apache License,
-Version 2.0 (the "License"). Commercial and non-commercial use are
-permitted in compliance with the License.
+This is free and unencumbered software released into the public domain.
 
-Copyright (c) 2013 B. K. Oxley (binkley) <binkley@alumni.rice.edu>
-All rights reserved.
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
 
-You may obtain a copy of the License at:
-http://www.apache.org/licenses/LICENSE-2.0
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
 
-In addition, a copy of the License is included with this distribution.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
 
-As stated in Section 7, "Disclaimer of Warranty," of the License:
-
-> Licensor provides the Work (and each Contributor provides its
-> Contributions) on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
-> OF ANY KIND, either express or implied, including, without
-> limitation, any warranties or conditions of TITLE, NON-INFRINGEMENT,
-> MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are solely
-> responsible for determining the appropriateness of using or
-> redistributing the Work and assume any risks associated with Your
-> exercise of mpermissions under this License.
+For more information, please refer to <http://unlicense.org/>.
 
 The source code for binkley-blog is available at:
-https://github.com/binkley/binkley
+<https://github.com/binkley/binkley>.
