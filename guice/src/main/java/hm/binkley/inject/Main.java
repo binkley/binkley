@@ -36,8 +36,7 @@ public abstract class Main {
     public static void main(final String... args) {
         final Main main = getOnlyElement(ServiceLoader.load(Main.class));
         final JOptSimpleModule jOptSimpleModule = jOptSimpleModule(args);
-        final OptionParser optionParser = jOptSimpleModule.parser();
-        main.addOptions(optionParser);
+        main.addOptions(jOptSimpleModule.parser());
         final Injector preGuice = createInjector(jOptSimpleModule);
         final OptionSet options = preGuice.getInstance(OptionSet.class);
         final OwnerModule ownerModule = ownerModule(main.configType(), mapOf(options, null));
