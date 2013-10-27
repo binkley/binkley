@@ -44,15 +44,19 @@ public final class LifecycleModule
      * PreDestroy} when the JVM shuts down.
      *
      * @param guice the Guice injector, never missing
+     *
+     * @return the <var>guice</var> injector
      */
     @SuppressWarnings("UnusedDeclaration")
-    public static void enablePreDestroy(@Nonnull final Injector guice) {
+    @Nonnull
+    public static Injector enablePreDestroy(@Nonnull final Injector guice) {
         getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 guice.getInstance(Disposer.class).dispose();
             }
         });
+        return guice;
     }
 
     @Override
