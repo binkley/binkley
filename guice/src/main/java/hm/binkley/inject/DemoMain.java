@@ -1,3 +1,9 @@
+/*
+ * This is free and unencumbered software released into the public domain.
+ *
+ * Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
+ */
+
 package hm.binkley.inject;
 
 import com.google.inject.Inject;
@@ -23,15 +29,13 @@ public final class DemoMain
         extends Main<DemoMainConfig> {
     private DemoMainConfig config;
 
+    public DemoMain() {
+        super(DemoMainConfig.class);
+    }
+
     @Inject
     public void setConfig(final DemoMainConfig config) {
         this.config = config;
-    }
-
-    @Nonnull
-    @Override
-    protected Class<DemoMainConfig> configType() {
-        return DemoMainConfig.class;
     }
 
     @Override
