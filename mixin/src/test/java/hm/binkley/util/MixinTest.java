@@ -127,6 +127,11 @@ public class MixinTest {
         fail("No @Cool on Bob.throwDown(String) proxy");
     }
 
+    @Test(expected = AbstractMethodError.class)
+    public void shouldThrowIfImplementation() {
+        newMixin(Testy.class, new Object());
+    }
+
     interface Testy
             extends Bob, Mixin {
         String quack(final int quacks);

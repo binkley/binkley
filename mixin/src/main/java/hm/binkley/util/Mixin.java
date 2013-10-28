@@ -9,8 +9,10 @@ package hm.binkley.util;
 import com.google.common.collect.ImmutableList;
 
 import javax.annotation.Nonnull;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,9 +45,6 @@ public interface Mixin {
     List<Object> mixinDelegates();
 
     final class Factory {
-        private Factory() {
-        }
-
         /**
          * Creates a new mixin.  If <var>as</var> extends {@code Mixin}, provides a supporting
          * {@link #mixinDelegates()} method to give public access to <var>delegates</var>.
@@ -63,35 +62,13 @@ public interface Mixin {
                     new Handler<>(as, new MixedDelegates(delegates).mixinDelegates())));
         }
 
-        private static final class Invoker {
-            private final Method method;
-            private final Object receiver;
-
-            private Invoker(final Method method, final Object receiver) {
-                this.method = method;
-                this.receiver = receiver;
-            }
-
-            public Object invoke(final Object... args)
-                    throws ReflectiveOperationException {
-                return method.invoke(receiver, args);
-            }
-
-            public Throwable unwrap(final InvocationTargetException e) {
-                final Throwable x = e.getTargetException();
-                if (x instanceof RuntimeException || x instanceof Error || isThrowing(x))
-                    return x;
-                return e;
-            }
-
-            private boolean isThrowing(final Throwable e) {
-                return asList(method.getExceptionTypes()).contains(e.getClass());
-            }
+        private Factory() {
         }
 
         private static class Handler<T>
                 implements InvocationHandler {
-            private final ConcurrentMap<Method, Invoker> matches;
+            private static final Lookup LOOKUP = MethodHandles.lookup();
+            private final ConcurrentMap<Method, MethodHandle> matches;
             private final List<Object> delegates;
 
             private Handler(final Class<T> as, final List<Object> delegates) {
@@ -104,24 +81,20 @@ public interface Mixin {
                     final Object[] args)
                     throws Throwable {
                 // Try as previous found - method match memoized
-                final Invoker invoker = matches.get(method);
-                if (null != invoker)
-                    try {
-                        return invoker.invoke(args);
-                    } catch (final InvocationTargetException e) {
-                        throw invoker.unwrap(e);
-                    }
+                final MethodHandle handle = matches.get(method);
+                if (null != handle)
+                    return handle.invoke(args);
+                final MethodHandle unreflected = LOOKUP.unreflect(method);
                 // Try as an implementation - static typing
                 for (final Object delegate : delegates)
                     try {
-                        final Object value = method.invoke(delegate, args);
-                        matches.put(method, new Invoker(method, delegate));
+                        final MethodHandle bound = LOOKUP
+                                .findVirtual(delegate.getClass(), method.getName(),
+                                        unreflected.type()).bindTo(delegate);
+                        final Object value = bound.invokeWithArguments(args);
+                        matches.put(method, bound);
                         return value;
-                    } catch (final InvocationTargetException e) {
-                        final Invoker newInvoker = new Invoker(method, delegate);
-                        matches.put(method, newInvoker);
-                        throw newInvoker.unwrap(e);
-                    } catch (final IllegalArgumentException ignored) {
+                    } catch (final NoSuchMethodException e) {
                         // Try next method
                     }
                 // Try by name/arg types - duck typing
@@ -133,19 +106,14 @@ public interface Mixin {
                         final Method quack = duck.getMethod(name, types);
                         if (!method.getReturnType().isAssignableFrom(quack.getReturnType()))
                             continue;
-                        final Invoker newInvoker = new Invoker(quack, delegate);
-                        try {
-                            matches.put(method, newInvoker);
-                            return quack.invoke(delegate, args);
-                        } catch (final InvocationTargetException e) {
-                            // See http://amitstechblog.wordpress.com/2011/07/24/java-proxies-and-undeclaredthrowableexception/
-                            throw newInvoker.unwrap(e);
-                        }
+                        final MethodHandle bound = LOOKUP.unreflect(quack).bindTo(delegate);
+                        final Object value = bound.invokeWithArguments(args);
+                        matches.put(method, bound);
+                        return value;
                     } catch (final NoSuchMethodException ignored) {
                         // Try next delegate
                     }
                 }
-
                 throw new AbstractMethodError(
                         format("BUG: Missing implementation for <%s> among %s.", method,
                                 delegates));
