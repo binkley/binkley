@@ -128,8 +128,9 @@ public class MixinTest {
     }
 
     @Test(expected = AbstractMethodError.class)
-    public void shouldThrowIfImplementation() {
-        newMixin(Testy.class, new Object());
+    public void shouldThrowIfUnimplemented()
+            throws IOException {
+        newMixin(Testy.class, new Object()).die();
     }
 
     interface Testy
