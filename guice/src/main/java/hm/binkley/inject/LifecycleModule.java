@@ -8,8 +8,6 @@ package hm.binkley.inject;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
-import com.google.inject.Module;
-import org.kohsuke.MetaInfServices;
 import org.nnsoft.guice.lifegycle.AfterInjectionModule;
 import org.nnsoft.guice.lifegycle.DisposeModule;
 import org.nnsoft.guice.lifegycle.Disposer;
@@ -35,8 +33,10 @@ import static java.lang.Runtime.getRuntime;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo References to alternative approaches
  * @todo Work out relation to {@code ProvisionListener} in Guice 4
+ * @todo Fix bug with listener when JDK proxy passed in (null package)
+ * @todo Work out "right thing" for installing manually v. meta-inf module
  */
-@MetaInfServices(Module.class)
+//@MetaInfServices(Module.class)
 public final class LifecycleModule
         extends AbstractModule {
     /**

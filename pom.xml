@@ -76,7 +76,7 @@
         <jnr.version>3.0.0</jnr.version>
         <jsr305.version>2.0.1</jsr305.version>
         <junit.version>4.11</junit.version>
-        <lifegycle.version>0.1</lifegycle.version>
+        <lifegycle.version>0.2-SNAPSHOT</lifegycle.version>
         <logback.version>1.0.13</logback.version>
         <maven.version>3.1</maven.version>
         <metainf-services.version>1.5</metainf-services.version>
