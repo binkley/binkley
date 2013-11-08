@@ -6,6 +6,8 @@
 
 package hm.binkley.util;
 
+import com.google.common.base.Predicate;
+
 import javax.annotation.Nonnull;
 import java.lang.reflect.ParameterizedType;
 
@@ -193,5 +195,28 @@ public abstract class Xnum<X extends Xnum<X>>
     /** Xnum classes cannot have finalize methods. */
     @Override
     protected final void finalize() {
+    }
+
+    protected interface Typed<T> {
+        @Nonnull
+        Class<T> type();
+    }
+
+    protected static final class OfType<T, X extends Xnum<X> & Typed<T>>
+            implements Predicate<EgXnum<?>> {
+        private final Class<T> type;
+
+        private OfType(final Class<T> type) {
+            this.type = type;
+        }
+
+        static <T, X extends Xnum<X> & Typed<T>> OfType<T, X> ofType(final Class<T> type) {
+            return new OfType<>(type);
+        }
+
+        @Override
+        public boolean apply(final EgXnum<?> xnum) {
+            return type == xnum.type();
+        }
     }
 }

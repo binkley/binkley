@@ -6,15 +6,15 @@
 
 package hm.binkley.util;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import hm.binkley.util.Xnum.Typed;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.filter;
-import static hm.binkley.util.EgXnum.OfType.ofType;
+import static hm.binkley.util.Xnum.OfType.ofType;
 import static java.lang.String.format;
 import static java.lang.System.out;
 
@@ -24,15 +24,12 @@ import static java.lang.System.out;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public abstract class EgXnum<T>
-        extends Xnum<EgXnum<T>> {
+        extends Xnum<EgXnum<T>>
+        implements Typed<T> {
     public static final EgXnum<Integer> FOO = new FOO();
     public static final EgXnum<String> BAR = new BAR();
     public static final EgXnum<String> BAZ = new BAZ();
     private static final List<EgXnum<?>> VALUES = ImmutableList.<EgXnum<?>>of(FOO, BAR, BAZ);
-
-    private EgXnum(@Nonnull final String name, final int ordinal) {
-        super(name, ordinal);
-    }
 
     /**
      * Gets an unmodifiable list of xnum values in declaration order.
@@ -117,6 +114,10 @@ public abstract class EgXnum<T>
         out.println("xnum.get = " + xnum.get());
     }
 
+    private EgXnum(@Nonnull final String name, final int ordinal) {
+        super(name, ordinal);
+    }
+
     /**
      * Gets the typed value held by the instance.  This is the entire point of xnums; enums do not
      * support covariant return as they are instances of anonymous subclasses.
@@ -125,7 +126,8 @@ public abstract class EgXnum<T>
      */
     public abstract T get();
 
-    @SuppressWarnings("unchecked")
+    @Nonnull
+    @Override
     public final Class<T> type() {
         return typeOf(0);
     }
@@ -173,24 +175,6 @@ public abstract class EgXnum<T>
         @Override
         public String get() {
             return "Lucky!";
-        }
-    }
-
-    static class OfType<T>
-            implements Predicate<EgXnum<?>> {
-        private final Class<T> type;
-
-        private OfType(final Class<T> type) {
-            this.type = type;
-        }
-
-        static <T> OfType<T> ofType(final Class<T> type) {
-            return new OfType<>(type);
-        }
-
-        @Override
-        public boolean apply(final EgXnum<?> xnum) {
-            return type == xnum.type();
         }
     }
 }
