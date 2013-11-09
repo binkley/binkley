@@ -14,13 +14,15 @@ import java.util.List;
 import static hm.binkley.util.SingleTyped.*;
 
 /**
- * {@code EgXnum} is a sample {@link hm.binkley.util.Xnum}, not a prodution class.
+ * {@code SingleValueXnum} is a template for {@link TODO} to generate single-valued xnums with an
+ * annotation processor.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Annotation processor adds xnum constants
  * @todo Annotation processor fills in VALUES
  * @todo Annotation processor adds ordinal constants
  * @todo Annotation processor writes out implementation classes
+ * @see EgXnum
  */
 public abstract class SingleValueXnum<T>
         extends Xnum<SingleValueXnum<T>>
