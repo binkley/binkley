@@ -28,7 +28,8 @@ public abstract class EgXnum<T>
     public static final EgXnum<Integer> FOO = new FOO();
     public static final EgXnum<String> BAR = new BAR();
     public static final EgXnum<String> BAZ = new BAZ();
-    private static final List<EgXnum<?>> VALUES = ImmutableList.<EgXnum<?>>of(FOO, BAR, BAZ);
+    private static final List<? extends EgXnum<?>> VALUES = ImmutableList
+            .<EgXnum<?>>of(FOO, BAR, BAZ);
 
     /**
      * Gets an unmodifiable list of xnum values in declaration order.
@@ -36,7 +37,7 @@ public abstract class EgXnum<T>
      * @return all xnum values, never missing
      */
     @Nonnull
-    public static List<EgXnum<?>> values() {
+    public static List<? extends EgXnum<?>> values() {
         return VALUES;
     }
 
@@ -52,8 +53,7 @@ public abstract class EgXnum<T>
      */
     @Nonnull
     public static <T> List<EgXnum<T>> valuesOfType(@Nonnull final Class<T> type) {
-        return copyOf(
-                filter((List<EgXnum<T>>) (List) values(), new SingleTyped<T, EgXnum<T>>(type)));
+        return copyOf(filter((List<EgXnum<T>>) values(), new SingleTyped<T, EgXnum<T>>(type)));
     }
 
     /**
@@ -69,7 +69,6 @@ public abstract class EgXnum<T>
      * @throws NullPointerException if <var>name</var> is null
      */
     @Nonnull
-    @SuppressWarnings("unchecked")
     public static EgXnum<?> valueOf(@Nonnull final String name) {
         return valueOf(EgXnum.class, values(), name);
     }
@@ -107,6 +106,8 @@ public abstract class EgXnum<T>
                             xnum.get(), xnum.getClass(), xnum.getDeclaringClass()));
 
         for (final EgXnum<String> xnum : EgXnum.valuesOfType(String.class))
+            out.println(format("%s = %s", xnum, xnum.get()));
+        for (final EgXnum<Number> xnum : EgXnum.valuesOfType(Number.class))
             out.println(format("%s = %s", xnum, xnum.get()));
 
         final EgXnum.Ordinal ordinal = EgXnum.Ordinal.BAR;

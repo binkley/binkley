@@ -26,7 +26,8 @@ public abstract class SingleValueXnum<T>
         extends Xnum<SingleValueXnum<T>>
         implements Typed<T> {
     //    public static final SingleValueXnum<Integer> FOO = new FOO();
-    private static final List<SingleValueXnum<?>> VALUES = ImmutableList.<SingleValueXnum<?>>of();
+    private static final List<? extends SingleValueXnum<?>> VALUES = ImmutableList
+            .<SingleValueXnum<?>>of();
 
     /**
      * Gets an unmodifiable list of xnum values in declaration order.
@@ -34,7 +35,7 @@ public abstract class SingleValueXnum<T>
      * @return all xnum values, never missing
      */
     @Nonnull
-    public static List<SingleValueXnum<?>> values() {
+    public static List<? extends SingleValueXnum<?>> values() {
         return VALUES;
     }
 

@@ -45,7 +45,7 @@ final class SingleTyped<T, X extends Xnum<X> & Typed<T>>
 
     @Override
     public boolean apply(final X xnum) {
-        return type == xnum.type();
+        return type.isAssignableFrom(xnum.type());
     }
 
     /** {@code Typed} needs documentation. */
