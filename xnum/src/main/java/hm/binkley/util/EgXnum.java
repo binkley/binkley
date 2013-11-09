@@ -11,8 +11,9 @@ import com.google.common.collect.ImmutableList;
 import javax.annotation.Nonnull;
 import java.util.List;
 
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.filter;
 import static hm.binkley.util.SingleTyped.Typed;
-import static hm.binkley.util.SingleTyped.allOf;
 import static java.lang.String.format;
 import static java.lang.System.out;
 
@@ -46,10 +47,13 @@ public abstract class EgXnum<T>
      * @param <T> the specialization type
      *
      * @return the sequence of instances of <var>type</var>, never missing
+     *
+     * @see SingleTyped#allOf(List, Class)
      */
     @Nonnull
     public static <T> List<EgXnum<T>> valuesOfType(@Nonnull final Class<T> type) {
-        return allOf(values(), type);
+        return copyOf(
+                filter((List<EgXnum<T>>) (List) values(), new SingleTyped<T, EgXnum<T>>(type)));
     }
 
     /**
@@ -84,6 +88,7 @@ public abstract class EgXnum<T>
      * specified name
      * @throws NullPointerException if <var>name</var> is null
      * @throws ClassCastException if <var>type</var> is unassignable from using the xnum constant
+     * @see SingleTyped#coerceOneOf(Class, List, String, Class)
      */
     @Nonnull
     @SuppressWarnings("unchecked")

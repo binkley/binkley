@@ -14,6 +14,7 @@ import java.util.List;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.filter;
+import static hm.binkley.util.Xnum.valueOf;
 
 /**
  * {@code SingleTyped} needs documentation.
@@ -31,13 +32,13 @@ final class SingleTyped<T, X extends Xnum<X> & Typed<T>>
 
     @SuppressWarnings("unchecked")
     static <T, V extends Xnum, X extends Xnum<X> & Typed<T>> X coerceOneOf(final Class<V> xnumType,
-            final List<V> values, final String name) {
-        return (X) Xnum.valueOf(xnumType, values, name);
+            final List<? extends V> values, final String name, final Class<T> valueType) {
+        return (X) valueOf(xnumType, values, name, 0, valueType);
     }
 
     @SuppressWarnings("unchecked")
-    static <T, V extends Xnum, X extends Xnum<X> & Typed<T>> List<X> allOf(final List<V> values,
-            final Class<T> type) {
+    static <T, V extends Xnum, X extends Xnum<X> & Typed<T>> List<X> allOf(
+            final List<? extends V> values, final Class<T> type) {
         // Type coersion required; safe as we filter on T
         return copyOf(filter((List<X>) values, new SingleTyped<T, X>(type)));
     }

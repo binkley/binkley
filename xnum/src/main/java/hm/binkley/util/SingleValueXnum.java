@@ -11,8 +11,7 @@ import com.google.common.collect.ImmutableList;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-import static hm.binkley.util.SingleTyped.Typed;
-import static hm.binkley.util.SingleTyped.allOf;
+import static hm.binkley.util.SingleTyped.*;
 
 /**
  * {@code EgXnum} is a sample {@link hm.binkley.util.Xnum}, not a prodution class.
@@ -90,8 +89,7 @@ public abstract class SingleValueXnum<T>
     @SuppressWarnings("unchecked")
     public static <T> SingleValueXnum<T> valueOf(@Nonnull final String name,
             @Nonnull final Class<T> parameterType) {
-        return (SingleValueXnum<T>) valueOf(SingleValueXnum.class, values(), name, 0,
-                parameterType);
+        return coerceOneOf(SingleValueXnum.class, values(), name, parameterType);
     }
 
     private SingleValueXnum(@Nonnull final String name, final int ordinal) {
