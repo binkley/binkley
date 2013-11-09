@@ -13,21 +13,21 @@ import java.util.List;
 
 import static hm.binkley.util.SingleTyped.Typed;
 import static hm.binkley.util.SingleTyped.allOf;
-import static java.lang.String.format;
-import static java.lang.System.out;
 
 /**
- * {@code EgXnum} is a sample {@link Xnum}, not a prodution class.
+ * {@code EgXnum} is a sample {@link hm.binkley.util.Xnum}, not a prodution class.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Annotation processor adds xnum constants
+ * @todo Annotation processor fills in VALUES
+ * @todo Annotation processor adds ordinal constants
+ * @todo Annotation processor writes out implementation classes
  */
-public abstract class EgXnum<T>
-        extends Xnum<EgXnum<T>>
+public abstract class SingleValueXnum<T>
+        extends Xnum<SingleValueXnum<T>>
         implements Typed<T> {
-    public static final EgXnum<Integer> FOO = new FOO();
-    public static final EgXnum<String> BAR = new BAR();
-    public static final EgXnum<String> BAZ = new BAZ();
-    private static final List<EgXnum<?>> VALUES = ImmutableList.<EgXnum<?>>of(FOO, BAR, BAZ);
+    //    public static final SingleValueXnum<Integer> FOO = new FOO();
+    private static final List<SingleValueXnum<?>> VALUES = ImmutableList.<SingleValueXnum<?>>of();
 
     /**
      * Gets an unmodifiable list of xnum values in declaration order.
@@ -35,7 +35,7 @@ public abstract class EgXnum<T>
      * @return all xnum values, never missing
      */
     @Nonnull
-    public static List<EgXnum<?>> values() {
+    public static List<SingleValueXnum<?>> values() {
         return VALUES;
     }
 
@@ -48,7 +48,8 @@ public abstract class EgXnum<T>
      * @return the sequence of instances of <var>type</var>, never missing
      */
     @Nonnull
-    public static <T> List<EgXnum<T>> valuesOfType(@Nonnull final Class<T> type) {
+    @SuppressWarnings("unchecked")
+    public static <T> List<SingleValueXnum<T>> valuesOfType(@Nonnull final Class<T> type) {
         return allOf(values(), type);
     }
 
@@ -66,8 +67,8 @@ public abstract class EgXnum<T>
      */
     @Nonnull
     @SuppressWarnings("unchecked")
-    public static EgXnum<?> valueOf(@Nonnull final String name) {
-        return valueOf(EgXnum.class, values(), name);
+    public static SingleValueXnum<?> valueOf(@Nonnull final String name) {
+        return valueOf(SingleValueXnum.class, values(), name);
     }
 
     /**
@@ -87,29 +88,13 @@ public abstract class EgXnum<T>
      */
     @Nonnull
     @SuppressWarnings("unchecked")
-    public static <T> EgXnum<T> valueOf(@Nonnull final String name,
+    public static <T> SingleValueXnum<T> valueOf(@Nonnull final String name,
             @Nonnull final Class<T> parameterType) {
-        return (EgXnum<T>) valueOf(EgXnum.class, values(), name, 0, parameterType);
+        return (SingleValueXnum<T>) valueOf(SingleValueXnum.class, values(), name, 0,
+                parameterType);
     }
 
-    public static void main(final String... args) {
-        out.println(EgXnum.valueOf("BAR"));
-        out.println(EgXnum.valueOf("BAR", String.class));
-
-        for (final EgXnum<?> xnum : EgXnum.values())
-            out.println(
-                    format("%s(%d)[%s] = %s - %s / %s", xnum.name(), xnum.ordinal(), xnum.type(),
-                            xnum.get(), xnum.getClass(), xnum.getDeclaringClass()));
-
-        for (final EgXnum<String> xnum : EgXnum.valuesOfType(String.class))
-            out.println(format("%s = %s", xnum, xnum.get()));
-
-        final EgXnum.Ordinal ordinal = EgXnum.Ordinal.BAR;
-        final EgXnum<?> xnum = ordinal.xnum();
-        out.println("xnum.get = " + xnum.get());
-    }
-
-    private EgXnum(@Nonnull final String name, final int ordinal) {
+    private SingleValueXnum(@Nonnull final String name, final int ordinal) {
         super(name, ordinal);
     }
 
@@ -128,48 +113,13 @@ public abstract class EgXnum<T>
     }
 
     public enum Ordinal {
-        FOO, BAR, BAZ;
+        //        FOO
+        ;
 
         @Nonnull
         @SuppressWarnings("unchecked")
-        public <T> EgXnum<T> xnum() {
-            return (EgXnum<T>) VALUES.get(ordinal());
-        }
-    }
-
-    private static final class FOO
-            extends EgXnum<Integer> {
-        private FOO() {
-            super("FOO", Ordinal.FOO.ordinal());
-        }
-
-        @Override
-        public Integer get() {
-            return 13;
-        }
-    }
-
-    private static final class BAR
-            extends EgXnum<String> {
-        private BAR() {
-            super("BAR", Ordinal.BAR.ordinal());
-        }
-
-        @Override
-        public String get() {
-            return "Friday";
-        }
-    }
-
-    private static final class BAZ
-            extends EgXnum<String> {
-        private BAZ() {
-            super("BAZ", Ordinal.BAR.ordinal());
-        }
-
-        @Override
-        public String get() {
-            return "Lucky!";
+        public <T> SingleValueXnum<T> xnum() {
+            return (SingleValueXnum<T>) VALUES.get(ordinal());
         }
     }
 }
