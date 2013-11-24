@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<configuration debug="${logback.debug:=false}">
+    <contextName>OSI</contextName>
+    <property resource="osi-logback-styles.properties"/>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${${logback.style:-standard}}</pattern>
+        </encoder>
+    </appender>
+    <root level="${log.level:-warn}">
+        <appender-ref ref="console"/>
+    </root>
+    <include resource="osi-logback-included.xml" optional="true"/>
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
+    <jmxConfigurator/>
+</configuration>
