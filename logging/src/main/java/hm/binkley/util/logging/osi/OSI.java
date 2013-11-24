@@ -1,4 +1,4 @@
-package lab.osi;
+package hm.binkley.util.logging.osi;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.util.ContextInitializer;
