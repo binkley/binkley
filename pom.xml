@@ -65,7 +65,8 @@
         <module>guice</module>
         <module>logging</module>
         <module>mixin</module>
-        <module>xnum</module>
+        <!-- TODO: Compiles with 1.7, not with 1.8 -->
+        <!-- <module>xnum</module> -->
     </modules>
 
     <properties>
