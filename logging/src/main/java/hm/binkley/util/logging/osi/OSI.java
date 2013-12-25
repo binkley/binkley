@@ -11,8 +11,11 @@ import ch.qos.logback.classic.util.ContextInitializer;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.status.ErrorStatus;
 import ch.qos.logback.core.status.InfoStatus;
+import ch.qos.logback.core.status.StatusManager;
 import ch.qos.logback.core.status.WarnStatus;
 import ch.qos.logback.core.util.Loader;
+import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -33,12 +36,10 @@ import static org.slf4j.LoggerFactory.getILoggerFactory;
  * @todo Implement {@link java.lang.AutoCloseable} when non-singleton
  */
 public final class OSI
-        implements AutoCloseable {
+        implements AutoCloseable, ILoggerFactory {
     private final LoggerContext context = new LoggerContext();
 
-    /**
-     * @todo Support non-singleton version - bits of logback are package private for this
-     */
+    /** @todo Support non-singleton version - bits of logback are package private for this */
     public static void enableLogging() {
         setProperty("logback.configurationFile", "osi-logback.xml");
     }
@@ -52,15 +53,17 @@ public final class OSI
         stopLoggingThreads0((LoggerContext) getILoggerFactory());
     }
 
+    public OSI(@Nonnull final String logbackConfigFile) {
+
+    }
+
     private static void stopLoggingThreads0(final LoggerContext context) {
         context.stop();
     }
 
-    /**
-     * @todo Do not use {@link ContextInitializer#autoConfig()} directly - assumes sysprops
-     */
+    /** @todo Do not use {@link ContextInitializer#autoConfig()} directly - assumes sysprops */
     private static void reconfigureLogging0(final LoggerContext context)
-    throws JoranException {
+            throws JoranException {
         context.reset();
         context.getStatusManager().clear();
         new ContextInitializer(context).autoConfig();
@@ -78,6 +81,8 @@ public final class OSI
 
     /**
      * @param logbackConfigFile
+     * @param classLoader
+     * @param loggerContext
      *
      * @return
      *
@@ -86,7 +91,8 @@ public final class OSI
      * @todo Throw rather than return {@code null}, do not swallow exceptions
      */
     @Nonnull
-    private URL x(@Nonnull final String logbackConfigFile) {
+    private URL findConfigFileURL(@Nonnull final String logbackConfigFile,
+            final ClassLoader classLoader, final LoggerContext loggerContext) {
         URL result = null;
         try {
             result = new URL(logbackConfigFile);
@@ -94,49 +100,55 @@ public final class OSI
         } catch (final MalformedURLException e) {
             // so, resource is not a URL:
             // attempt to get the resource from the class path
-            result = Loader.getResource(logbackConfigFile, getClass().getClassLoader());
-            if (result != null) {
+            result = Loader.getResource(logbackConfigFile, classLoader);
+            if (result != null)
                 return result;
-            }
             final File f = new File(logbackConfigFile);
-            if (f.exists() && f.isFile()) {
+            if (f.exists() && f.isFile())
                 try {
-                    result = f.toURI().toURL();
-                    return result;
-                } catch (MalformedURLException e1) {
+                    return f.toURI().toURL();
+                } catch (final MalformedURLException ignored) {
                 }
-            }
         } finally {
             // statusOnResourceSearch(logbackConfigFile, classLoader, result);
+            final StatusManager statusManager = loggerContext.getStatusManager();
             if (result == null) {
-                context.getStatusManager()
+                statusManager
                         .add(new InfoStatus("Could NOT find resource [" + logbackConfigFile + "]",
-                                context));
+                                loggerContext));
             } else {
-                context.getStatusManager().add(new InfoStatus(
+                statusManager.add(new InfoStatus(
                         "Found resource [" + logbackConfigFile + "] at [" + result.toString() + "]",
-                        context));
+                        loggerContext));
                 // multiplicityWarning(logbackConfigFile, getClass().getClassLoader());
                 Set<URL> urlSet = null;
                 try {
-                    urlSet = Loader.getResourceOccurrenceCount(logbackConfigFile,
-                            getClass().getClassLoader());
+                    urlSet = Loader.getResourceOccurrenceCount(logbackConfigFile, classLoader);
                 } catch (final IOException e) {
-                    context.getStatusManager().add(new ErrorStatus(
+                    statusManager.add(new ErrorStatus(
                             "Failed to get url list for resource [" + logbackConfigFile + "]",
-                            context, e));
+                            loggerContext, e));
                 }
                 if (urlSet != null && urlSet.size() > 1) {
-                    context.getStatusManager().add(new WarnStatus("Resource [" + logbackConfigFile
-                            + "] occurs multiple times on the classpath.", context));
+                    statusManager.add(new WarnStatus("Resource [" + logbackConfigFile
+                            + "] occurs multiple times on the classpath.", loggerContext));
                     for (final URL url : urlSet) {
-                        context.getStatusManager().add(new WarnStatus(
+                        statusManager.add(new WarnStatus(
                                 "Resource [" + logbackConfigFile + "] occurs at [" + url.toString()
-                                        + "]", context));
+                                        + "]", loggerContext));
                     }
                 }
             }
         }
         return null;
+    }
+
+    public Logger getLogger(final Class<?> clazz) {
+        return getLogger(clazz.getName());
+    }
+
+    @Override
+    public Logger getLogger(final String name) {
+        return context.getLogger(name);
     }
 }
