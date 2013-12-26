@@ -45,7 +45,9 @@ public abstract class Xnum<X extends Xnum<X>>
         this.ordinal = ordinal;
     }
 
-    /** Helper for implementing {@code valueOf(String)}. */
+    /**
+     * Helper for implementing {@code valueOf(String)}.
+     */
     @Nonnull
     protected static <X extends Xnum<X>> X valueOf(final Class<X> type,
             final Iterable<? extends X> values, final String name) {
@@ -57,7 +59,9 @@ public abstract class Xnum<X extends Xnum<X>>
         throw new IllegalArgumentException(format("No xnum of type %s for name: %s", type, name));
     }
 
-    /** Helper for imlementing {@code valueOf(String, Class)}. */
+    /**
+     * Helper for imlementing {@code valueOf(String, Class)}.
+     */
     @Nonnull
     protected static <X extends Xnum<X>, P> X valueOf(@Nonnull final Class<X> type,
             final Iterable<? extends X> values, @Nonnull final String name, final int slot,
@@ -161,7 +165,6 @@ public abstract class Xnum<X extends Xnum<X>>
      * @return true if the specified object is equal to this xnum constant.
      */
     @Override
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public final boolean equals(final Object o) {
         return this == o;
     }
@@ -190,7 +193,9 @@ public abstract class Xnum<X extends Xnum<X>>
         return name;
     }
 
-    /** Xnum classes cannot have finalize methods. */
+    /**
+     * Xnum classes cannot have finalize methods.
+     */
     @Override
     protected final void finalize() {
     }

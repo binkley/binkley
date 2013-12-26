@@ -1,4 +1,10 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ This is free and unencumbered software released into the public domain.
+  ~
+  ~ Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
+  -->
+
 <configuration debug="${logback.debug:=false}">
     <contextName>OSI</contextName>
     <property resource="osi-logback-styles.properties"/>
