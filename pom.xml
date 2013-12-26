@@ -282,6 +282,14 @@
                     </archive>
                     <detectLinks>true</detectLinks>
                     <linksource>true</linksource>
+                    <links>
+                        <link>http://google-guice.googlecode.com/git/javadoc/</link>
+                        <link>http://docs.guava-libraries.googlecode.com/git/javadoc/</link>
+                        <link>http://owner.newinstance.it/latest/apidocs/</link>
+                        <link>http://slf4j.org/api/</link>
+                        <link>http://pholser.github.io/jopt-simple/apidocs/</link>
+                        <link>http://findbugs.sourceforge.net/api/</link>
+                    </links>
                     <tags>
                         <tag>
                             <name>todo</name>
