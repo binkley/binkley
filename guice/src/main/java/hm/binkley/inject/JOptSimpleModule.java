@@ -104,7 +104,7 @@ public final class JOptSimpleModule
     public interface OptionKey {
         /**
          * Select a string key for the given <var>spec</var> in {@link #mapWith}.
-         * <p/>
+         *
          * A typical implementation would use the long form of aliases.  If "-d" and "--debug" are
          * aliased flags, the key would be "debug".  This is also a good place to modify keys, say
          * "my.app.debug" for the "debug" option when integrating options into other features such

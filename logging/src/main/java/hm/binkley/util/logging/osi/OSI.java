@@ -60,7 +60,7 @@ public final class OSI
      * @todo Do not use {@link ContextInitializer#autoConfig()} directly - assumes sysprops
      */
     private static void reconfigureLogging0(final LoggerContext context)
-    throws JoranException {
+            throws JoranException {
         context.reset();
         context.getStatusManager().clear();
         new ContextInitializer(context).autoConfig();
@@ -103,7 +103,7 @@ public final class OSI
                 try {
                     result = f.toURI().toURL();
                     return result;
-                } catch (MalformedURLException e1) {
+                } catch (final MalformedURLException e1) {
                 }
             }
         } finally {

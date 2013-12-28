@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * {@code OwnerModule} is light-weight wiring of an OWNER API {@link Config config} instance into
  * Guice.
- * <p/>
+ *
  * Guice does not support generic provider methods; each config needs to be separately configured.
  *
  * @param <C> the config type

@@ -15,7 +15,7 @@ import static java.lang.String.format;
  * {@code Xnum} ("extensible enum") shadows {@link Enum} permitting generic subclassing.  This
  * addresses the lack of covariant return for anonymous classes (enum instances instantiate
  * anonymous subclasses of their declared enum type).
- * <p/>
+ *
  * Construction of usable {@code xnum} instances is identical to {@code enum}; the compiler carries
  * out the work with {@code enum}, you carry out the work with {@code xnum}: <ol><li>Extend {@code
  * Xnum} with an abstract base class for the xnum type.</li> <li>Implement instances of the xnum
@@ -26,7 +26,7 @@ import static java.lang.String.format;
  * Base class &lt;- Members</blockquote> The generic type information should reside on the base
  * class, specialized by the members.  If you do not need specialization type generic type, use
  * {@code enum} not this class.
- * <p/>
+ *
  * There is no attempt at supporting serialization.
  *
  * @param <X> the extending enum type
@@ -45,7 +45,9 @@ public abstract class Xnum<X extends Xnum<X>>
         this.ordinal = ordinal;
     }
 
-    /** Helper for implementing {@code valueOf(String)}. */
+    /**
+     * Helper for implementing {@code valueOf(String)}.
+     */
     @Nonnull
     protected static <X extends Xnum<X>> X valueOf(final Class<X> type,
             final Iterable<? extends X> values, final String name) {
@@ -57,7 +59,9 @@ public abstract class Xnum<X extends Xnum<X>>
         throw new IllegalArgumentException(format("No xnum of type %s for name: %s", type, name));
     }
 
-    /** Helper for imlementing {@code valueOf(String, Class)}. */
+    /**
+     * Helper for imlementing {@code valueOf(String, Class)}.
+     */
     @Nonnull
     protected static <X extends Xnum<X>, P> X valueOf(@Nonnull final Class<X> type,
             final Iterable<? extends X> values, @Nonnull final String name, final int slot,
@@ -89,7 +93,7 @@ public abstract class Xnum<X extends Xnum<X>>
      * Compares this xnum with the specified object for order.  Returns a negative integer, zero, or
      * a positive integer as this object is less than, equal to, or greater than the specified
      * object.
-     * <p/>
+     *
      * Xnum constants are only comparable to other xnum constants of the same xnum type.  The
      * natural order implemented by this method is the order in which the constants are declared.
      */
@@ -117,7 +121,7 @@ public abstract class Xnum<X extends Xnum<X>>
 
     /**
      * Returns the name of this xnum constant, exactly as declared in its xnum declaration.
-     * <p/>
+     *
      * <b>Most programmers should use the {@link #toString} method in preference to this one, as the
      * toString method may return a more user-friendly name.</b>  This method is designed primarily
      * for use in specialized situations where correctness depends on getting the exact name, which
@@ -133,7 +137,7 @@ public abstract class Xnum<X extends Xnum<X>>
     /**
      * Returns the ordinal of this extended enumeration constant (its position in its xnum
      * declaration, where the initial constant is assigned an ordinal of zero).
-     * <p/>
+     *
      * Most programmers will have no use for this method.  It is designed for use by sophisticated
      * xnum-based data structures, such as {@link XnumSet} and {@link XnumMap}.
      *
@@ -161,7 +165,6 @@ public abstract class Xnum<X extends Xnum<X>>
      * @return true if the specified object is equal to this xnum constant.
      */
     @Override
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public final boolean equals(final Object o) {
         return this == o;
     }
@@ -190,7 +193,9 @@ public abstract class Xnum<X extends Xnum<X>>
         return name;
     }
 
-    /** Xnum classes cannot have finalize methods. */
+    /**
+     * Xnum classes cannot have finalize methods.
+     */
     @Override
     protected final void finalize() {
     }

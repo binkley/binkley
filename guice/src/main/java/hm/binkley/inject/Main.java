@@ -32,7 +32,7 @@ import static java.lang.String.format;
  * {@code Main} is a sample guing together the Guice modules for a trivial application bootstrap.
  * Applications extends {@code Main} and specify {@linkplain #addOptions(joptsimple.OptionParser)
  * command line options} with the template pattern.
- * <p/>
+ *
  * For a full-featured library see <a href="https://github.com/Netflix/governator/wiki">Governator</a>.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
