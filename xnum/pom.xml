@@ -17,6 +17,11 @@
 
     <artifactId>binkley-xnum</artifactId>
 
+    <properties>
+        <!-- TODO: 1.8 does not compile -->
+        <java.version>1.7</java.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>

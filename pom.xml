@@ -75,6 +75,7 @@
         <hamcrest.version>1.3</hamcrest.version>
         <java.version>1.8</java.version>
         <jnr.version>3.0.1</jnr.version>
+        <jopt-simple.version>4.6-SNAPSHOT</jopt-simple.version>
         <jsr305.version>2.0.2</jsr305.version>
         <junit.version>4.11</junit.version>
         <lifegycle.version>0.2-SNAPSHOT</lifegycle.version>
@@ -188,7 +189,7 @@
             <dependency>
                 <groupId>net.sf.jopt-simple</groupId>
                 <artifactId>jopt-simple</artifactId>
-                <version>4.5</version>
+                <version>${jopt-simple.version}</version>
             </dependency>
 
             <dependency>

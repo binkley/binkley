@@ -21,7 +21,7 @@ import static org.junit.Assert.assertThat;
 public class JOptSimpleModuleTest {
     @Test
     public void shouldParse() {
-        assertThat(createInjector(JOptSimpleModule.jOptSimpleModule()).getInstance(OptionSet.class)
+        assertThat(createInjector(JOptSimpleModule.builder().parse()).getInstance(OptionSet.class)
                 .nonOptionArguments().isEmpty(), is(true));
     }
 }

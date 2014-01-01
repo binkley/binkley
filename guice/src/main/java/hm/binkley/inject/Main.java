@@ -6,9 +6,9 @@
 
 package hm.binkley.inject;
 
+import com.google.common.base.Joiner;
 import com.google.inject.Injector;
-import hm.binkley.inject.JOptSimpleModule.OptionKey;
-import joptsimple.OptionParser;
+import joptsimple.OptionDeclarer;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import org.aeonbits.owner.Config;
@@ -16,22 +16,23 @@ import org.aeonbits.owner.Config;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
 
-import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.google.common.collect.Maps.transformValues;
 import static com.google.inject.Guice.createInjector;
-import static hm.binkley.inject.JOptSimpleModule.jOptSimpleModule;
-import static hm.binkley.inject.JOptSimpleModule.mapWith;
 import static hm.binkley.inject.OwnerModule.ownerModule;
+import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
+import static java.util.Collections.unmodifiableMap;
 
 /**
  * {@code Main} is a sample guing together the Guice modules for a trivial application bootstrap.
- * Applications extends {@code Main} and specify {@linkplain #addOptions(joptsimple.OptionParser)
- * command line options} with the template pattern.
+ * Applications extends {@code Main} and specify {@linkplain #addOptions(OptionDeclarer) command
+ * line options} with the template pattern.
  *
  * For a full-featured library see <a href="https://github.com/Netflix/governator/wiki">Governator</a>.
  *
@@ -42,21 +43,21 @@ public abstract class Main<C extends Config> {
     private final String prefix;
 
     /**
-     * Main entry point called by the JVM.  Order of operation: <ol><li>Find the
+     * Main entry point called by the JVM. Order of operation: <ol> <li>Find the
      * <strong>only</strong> implementation of {@code Main} via JDK service loader.</li> <li>Create
      * a bootstrap injector to manage command line options with {@linkplain JOptSimpleModule
      * jopt-simple}.</li> <li>Create the application injector with {@linkplain OwnerModule OWNER
      * API} for configuration.</li> <li>Include {@linkplain LifecycleModule lifecycle support}.</li>
      * <li>Scan for {@linkplain MetaInfServicesModule annotated application modules}.</li>
-     * <li>Inject the instance of {@code Main} triggering lifecycle events, if any.</li></ol>
+     * <li>Inject the instance of {@code Main} triggering lifecycle events, if any.</li> </ol>
      *
      * @param args the command line arguments
      */
     public static void main(final String... args) {
         final Main main = getOnlyElement(ServiceLoader.load(Main.class));
-        final JOptSimpleModule jOptSimpleModule = jOptSimpleModule(args);
-        main.addOptions(jOptSimpleModule.parser());
-        final Injector preGuice = createInjector(jOptSimpleModule);
+        final JOptSimpleModule.Builder builder = JOptSimpleModule.builder();
+        main.addOptions(builder);
+        final Injector preGuice = createInjector(builder.parse(args));
         final OptionSet options = preGuice.getInstance(OptionSet.class);
         final OwnerModule ownerModule = ownerModule(main.configType, mapOf(options, main.prefix));
         preGuice.createChildInjector(ownerModule, new LifecycleModule(),
@@ -64,7 +65,7 @@ public abstract class Main<C extends Config> {
     }
 
     /**
-     * Constructs a new {@code Main}.  Use this form when mappings of command line options are
+     * Constructs a new {@code Main}. Use this form when mappings of command line options are
      * one-to-one with properties configuration.
      *
      * @param configType the OWNER API config type, never missing
@@ -74,7 +75,7 @@ public abstract class Main<C extends Config> {
     }
 
     /**
-     * Constructs a new {code Main}.  Use this form when command line options need a
+     * Constructs a new {code Main}. Use this form when command line options need a
      * <var>prefix</var> to match properties configuration, e.g., "debug" on the command line is
      * "my.app.debug" in properties.
      *
@@ -86,25 +87,12 @@ public abstract class Main<C extends Config> {
         this.prefix = prefix;
     }
 
-    /** @deprecated Update/replace when jopt-simple provides this. */
-    @Deprecated
-    static Map<String, String> mapOf(final OptionSet options) {
-        return mapOf(options, null);
-    }
-
-    /** @deprecated Update/replace when jopt-simple provides this. */
-    @Deprecated
-    private static Map<String, String> mapOf(final OptionSet options, final String prefix) {
-        return transformValues(mapWith(options, new OptionKey() {
-            @Override
-            public String select(final OptionSpec<?> spec) {
-                final Collection<String> flags = spec.options();
-                for (final String flag : flags)
-                    if (1 < flag.length())
-                        return null == prefix ? flag : (prefix + '.' + flag);
-                throw new IllegalArgumentException(format("No usable flag: %s", flags));
-            }
-        }), toStringFunction());
+    /** Package scope for testing. */
+    static Map<String, String> mapOf(final OptionSet options, final String prefix) {
+        final Map<String, String> map = new HashMap<>();
+        for (final Entry<OptionSpec<?>, List<?>> entry : options.asMap().entrySet())
+            map.put(asPropertyKey(prefix, entry.getKey()), asPropertValue(entry.getValue()));
+        return unmodifiableMap(map);
     }
 
     /**
@@ -112,5 +100,17 @@ public abstract class Main<C extends Config> {
      *
      * @param optionParser the options parser, never mising
      */
-    protected abstract void addOptions(@Nonnull final OptionParser optionParser);
+    protected abstract void addOptions(@Nonnull final OptionDeclarer optionParser);
+
+    private static String asPropertyKey(final String prefix, final OptionSpec<?> spec) {
+        final Collection<String> flags = spec.options();
+        for (final String flag : flags)
+            if (1 < flag.length())
+                return null == prefix ? flag : (prefix + '.' + flag);
+        throw new IllegalArgumentException(format("No usable flag: %s", flags));
+    }
+
+    private static String asPropertValue(final List<?> values) {
+        return values.isEmpty() ? TRUE.toString() : Joiner.on(',').join(values);
+    }
 }
