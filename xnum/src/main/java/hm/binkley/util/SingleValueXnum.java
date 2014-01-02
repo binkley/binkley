@@ -13,7 +13,6 @@ import java.util.List;
 
 import static hm.binkley.util.SingleTyped.Typed;
 import static hm.binkley.util.SingleTyped.allOf;
-import static hm.binkley.util.SingleTyped.coerceOneOf;
 
 /**
  * {@code SingleValueXnum} is a template for {@link TODO} to generate single-valued xnums with an
@@ -91,7 +90,8 @@ public abstract class SingleValueXnum<T>
     @Nonnull
     public static <T> SingleValueXnum<T> valueOf(@Nonnull final String name,
             @Nonnull final Class<T> parameterType) {
-        return coerceOneOf(SingleValueXnum.class, values(), name, parameterType);
+        return valueOf(SingleValueXnum.class, values(), name, 0, parameterType);
+        //        return coerceOneOf(SingleValueXnum.class, values(), name, parameterType);
     }
 
     private SingleValueXnum(@Nonnull final String name, final int ordinal) {

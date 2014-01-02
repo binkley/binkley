@@ -66,7 +66,7 @@
         <module>logging</module>
         <module>mixin</module>
         <!-- TODO: Compiles with 1.7, not with 1.8 -->
-        <!-- <module>xnum</module> -->
+        <module>xnum</module>
     </modules>
 
     <properties>
