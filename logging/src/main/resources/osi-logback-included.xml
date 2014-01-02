@@ -5,4 +5,10 @@
   -->
 
 <included>
+    <!--
+    Any custom logger configuration goes here rather than osi-logback.xml.
+
+    Create a custom osi-logback-included.xml and either make it a file in the current
+    directory, or place it at the root of the classpath ahead of binkley-logging.jar.
+    -->
 </included>
