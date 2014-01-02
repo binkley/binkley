@@ -23,6 +23,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({TYPE, METHOD})
 @Retention(RUNTIME)
 public @interface Trace {
-    /** Traces regardless of desired assertion status, default {@code false}. */
+    /**
+     * Traces regardless of desired assertion status, default {@code false}.
+     *
+     * @return {@code true} trace regardless of {@code -ea} JVM flag
+     */
     boolean ignoreAssertions() default false;
 }

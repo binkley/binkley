@@ -24,7 +24,7 @@ import static java.lang.Runtime.getRuntime;
  * annotations</a>, &#64;{@link PostConstruct} and &#64;{@link PreDestroy}, in Guice via the <a
  * href="http://99soft.github.io/lifegycle/">lifegycle library</a>.  Google shows several other,
  * more fully featured soutions; this is the smallest implementation.
- * <p/>
+ *
  * Guice lacks shutdown hooks.  For {@code @PreDestroy} to work you must {@link
  * #enablePreDestroy(Injector) install one yourself}: <pre>
  * Injector guice = Guice.createInjector(new LifecycleModule());

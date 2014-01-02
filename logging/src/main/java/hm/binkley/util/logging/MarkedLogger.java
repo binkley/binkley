@@ -13,7 +13,7 @@ import org.slf4j.ext.LoggerWrapper;
 /**
  * {@code MarkedLogger} is an SLF4J logger with a default marker applied to all methods with a
  * marker variant.
- * <p/>
+ *
  * Example: <pre>
  * final Marker marker = MarkerFactory.getMarker("ALERT");
  * final Logger alert = new MarkedLogger(LoggerFactory.getLogger(getClass()), marker);
@@ -22,7 +22,7 @@ import org.slf4j.ext.LoggerWrapper;
  * </pre>
  * Marks this logging event as "ALERT".  Suitable logger configuration might redirect this event to
  * a human being for immediate action.  Both logging lines are equivalent.
- * <p/>
+ *
  * In Logback configuration use {@code %marker} to print the marker in the encoder pattern.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>

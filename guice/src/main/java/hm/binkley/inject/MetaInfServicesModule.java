@@ -16,7 +16,7 @@ import static java.util.ServiceLoader.load;
  * {@code MetaInfServicesModule} installs Guice modules annotated with {@link MetaInfServices} on
  * Guice {@link Module} via the JDK service loader.  This is a convenient way to bootstrap Guice
  * modules by dropping {@code META-INF/services/com.google.inject.Module} files into the classpath.
- * <p/>
+ *
  * Example: <pre>
  * &#64;MetaInfServices(Module.class)
  * public final class FooModule

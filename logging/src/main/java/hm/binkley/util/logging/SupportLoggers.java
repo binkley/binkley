@@ -18,12 +18,12 @@ import static org.slf4j.MarkerFactory.getMarker;
 /**
  * {@code SupportLoggers} are custom {@link MarkedLogger}s for support. Methods create new marked
  * loggers with the enum names as markers.
- * <p/>
+ *
  * There is one factory method variant for each style of logger creation: <dl> <dt>{@link
  * #getLogger(Class)}</dt> <dd>Creates a new underlying logger from a class</dd> <dt>{@link
  * #getLogger(String)}</dt> <dd>Creates a new underlying logger from a logger name</dd> <dt>{@link
  * #getLogger(Logger)}</dt> <dd>Reuses an existing underlying logger</dd> </dl>
- * <p/>
+ *
  * Programs should configure logback or other logging system by marker: <dl><dt>{@link #ALERT}</dt>
  * <dd>Send alerts to a human being</dd> <dt>{@link #APPLICATION}</dt> <dd>Logs normally following
  * logback configuration</dd> <dt>{@link #AUDIT}</dt> <dd>Records an audit trail, typically to a

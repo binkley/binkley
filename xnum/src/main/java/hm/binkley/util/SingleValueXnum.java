@@ -11,7 +11,9 @@ import com.google.common.collect.ImmutableList;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-import static hm.binkley.util.SingleTyped.*;
+import static hm.binkley.util.SingleTyped.Typed;
+import static hm.binkley.util.SingleTyped.allOf;
+import static hm.binkley.util.SingleTyped.coerceOneOf;
 
 /**
  * {@code SingleValueXnum} is a template for {@link TODO} to generate single-valued xnums with an
@@ -50,7 +52,6 @@ public abstract class SingleValueXnum<T>
      * @return the sequence of instances of <var>type</var>, never missing
      */
     @Nonnull
-    @SuppressWarnings("unchecked")
     public static <T> List<SingleValueXnum<T>> valuesOfType(@Nonnull final Class<T> type) {
         return allOf(values(), type);
     }
@@ -68,7 +69,6 @@ public abstract class SingleValueXnum<T>
      * @throws NullPointerException if <var>name</var> is null
      */
     @Nonnull
-    @SuppressWarnings("unchecked")
     public static SingleValueXnum<?> valueOf(@Nonnull final String name) {
         return valueOf(SingleValueXnum.class, values(), name);
     }
@@ -89,7 +89,6 @@ public abstract class SingleValueXnum<T>
      * @throws ClassCastException if <var>type</var> is unassignable from using the xnum constant
      */
     @Nonnull
-    @SuppressWarnings("unchecked")
     public static <T> SingleValueXnum<T> valueOf(@Nonnull final String name,
             @Nonnull final Class<T> parameterType) {
         return coerceOneOf(SingleValueXnum.class, values(), name, parameterType);

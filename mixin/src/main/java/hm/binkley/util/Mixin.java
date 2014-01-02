@@ -28,7 +28,7 @@ import static java.util.Arrays.asList;
  * <ol><li>Previously matched methods</li> <li>Exact static match by enclosing type</li> <li>"Duck"
  * matches by name and parameter type</li></ol>  Mixins expose a single, <em>composite
  * interface</em> of all supported interfaces.
- * <p/>
+ *
  * Mixins may optionally include {@code Mixin} as port of the <em>composite interface</em>.  This
  * exposes {@link #mixinDelegates()} providing public access to the mixed in object delegated to by
  * this proxy.

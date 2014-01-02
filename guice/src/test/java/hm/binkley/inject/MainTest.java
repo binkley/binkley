@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import java.util.Map;
 
+import static hm.binkley.inject.Main.mapOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -39,7 +40,7 @@ public class MainTest {
     public void withNothing() {
         final OptionParser parser = new OptionParser();
         final OptionSet options = parser.parse();
-        assertThat(Main.mapOf(options), is(equalTo(none())));
+        assertThat(mapOf(options, null), is(equalTo(none())));
     }
 
     @Test
@@ -47,7 +48,7 @@ public class MainTest {
         final OptionParser parser = new OptionParser();
         parser.accepts("debug");
         final OptionSet options = parser.parse("--debug");
-        assertThat(Main.mapOf(options), is(equalTo(only("debug", true))));
+        assertThat(mapOf(options, null), is(equalTo(only("debug", true))));
     }
 
     @Ignore("Not yet supported in jopt-simple")
@@ -56,7 +57,7 @@ public class MainTest {
         final OptionParser parser = new OptionParser();
         parser.accepts("debug");
         final OptionSet options = parser.parse("+debug");
-        assertThat(Main.mapOf(options), is(equalTo(only("debug", false))));
+        assertThat(mapOf(options, null), is(equalTo(only("debug", false))));
     }
 
     @Test
@@ -64,7 +65,7 @@ public class MainTest {
         final OptionParser parser = new OptionParser();
         parser.accepts("debug").withRequiredArg();
         final OptionSet options = parser.parse("--debug=3");
-        assertThat(Main.mapOf(options), is(equalTo(only("debug", 3))));
+        assertThat(mapOf(options, null), is(equalTo(only("debug", 3))));
     }
 
     @Test
@@ -72,7 +73,7 @@ public class MainTest {
         final OptionParser parser = new OptionParser();
         parser.acceptsAll(asList("x", "debug"));
         final OptionSet options = parser.parse("-x");
-        assertThat(Main.mapOf(options), is(equalTo(only("debug", true))));
+        assertThat(mapOf(options, null), is(equalTo(only("debug", true))));
     }
 
     @Test
@@ -80,7 +81,7 @@ public class MainTest {
         final OptionParser parser = new OptionParser();
         parser.accepts("debug").withRequiredArg().withValuesSeparatedBy(',');
         final OptionSet options = parser.parse("--debug=yes,no,yes");
-        assertThat(Main.mapOf(options), is(equalTo(only("debug", asList("yes", "no", "yes")))));
+        assertThat(mapOf(options, null), is(equalTo(only("debug", "yes,no,yes"))));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -88,6 +89,6 @@ public class MainTest {
         final OptionParser parser = new OptionParser();
         parser.accepts("x");
         final OptionSet options = parser.parse("-x");
-        Main.mapOf(options);
+        mapOf(options, null);
     }
 }

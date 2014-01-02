@@ -8,7 +8,7 @@ package hm.binkley.inject;
 
 import com.google.inject.Inject;
 import hm.binkley.inject.DemoMain.DemoMainConfig;
-import joptsimple.OptionParser;
+import joptsimple.OptionDeclarer;
 import org.aeonbits.owner.Config;
 import org.kohsuke.MetaInfServices;
 
@@ -39,7 +39,7 @@ public final class DemoMain
     }
 
     @Override
-    protected void addOptions(@Nonnull final OptionParser optionParser) {
+    protected void addOptions(@Nonnull final OptionDeclarer optionParser) {
         optionParser.accepts("debug");
     }
 
