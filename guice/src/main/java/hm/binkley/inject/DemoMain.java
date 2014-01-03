@@ -39,8 +39,8 @@ public final class DemoMain
     }
 
     @Override
-    protected void addOptions(@Nonnull final OptionDeclarer optionParser) {
-        optionParser.accepts("debug");
+    protected void addOptions(@Nonnull final OptionDeclarer optionDeclarer) {
+        optionDeclarer.accepts("debug");
     }
 
     @PostConstruct

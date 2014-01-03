@@ -6,7 +6,6 @@
 
 package hm.binkley.inject;
 
-import com.google.common.base.Joiner;
 import com.google.inject.Injector;
 import joptsimple.OptionDeclarer;
 import joptsimple.OptionSet;
@@ -22,11 +21,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ServiceLoader;
 
+import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.inject.Guice.createInjector;
 import static hm.binkley.inject.OwnerModule.ownerModule;
-import static java.lang.Boolean.TRUE;
-import static java.lang.String.format;
 import static java.util.Collections.unmodifiableMap;
 
 /**
@@ -87,30 +85,32 @@ public abstract class Main<C extends Config> {
         this.prefix = prefix;
     }
 
-    /** Package scope for testing. */
-    static Map<String, String> mapOf(final OptionSet options, final String prefix) {
+    private static Map<String, String> mapOf(final OptionSet options, final String prefix) {
         final Map<String, String> map = new HashMap<>();
-        for (final Entry<OptionSpec<?>, List<?>> entry : options.asMap().entrySet())
-            map.put(asPropertyKey(prefix, entry.getKey()), asPropertValue(entry.getValue()));
+        for (final Entry<OptionSpec<?>, List<?>> entry : options.asMap().entrySet()) {
+            final OptionSpec<?> spec = entry.getKey();
+            map.put(asPropertyKey(prefix, spec),
+                    asPropertValue(entry.getValue(), options.has(spec)));
+        }
         return unmodifiableMap(map);
     }
-
-    /**
-     * Configure command line parsing with JOpt-Simple.
-     *
-     * @param optionParser the options parser, never mising
-     */
-    protected abstract void addOptions(@Nonnull final OptionDeclarer optionParser);
 
     private static String asPropertyKey(final String prefix, final OptionSpec<?> spec) {
         final Collection<String> flags = spec.options();
         for (final String flag : flags)
             if (1 < flag.length())
                 return null == prefix ? flag : (prefix + '.' + flag);
-        throw new IllegalArgumentException(format("No usable flag: %s", flags));
+        throw new IllegalArgumentException("No usable non-short flag: " + flags);
     }
 
-    private static String asPropertValue(final List<?> values) {
-        return values.isEmpty() ? TRUE.toString() : Joiner.on(',').join(values);
+    private static String asPropertValue(final List<?> values, final boolean present) {
+        return values.isEmpty() ? String.valueOf(present) : on(',').join(values);
     }
+
+    /**
+     * Configure command line parsing with JOpt-Simple.
+     *
+     * @param optionDeclarer the options parser, never mising
+     */
+    protected abstract void addOptions(@Nonnull final OptionDeclarer optionDeclarer);
 }
