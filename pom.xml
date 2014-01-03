@@ -76,7 +76,7 @@
         <java.version>1.8</java.version>
         <jnr.version>3.0.1</jnr.version>
         <jopt-simple.version>4.6-SNAPSHOT</jopt-simple.version>
-        <jsr305.version>2.0.2</jsr305.version>
+        <jsr305.version>2.0.3</jsr305.version>
         <junit.version>4.11</junit.version>
         <lifegycle.version>0.2-SNAPSHOT</lifegycle.version>
         <logback.version>1.0.13</logback.version>
