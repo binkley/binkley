@@ -15,8 +15,10 @@ import static hm.binkley.util.SingleTyped.Typed;
 import static hm.binkley.util.SingleTyped.allOf;
 
 /**
- * {@code SingleValueXnum} is a template for {@link TODO} to generate single-valued xnums with an
+ * {@code SingleValueXnum} is a template for {@link Xnum} to generate single-valued xnums with an
  * annotation processor.
+ *
+ * @param <V> the value type
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Annotation processor adds xnum constants
@@ -25,9 +27,9 @@ import static hm.binkley.util.SingleTyped.allOf;
  * @todo Annotation processor writes out implementation classes
  * @see EgXnum
  */
-public abstract class SingleValueXnum<T>
-        extends Xnum<SingleValueXnum<T>>
-        implements Typed<T> {
+public abstract class SingleValueXnum<V>
+        extends Xnum<SingleValueXnum<V>>
+        implements Typed<V> {
     //    public static final SingleValueXnum<Integer> FOO = new FOO();
     private static final List<? extends SingleValueXnum<?>> VALUES = ImmutableList
             .<SingleValueXnum<?>>of();
@@ -45,13 +47,13 @@ public abstract class SingleValueXnum<T>
     /**
      * Finds {@code EgXnum} instances by their specialization type.
      *
-     * @param type the specialization type token, never missing
-     * @param <T> the specialization type
+     * @param type the value type token, never missing
+     * @param <V> the value type
      *
      * @return the sequence of instances of <var>type</var>, never missing
      */
     @Nonnull
-    public static <T> List<SingleValueXnum<T>> valuesOfType(@Nonnull final Class<T> type) {
+    public static <V> List<SingleValueXnum<V>> valuesOfType(@Nonnull final Class<V> type) {
         return allOf(values(), type);
     }
 
@@ -79,6 +81,7 @@ public abstract class SingleValueXnum<T>
      *
      * @param name the xnum name, never missing
      * @param parameterType the xnum type token, never missing
+     * @param <V> the value type
      *
      * @return the xnum, never missing
      *
@@ -88,8 +91,8 @@ public abstract class SingleValueXnum<T>
      * @throws ClassCastException if <var>type</var> is unassignable from using the xnum constant
      */
     @Nonnull
-    public static <T> SingleValueXnum<T> valueOf(@Nonnull final String name,
-            @Nonnull final Class<T> parameterType) {
+    public static <V> SingleValueXnum<V> valueOf(@Nonnull final String name,
+            @Nonnull final Class<V> parameterType) {
         return valueOf(SingleValueXnum.class, values(), name, 0, parameterType);
         //        return coerceOneOf(SingleValueXnum.class, values(), name, parameterType);
     }
@@ -104,11 +107,11 @@ public abstract class SingleValueXnum<T>
      *
      * @return the instance value
      */
-    public abstract T get();
+    public abstract V get();
 
     @Nonnull
     @Override
-    public final Class<T> type() {
+    public final Class<V> type() {
         return typeOf(0);
     }
 

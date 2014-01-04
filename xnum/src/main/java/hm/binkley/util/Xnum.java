@@ -29,7 +29,7 @@ import static java.lang.String.format;
  *
  * There is no attempt at supporting serialization.
  *
- * @param <X> the extending enum type
+ * @param <X> the extending xnum type
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Implement {@code XnumMap} and {@code XnumSet} (uses package-level access into AbstractMap)
@@ -47,6 +47,8 @@ public abstract class Xnum<X extends Xnum<X>>
 
     /**
      * Helper for implementing {@code valueOf(String)}.
+     *
+     * @param <X> the extending xnum type
      */
     @Nonnull
     protected static <X extends Xnum<X>> X valueOf(final Class<X> type,
@@ -61,6 +63,9 @@ public abstract class Xnum<X extends Xnum<X>>
 
     /**
      * Helper for imlementing {@code valueOf(String, Class)}.
+     *
+     * @param <X> the extending xnum type
+     * @param <P> the parameter type
      */
     @Nonnull
     protected static <X extends Xnum<X>, P> X valueOf(@Nonnull final Class<X> type,

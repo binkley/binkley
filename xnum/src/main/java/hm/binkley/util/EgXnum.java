@@ -20,11 +20,13 @@ import static java.lang.System.out;
 /**
  * {@code EgXnum} is a sample {@link Xnum}, not a prodution class.
  *
+ * @param <V> the value type
+ *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public abstract class EgXnum<T>
-        extends Xnum<EgXnum<T>>
-        implements Typed<T> {
+public abstract class EgXnum<V>
+        extends Xnum<EgXnum<V>>
+        implements Typed<V> {
     public static final EgXnum<Integer> FOO = new FOO();
     public static final EgXnum<String> BAR = new BAR();
     public static final EgXnum<String> BAZ = new BAZ();
@@ -45,15 +47,15 @@ public abstract class EgXnum<T>
      * Finds {@code EgXnum} instances by their specialization type.
      *
      * @param type the specialization type token, never missing
-     * @param <T> the specialization type
+     * @param <X> the extending xnum type
      *
      * @return the sequence of instances of <var>type</var>, never missing
      *
      * @see SingleTyped#allOf(List, Class)
      */
     @Nonnull
-    public static <T> List<EgXnum<T>> valuesOfType(@Nonnull final Class<T> type) {
-        return copyOf(filter((List<EgXnum<T>>) values(), new SingleTyped<T, EgXnum<T>>(type)));
+    public static <X> List<EgXnum<X>> valuesOfType(@Nonnull final Class<X> type) {
+        return copyOf(filter((List<EgXnum<X>>) values(), new SingleTyped<X, EgXnum<X>>(type)));
     }
 
     /**
@@ -80,6 +82,7 @@ public abstract class EgXnum<T>
      *
      * @param name the xnum name, never missing
      * @param parameterType the xnum type token, never missing
+     * @param <X> the extending xnum type
      *
      * @return the xnum, never missing
      *
@@ -91,9 +94,9 @@ public abstract class EgXnum<T>
      */
     @Nonnull
     @SuppressWarnings("unchecked")
-    public static <T> EgXnum<T> valueOf(@Nonnull final String name,
-            @Nonnull final Class<T> parameterType) {
-        return (EgXnum<T>) valueOf(EgXnum.class, values(), name, 0, parameterType);
+    public static <X> EgXnum<X> valueOf(@Nonnull final String name,
+            @Nonnull final Class<X> parameterType) {
+        return (EgXnum<X>) valueOf(EgXnum.class, values(), name, 0, parameterType);
     }
 
     public static void main(final String... args) {
@@ -125,11 +128,11 @@ public abstract class EgXnum<T>
      *
      * @return the instance value
      */
-    public abstract T get();
+    public abstract V get();
 
     @Nonnull
     @Override
-    public final Class<T> type() {
+    public final Class<V> type() {
         return typeOf(0);
     }
 

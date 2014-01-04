@@ -19,14 +19,17 @@ import static hm.binkley.util.Xnum.valueOf;
 /**
  * {@code SingleTyped} needs documentation.
  *
+ * @param <V> the value type
+ * @param <X> the extending xnum type
+ *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-final class SingleTyped<T, X extends Xnum<X> & Typed<T>>
+final class SingleTyped<V, X extends Xnum<X> & Typed<V>>
         implements Predicate<X> {
-    private final Class<T> type;
+    private final Class<V> type;
 
-    SingleTyped(final Class<T> type) {
+    SingleTyped(final Class<V> type) {
         this.type = type;
     }
 
@@ -48,9 +51,13 @@ final class SingleTyped<T, X extends Xnum<X> & Typed<T>>
         return type.isAssignableFrom(xnum.type());
     }
 
-    /** {@code Typed} needs documentation. */
-    public static interface Typed<T> {
+    /**
+     * {@code Typed} needs documentation.
+     *
+     * @param <V> the value type
+     */
+    public static interface Typed<V> {
         @Nonnull
-        Class<T> type();
+        Class<V> type();
     }
 }
