@@ -277,6 +277,8 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
+                    <!-- TODO: JD8 chokes on xnum -->
+                    <additionalparam>-Xdoclint:none</additionalparam>
                     <archive>
                         <addMavenDescriptor>true</addMavenDescriptor>
                         <compress>true</compress>
