@@ -99,6 +99,11 @@ public abstract class EgXnum<V>
         return (EgXnum<X>) valueOf(EgXnum.class, values(), name, 0, parameterType);
     }
 
+    /**
+     * Demonstrates {@code EgXnum}.
+     *
+     * @param args ignored
+     */
     public static void main(final String... args) {
         out.println(EgXnum.valueOf("BAR"));
         out.println(EgXnum.valueOf("BAR", String.class));

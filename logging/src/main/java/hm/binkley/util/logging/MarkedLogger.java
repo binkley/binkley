@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.ext.LoggerWrapper;
 
+import javax.annotation.Nonnull;
+
 /**
  * {@code MarkedLogger} is an SLF4J logger with a default marker applied to all methods with a
  * marker variant.
@@ -26,18 +28,20 @@ import org.slf4j.ext.LoggerWrapper;
  * In Logback configuration use {@code %marker} to print the marker in the encoder pattern.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Needs documentation
  */
 public class MarkedLogger
         extends LoggerWrapper {
     private final Marker marker;
 
-    protected MarkedLogger(final Marker marker, final Logger logger, final String fqcn) {
-        super(logger, fqcn);
-        this.marker = marker;
-    }
-
     public static MarkedLogger markedLogger(final Marker marker, final Logger logger) {
         return new MarkedLogger(marker, logger, MarkedLogger.class.getName());
+    }
+
+    protected MarkedLogger(@Nonnull final Marker marker, @Nonnull final Logger logger,
+            @Nonnull final String fqcn) {
+        super(logger, fqcn);
+        this.marker = marker;
     }
 
     @Override

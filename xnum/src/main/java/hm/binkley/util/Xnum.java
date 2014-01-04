@@ -12,8 +12,8 @@ import java.lang.reflect.ParameterizedType;
 import static java.lang.String.format;
 
 /**
- * {@code Xnum} ("extensible enum") shadows {@link Enum} permitting generic subclassing.  This
- * addresses the lack of covariant return for anonymous classes (enum instances instantiate
+ * {@code Xnum} ("extensible enum") shadows {@link java.lang.Enum} permitting generic subclassing.
+ * This addresses the lack of covariant return for anonymous classes (enum instances instantiate
  * anonymous subclasses of their declared enum type).
  *
  * Construction of usable {@code xnum} instances is identical to {@code enum}; the compiler carries
@@ -45,11 +45,7 @@ public abstract class Xnum<X extends Xnum<X>>
         this.ordinal = ordinal;
     }
 
-    /**
-     * Helper for implementing {@code valueOf(String)}.
-     *
-     * @param <X> the extending xnum type
-     */
+    /** Helper for implementing {@code valueOf(String)}. */
     @Nonnull
     protected static <X extends Xnum<X>> X valueOf(final Class<X> type,
             final Iterable<? extends X> values, final String name) {
@@ -64,7 +60,6 @@ public abstract class Xnum<X extends Xnum<X>>
     /**
      * Helper for imlementing {@code valueOf(String, Class)}.
      *
-     * @param <X> the extending xnum type
      * @param <P> the parameter type
      */
     @Nonnull
@@ -152,23 +147,11 @@ public abstract class Xnum<X extends Xnum<X>>
         return ordinal;
     }
 
-    /**
-     * Returns a hash code for this xnum constant.
-     *
-     * @return a hash code for this xnum constant.
-     */
     @Override
     public final int hashCode() {
         return super.hashCode();
     }
 
-    /**
-     * Returns true if the specified object is equal to this xnum constant.
-     *
-     * @param o the object to be compared for equality with this object.
-     *
-     * @return true if the specified object is equal to this xnum constant.
-     */
     @Override
     public final boolean equals(final Object o) {
         return this == o;
@@ -177,8 +160,6 @@ public abstract class Xnum<X extends Xnum<X>>
     /**
      * Throws {@code CloneNotSupportedException}.  This guarantees that xnums are never cloned,
      * which is necessary to preserve their "singleton" status.
-     *
-     * @throws CloneNotSupportedException always
      */
     @Override
     protected final Object clone()
@@ -190,17 +171,13 @@ public abstract class Xnum<X extends Xnum<X>>
      * Returns the name of this xnum constant, as contained in the declaration.  This method may be
      * overridden, though it typically isn't necessary or desirable.  An xnum type should override
      * this method when a more "programmer-friendly" string form exists.
-     *
-     * @return the name of this xnum constant
      */
     @Override
     public String toString() {
         return name;
     }
 
-    /**
-     * Xnum classes cannot have finalize methods.
-     */
+    /** Xnum classes cannot have finalize methods. */
     @Override
     protected final void finalize() {
     }
