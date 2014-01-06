@@ -76,7 +76,7 @@
         <!-- TODO: Merge Eight branch when JDK8 releases -->
         <java.version>1.7</java.version>
         <jnr.version>3.0.1</jnr.version>
-        <jopt-simple.version>4.6-SNAPSHOT</jopt-simple.version>
+        <jopt-simple.version>4.6</jopt-simple.version>
         <jsr305.version>2.0.3</jsr305.version>
         <junit.version>4.11</junit.version>
         <lifegycle.version>0.2-SNAPSHOT</lifegycle.version>
