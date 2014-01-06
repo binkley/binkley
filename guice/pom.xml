@@ -26,10 +26,12 @@
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
         </dependency>
+        <!-- TODO: Replace with Apache Onami release
         <dependency>
             <groupId>org.99soft.guice</groupId>
             <artifactId>lifegycle</artifactId>
         </dependency>
+        -->
         <dependency>
             <groupId>org.kohsuke.metainf-services</groupId>
             <artifactId>metainf-services</artifactId>
