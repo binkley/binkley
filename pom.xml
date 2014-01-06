@@ -79,7 +79,7 @@
         <jopt-simple.version>4.6</jopt-simple.version>
         <jsr305.version>2.0.3</jsr305.version>
         <junit.version>4.11</junit.version>
-        <lifegycle.version>0.2-SNAPSHOT</lifegycle.version>
+        <!-- <lifegycle.version>0.2-SNAPSHOT</lifegycle.version> -->
         <logback.version>1.0.13</logback.version>
         <maven.version>3.1</maven.version>
         <metainf-services.version>1.5</metainf-services.version>
@@ -169,11 +169,13 @@
                 <artifactId>guice</artifactId>
                 <version>${guice.version}</version>
             </dependency>
+            <!-- TODO: Replace with Apache Onami release
             <dependency>
                 <groupId>org.99soft.guice</groupId>
                 <artifactId>lifegycle</artifactId>
                 <version>${lifegycle.version}</version>
             </dependency>
+            -->
             <dependency>
                 <groupId>org.kohsuke.metainf-services</groupId>
                 <artifactId>metainf-services</artifactId>
