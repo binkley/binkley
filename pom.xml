@@ -93,6 +93,8 @@
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
         <owner.version>1.0.5</owner.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <slf4j.version>1.7.5</slf4j.version>
         <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
     </properties>
