@@ -1,22 +1,350 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>binkley.hm</groupId>
-  <artifactId>blog</artifactId>
-  <version>0.1-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <modules>
-   <module>configuration</module>
-  </modules>
-  <dependencyManagement>
+<!--
+  ~ This is free and unencumbered software released into the public domain.
+  ~
+  ~ Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
+  -->
+
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <prerequisites>
+        <maven>${maven.version}</maven>
+    </prerequisites>
+
+    <groupId>hm.binkley</groupId>
+    <artifactId>binkley-blog</artifactId>
+    <version>0.1</version>
+    <packaging>pom</packaging>
+
+    <name>binkley's BLOG</name>
+    <description>Extended code samples from my blog</description>
+    <url>http://binkley.blogspot.com</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/binkley/binkley.git</connection>
+        <developerConnection>scm:git:git@github.com:binkley/binkley.git</developerConnection>
+        <url>https://github.com/binkley/binkley</url>
+    </scm>
+
+    <organization>
+        <name>binkley's BLOG</name>
+        <url>http://binkley.blogspot.com</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>binkley</id>
+            <name>B. K. Oxley (binkley)</name>
+            <email>binkley@alumni.rice.edu</email>
+            <organization>The Oxley Family</organization>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <modules>
+        <module>guice</module>
+        <module>logging</module>
+        <module>mixin</module>
+        <!-- TODO: Compiles with 1.7, not with 1.8 -->
+        <module>xnum</module>
+    </modules>
+
+    <properties>
+        <guava.version>16.0-rc1</guava.version>
+        <guice.version>3.0</guice.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <!-- TODO: Merge Eight branch when JDK8 releases -->
+        <java.version>1.7</java.version>
+        <jnr.version>3.0.1</jnr.version>
+        <jopt-simple.version>4.6</jopt-simple.version>
+        <jsr305.version>2.0.3</jsr305.version>
+        <junit.version>4.11</junit.version>
+        <!-- <lifegycle.version>0.2-SNAPSHOT</lifegycle.version> -->
+        <logback.version>1.0.13</logback.version>
+        <maven.version>3.1</maven.version>
+        <metainf-services.version>1.5</metainf-services.version>
+        <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
+        <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+        <maven-dependency-plugin.version>2.8</maven-dependency-plugin.version>
+        <maven-gpg-plugin.version>1.4</maven-gpg-plugin.version>
+        <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
+        <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
+        <maven-jgitflow-plugin.version>1.0-alpha21.1</maven-jgitflow-plugin.version>
+        <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
+        <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+        <owner.version>1.0.5</owner.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <slf4j.version>1.7.5</slf4j.version>
+        <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
+    </properties>
+
     <dependencies>
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>configuration</artifactId>
-        <version>${project.version</version>
-      </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>${jsr305.version}</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-  </dependencyManagement>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-guice</artifactId>
+                <version>${project.version</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-logging</artifactId>
+                <version>${project.version</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-mixin</artifactId>
+                <version>${project.version</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-xnum</artifactId>
+                <version>${project.version</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-ext</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.inject</groupId>
+                <artifactId>guice</artifactId>
+                <version>${guice.version}</version>
+            </dependency>
+            <!-- TODO: Replace with Apache Onami release
+            <dependency>
+                <groupId>org.99soft.guice</groupId>
+                <artifactId>lifegycle</artifactId>
+                <version>${lifegycle.version}</version>
+            </dependency>
+            -->
+            <dependency>
+                <groupId>org.kohsuke.metainf-services</groupId>
+                <artifactId>metainf-services</artifactId>
+                <version>${metainf-services.version}</version>
+                <scope>compile</scope>
+                <optional>true</optional>
+            </dependency>
+
+            <dependency>
+                <groupId>org.aeonbits.owner</groupId>
+                <artifactId>owner</artifactId>
+                <version>${owner.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.sf.jopt-simple</groupId>
+                <artifactId>jopt-simple</artifactId>
+                <version>${jopt-simple.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.jnr</groupId>
+                <artifactId>jnr-posix</artifactId>
+                <version>${jnr.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>maven-jgitflow-plugin</artifactId>
+                <version>${maven-jgitflow-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>${versions-maven-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>${maven-clean-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <debug>true</debug>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <addMavenDescriptor>true</addMavenDescriptor>
+                        <compress>true</compress>
+                        <index>true</index>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addExtensions>true</addExtensions>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <addMavenDescriptor>true</addMavenDescriptor>
+                        <compress>true</compress>
+                        <index>true</index>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addExtensions>true</addExtensions>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <configuration>
+                    <!-- TODO: JD8 chokes on xnum -->
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <archive>
+                        <addMavenDescriptor>true</addMavenDescriptor>
+                        <compress>true</compress>
+                        <index>true</index>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addExtensions>true</addExtensions>
+                        </manifest>
+                    </archive>
+                    <detectLinks>true</detectLinks>
+                    <linksource>true</linksource>
+                    <links>
+                        <!-- TODO: These guys need complex URLs which javadoc does not grok -->
+                        <!--<link>http://google-guice.googlecode.com/git/javadoc/</link>-->
+                        <!--<link>http://docs.guava-libraries.googlecode.com/git/javadoc/</link>-->
+                        <link>http://owner.newinstance.it/${owner.version}/apidocs/</link>
+                        <link>http://slf4j.org/api/</link>
+                        <link>http://pholser.github.io/jopt-simple/apidocs/</link>
+                        <link>http://findbugs.sourceforge.net/api/</link>
+                    </links>
+                    <tags>
+                        <tag>
+                            <name>todo</name>
+                            <placement>a</placement>
+                            <head>Pending:</head>
+                        </tag>
+                    </tags>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${maven-gpg-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <arguments>-Psonatype-oss-release -Dgpg.passphrase=${gpg.passphrase}</arguments>
+                    <mavenExecutorId>forked-path</mavenExecutorId>
+                    <useReleaseProfile>false</useReleaseProfile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

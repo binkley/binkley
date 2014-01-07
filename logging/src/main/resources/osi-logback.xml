@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ This is free and unencumbered software released into the public domain.
+  ~
+  ~ Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
+  -->
+
+<configuration debug="${logback.debug:-false}">
+    <contextName>OSI</contextName>
+    <property resource="osi-logback-styles.properties"/>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${${logback.style:-standard}}</pattern>
+        </encoder>
+    </appender>
+    <root level="${log.level:-warn}">
+        <appender-ref ref="console"/>
+    </root>
+    <include resource="${logback.included:-osi-logback-included.xml}"/>
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
+    <jmxConfigurator/>
+</configuration>

@@ -1,0 +1,34 @@
+<!--
+  ~ This is free and unencumbered software released into the public domain.
+  ~
+  ~ Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
+  -->
+
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>hm.binkley</groupId>
+        <artifactId>binkley-blog</artifactId>
+        <version>0.1</version>
+    </parent>
+
+    <artifactId>binkley-logging</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-ext</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+    </dependencies>
+</project>

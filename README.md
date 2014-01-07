@@ -9,5 +9,5 @@ This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
 
 * Guice - Sample Guice modules and helper code
 * Logging - Small logging improvements
-* Mixin - Mixins for Java via JDK proxies
+* Mixin - Mixins for Java via JDK proxies and method handles
 * Xnum - Extensible enums
