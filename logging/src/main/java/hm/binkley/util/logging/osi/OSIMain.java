@@ -6,7 +6,11 @@
 
 package hm.binkley.util.logging.osi;
 
-import org.slf4j.LoggerFactory;
+import ch.qos.logback.core.joran.spi.JoranException;
+
+import java.net.MalformedURLException;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * {@code OSIMain} demonstrates OSI logging.
@@ -15,10 +19,16 @@ import org.slf4j.LoggerFactory;
  * @todo Needs documentation.
  */
 public final class OSIMain {
-    public static void main(final String... args) {
+    public static void main(final String... args)
+            throws JoranException, MalformedURLException {
         // This is the only configuration needed:
         System.setProperty("logback.configurationFile", "osi-logback.xml");
 
-        LoggerFactory.getLogger("example").info("Hi, mom!");
+        getLogger("example").error("Hi, mom!");
+
+        System.setProperty("logback.debug", "true");
+        OSI.reload();
+
+        getLogger("example").error("Hi, mom!");
     }
 }
