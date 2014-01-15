@@ -10,6 +10,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 
+import javax.annotation.Nonnull;
 import java.net.URL;
 
 import static ch.qos.logback.core.joran.util.ConfigurationWatchListUtil.getMainWatchURL;
@@ -18,19 +19,34 @@ import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * {@code OSI} <b>needs documentation</b>.
+ * {@code OSI} has helper methods for the OSI.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public final class OSI {
+    /**
+     * Reloads logback against the default configuration.
+     *
+     * If reloading fails logback is no recoverable.
+     *
+     * @throws JoranException if the configuration is invalid
+     */
     public static void reload()
             throws JoranException {
         reload(getMainWatchURL(getRootLogger().getLoggerContext()));
     }
 
-    public static void reload(final URL url)
-            throws JoranException {
+    /**
+     * Reloads logback agains the given configuration <var>url</var>.
+     *
+     * If reloading fails logback is no recoverable.
+     *
+     * @param url the configuration location, never missing
+     *
+     * @throws JoranException if the configuration is invalid
+     */
+    public static void reload(@Nonnull final URL url)
+    throws JoranException {
         final ch.qos.logback.classic.Logger root = getRootLogger();
         final LoggerContext context = root.getLoggerContext();
         final JoranConfigurator configurator = new JoranConfigurator();
