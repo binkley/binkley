@@ -96,6 +96,7 @@
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <service-binder.version>0.2</service-binder.version>
         <slf4j.version>1.7.5</slf4j.version>
         <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
     </properties>
@@ -179,6 +180,11 @@
                 <version>${lifegycle.version}</version>
             </dependency>
             -->
+            <dependency>
+                <groupId>hm.binkley</groupId>
+                <artifactId>service-binder</artifactId>
+                <version>${service-binder.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.kohsuke.metainf-services</groupId>
                 <artifactId>metainf-services</artifactId>

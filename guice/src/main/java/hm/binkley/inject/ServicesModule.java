@@ -13,9 +13,9 @@ import org.kohsuke.MetaInfServices;
 import static java.util.ServiceLoader.load;
 
 /**
- * {@code MetaInfServicesModule} installs Guice modules annotated with {@link MetaInfServices} on
- * Guice {@link Module} via the JDK service loader.  This is a convenient way to bootstrap Guice
- * modules by dropping {@code META-INF/services/com.google.inject.Module} files into the classpath.
+ * {@code ServicesModule} installs Guice modules annotated with {@link MetaInfServices} on Guice
+ * {@link Module} via the JDK service loader.  This is a convenient way to bootstrap Guice modules
+ * by dropping {@code META-INF/services/com.google.inject.Module} files into the classpath.
  *
  * Example: <pre>
  * &#64;MetaInfServices(Module.class)
@@ -31,7 +31,7 @@ import static java.util.ServiceLoader.load;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public final class MetaInfServicesModule
+public final class ServicesModule
         extends AbstractModule {
     @Override
     protected void configure() {

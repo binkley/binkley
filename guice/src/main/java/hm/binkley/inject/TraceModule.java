@@ -23,7 +23,7 @@ import static org.slf4j.ext.XLoggerFactory.getXLogger;
 
 /**
  * {@code TraceModule} is a Guice module to enable tracing via SLF4J of method entry/exit and
- * exceptions thrown (exception {@code Error}s).  Use {@link MetaInfServicesModule} to automatically
+ * exceptions thrown (exception {@code Error}s).  Use {@link ServicesModule} to automatically
  * enable. Use {@link Trace @Trace} to mark classes or individual methods for tracing. Use <a
  * href="http://docs.oracle.com/javase/7/docs/technotes/guides/language/assert.html#enable-disable">
  * {@code -ea}</a> to enable/disable at runtime.
