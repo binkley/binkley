@@ -46,8 +46,8 @@ public abstract class Main<C extends Config> {
      * a bootstrap injector to manage command line options with {@linkplain JOptSimpleModule
      * jopt-simple}.</li> <li>Create the application injector with {@linkplain OwnerModule OWNER
      * API} for configuration.</li> <li>Include {@linkplain LifecycleModule lifecycle support}.</li>
-     * <li>Scan for {@linkplain MetaInfServicesModule annotated application modules}.</li>
-     * <li>Inject the instance of {@code Main} triggering lifecycle events, if any.</li> </ol>
+     * <li>Scan for {@linkplain ServicesModule annotated application modules}.</li> <li>Inject the
+     * instance of {@code Main} triggering lifecycle events, if any.</li> </ol>
      *
      * @param args the command line arguments
      */
@@ -55,11 +55,11 @@ public abstract class Main<C extends Config> {
         final Main main = getOnlyElement(ServiceLoader.load(Main.class));
         final JOptSimpleModule.Builder builder = JOptSimpleModule.builder();
         main.addOptions(builder);
-        final Injector preGuice = createInjector(builder.parse(args));
-        final OptionSet options = preGuice.getInstance(OptionSet.class);
+        final Injector bootstrap = createInjector(builder.parse(args));
+        final OptionSet options = bootstrap.getInstance(OptionSet.class);
         final OwnerModule ownerModule = ownerModule(main.configType, mapOf(options, main.prefix));
-        preGuice.createChildInjector(ownerModule, new LifecycleModule(),
-                new MetaInfServicesModule()).injectMembers(main);
+        bootstrap.createChildInjector(ownerModule, new LifecycleModule(),
+                new InjectedServicesModule(bootstrap)).injectMembers(main);
     }
 
     /**
