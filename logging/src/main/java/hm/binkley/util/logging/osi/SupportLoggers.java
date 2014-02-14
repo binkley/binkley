@@ -32,7 +32,7 @@ import static org.slf4j.MarkerFactory.getMarker;
  * #APPLICATION}</dt> <dd>Logs normally following logback configuration</dd> <dt>{@link #AUDIT}</dt>
  * <dd>Records an audit trail for the business, typically to a database</dd></dl>
  *
- * @author <a href="mailto:Brian.Oxley@Macquarie.COM">Brian Oxley</a>
+ * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public enum SupportLoggers {
     /**

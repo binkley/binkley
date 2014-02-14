@@ -25,7 +25,7 @@ import org.slf4j.ext.LoggerWrapper;
  * <p/>
  * In Logback configuration use {@code %marker} to print the marker in the encoder pattern.
  *
- * @author <a href="mailto:Brian.Oxley@Macquarie.COM">Brian Oxley</a>
+ * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public class MarkedLogger
         extends LoggerWrapper {

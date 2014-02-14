@@ -5,9 +5,6 @@
   -->
 
 <included>
-    <!-- Enables %match(cond1,patt1,...,fallback) -->
-    <conversionRule conversionWord="match"
-                    converterClass="mbl.laboratory.util.logging.MatchConverter"/>
     <!-- Supports marking ALERT and AUDIT log lines specially. -->
     <!-- TODO: General property for listing special markers -->
     <evaluator name="WITH_MARKER">

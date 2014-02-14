@@ -20,7 +20,7 @@ import static java.lang.System.setProperty;
 /**
  * {@code OSI} enable OSI logging for simple cases.
  *
- * @author <a href="mailto:Brian.Oxley@macquarie.com">Brian Oxley</a>
+ * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public final class OSI {
     /**

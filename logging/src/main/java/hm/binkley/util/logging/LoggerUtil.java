@@ -8,15 +8,13 @@ package hm.binkley.util.logging;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.classic.util.ContextInitializer;
 import ch.qos.logback.core.joran.spi.JoranException;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.net.URL;
 
-import static ch.qos.logback.core.joran.util.ConfigurationWatchListUtil.getMainWatchURL;
+import static org.slf4j.LoggerFactory.getILoggerFactory;
 
 /**
  * {@code LoggerUtil} has utility methods for SLF4J loggers.
@@ -41,18 +39,13 @@ public final class LoggerUtil {
 
     /** Resets the global logack, forcing reread of configuration. */
     public static void refreshLogback() {
-        final LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        context.reset();
-        final URL url = getMainWatchURL(context);
-        if (null == url)
-            throw new IllegalStateException("Missing logback configuration");
-        final JoranConfigurator configurator = new JoranConfigurator();
-        configurator.setContext(context);
         try {
-            configurator.doConfigure(url);
-            configurator.registerSafeConfiguration();
+            final LoggerContext context = (LoggerContext) getILoggerFactory();
+            context.reset();
+            context.getStatusManager().clear();
+            new ContextInitializer(context).autoConfig();
         } catch (final JoranException e) {
-            throw new IllegalStateException("Bad logback configuration: " + url, e);
+            throw new RuntimeException(e);
         }
     }
 }

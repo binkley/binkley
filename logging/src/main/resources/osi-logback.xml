@@ -6,18 +6,28 @@
   ~ Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
   -->
 
+<!-- Select with -Dlogback.configurationFile=osi-logback.xml -->
 <configuration debug="${logback.debug:-false}">
-    <contextName>OSI</contextName>
-    <property resource="osi-logback-styles.properties"/>
+    <if condition='"true".equals(property("logback.debug"))'>
+        <then>
+            <variable name="log.level" value="debug"/>
+        </then>
+    </if>
+    <!-- Enables %match(cond1,patt1,...,fallback) -->
+    <conversionRule conversionWord="match"
+                    converterClass="hm.binkley.util.logging.MatchConverter"/>
+    <include resource="${logback.includedFile:-osi-logback-included.xml}"/>
+    <variable resource="${logback.stylesFile:-osi-logback-styles.properties}"/>
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+        <encoder>
             <pattern>${${logback.style:-standard}}</pattern>
         </encoder>
     </appender>
-    <root level="${log.level:-warn}">
+    <root level="${log.level:-WARN}">
         <appender-ref ref="console"/>
     </root>
-    <include resource="${logback.included:-osi-logback-included.xml}"/>
-    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
     <jmxConfigurator/>
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
 </configuration>

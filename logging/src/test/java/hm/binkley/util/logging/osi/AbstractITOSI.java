@@ -22,7 +22,7 @@ import static java.lang.String.format;
 /**
  * Base class for OSI integration tests.
  *
- * @author <a href="mailto:Brian.Oxley@macquarie.com">Brian Oxley</a>
+ * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public abstract class AbstractITOSI
         extends AbstractITLogback {

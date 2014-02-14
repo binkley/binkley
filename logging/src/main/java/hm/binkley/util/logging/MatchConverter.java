@@ -27,7 +27,7 @@ import static java.util.Collections.emptyMap;
  * <pre>
  * &lt;conversionRule
  *     conversionWord="match"
- *     converterClass="mbl.laboratory.util.logging.MatchConverter"/&gt;</pre> Use as:
+ *     converterClass="hm.binkley.util.logging.MatchConverter"/&gt;</pre> Use as:
  * <pre>
  * &lt;pattern&gt;%match{cond1,patt1,...,fallback}&lt;/pattern&gt;</pre> Example:
  * <pre>
@@ -48,6 +48,7 @@ public final class MatchConverter
     private Map<String, EventEvaluator<ILoggingEvent>> evaluators;
     private int errors;
 
+    @SuppressWarnings("unchecked")
     @Override
     public void start() {
         final List<String> options = getOptionList();
@@ -87,7 +88,7 @@ public final class MatchConverter
             if (errors < MAX_ERROR_COUNT) {
                 addError("Exception thrown for evaluator named [" + evaluator.getName() + "]", e);
             } else if (errors == MAX_ERROR_COUNT) {
-                ErrorStatus errorStatus = new ErrorStatus(
+                final ErrorStatus errorStatus = new ErrorStatus(
                         "Exception thrown for evaluator named [" + evaluator.getName() + "].", this,
                         e);
                 errorStatus.add(new ErrorStatus(

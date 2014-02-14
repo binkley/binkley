@@ -19,6 +19,7 @@ import java.util.Map;
 
 import static java.lang.System.getProperties;
 import static java.lang.System.setOut;
+import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertThat;
 import static org.slf4j.MDC.getCopyOfContextMap;
 import static org.slf4j.MDC.setContextMap;
@@ -60,7 +61,7 @@ public abstract class AbstractITLogback {
         setOut(new PrintStream(out));
         systemProperties = new HashMap<>(getProperties()); // Make a copy
         contextMap = getCopyOfContextMap();
-        setContextMap(null == contextMap ? new HashMap() : new HashMap(contextMap));
+        setContextMap(null == contextMap ? emptyMap() : new HashMap(contextMap));
     }
 
     @After
@@ -68,6 +69,6 @@ public abstract class AbstractITLogback {
         setOut(stdout);
         getProperties().clear();
         getProperties().putAll(systemProperties);
-        setContextMap(null == contextMap ? new HashMap() : contextMap);
+        setContextMap(null == contextMap ? emptyMap() : contextMap);
     }
 }
