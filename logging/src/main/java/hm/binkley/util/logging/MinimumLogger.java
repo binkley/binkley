@@ -8,6 +8,7 @@ package hm.binkley.util.logging;
 
 import ch.qos.logback.classic.Level;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.ext.LoggerWrapper;
 
@@ -19,12 +20,13 @@ import static ch.qos.logback.classic.Level.INFO;
 import static ch.qos.logback.classic.Level.TRACE;
 import static ch.qos.logback.classic.Level.WARN;
 import static java.lang.String.format;
+import static java.lang.System.out;
 
 /**
- * {@code MinimalLogger} complains about trivial logging.
+ * {@code MinimalLogger} complains about trivial logging.  When a logger supports only a given level
+ * or greater, attempts to log at a lesser level throw {@code IllegalStateException}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation
  */
 public class MinimumLogger
         extends LoggerWrapper {
@@ -410,6 +412,18 @@ public class MinimumLogger
 
     private void require(final Level current) {
         if (!current.isGreaterOrEqual(minimum))
-            throw new IllegalStateException(format("%s logging disabled.", current));
+            throw new IllegalStateException(
+                    format("%s logging disabled for \"%s\"[%s] logger", current, getName(),
+                            getClass().getSimpleName()));
+    }
+
+    public static void main(final String... args) {
+        try {
+            final MinimumLogger main = new MinimumLogger(LoggerFactory.getLogger("main"), INFO);
+            main.info("Just fine");
+            main.trace("Too trivial!");
+        } catch (final IllegalStateException e) {
+            e.printStackTrace(out);
+        }
     }
 }
