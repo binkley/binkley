@@ -413,8 +413,8 @@ public class MinimumLogger
     private void require(final Level current) {
         if (!current.isGreaterOrEqual(minimum))
             throw new IllegalStateException(
-                    format("%s logging disabled for \"%s\"[%s] logger", current, getName(),
-                            getClass().getSimpleName()));
+                    format("%s logging disabled for logger \"%s\" [%s]", current, getName(),
+                            getClass().getName()));
     }
 
     public static void main(final String... args) {
