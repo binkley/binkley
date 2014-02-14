@@ -65,8 +65,6 @@
         <module>guice</module>
         <module>logging</module>
         <module>mixin</module>
-        <!-- TODO: Compiles with 1.7, not with 1.8 -->
-        <module>xnum</module>
     </modules>
 
     <properties>
@@ -139,11 +137,6 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-mixin</artifactId>
-                <version>${project.version</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>binkley-xnum</artifactId>
                 <version>${project.version</version>
             </dependency>
 
@@ -294,7 +287,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
-                    <!-- TODO: JD8 chokes on xnum -->
+                    <!-- TODO: JD8 chokes on various bits -->
                     <additionalparam>-Xdoclint:none</additionalparam>
                     <archive>
                         <addMavenDescriptor>true</addMavenDescriptor>
