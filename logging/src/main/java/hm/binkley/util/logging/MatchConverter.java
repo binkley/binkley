@@ -27,7 +27,7 @@ import static java.util.Collections.emptyMap;
  * <pre>
  * &lt;conversionRule
  *     conversionWord="match"
- *     converterClass="mbl.laboratory.util.logging.osi.MatchConverter"/&gt;</pre> Use as:
+ *     converterClass="mbl.laboratory.util.logging.MatchConverter"/&gt;</pre> Use as:
  * <pre>
  * &lt;pattern&gt;%match{cond1,patt1,...,fallback}&lt;/pattern&gt;</pre> Example:
  * <pre>
