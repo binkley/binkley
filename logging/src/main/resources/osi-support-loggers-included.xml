@@ -1,0 +1,58 @@
+<!--
+  ~ This is free and unencumbered software released into the public domain.
+  ~
+  ~ Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
+  -->
+
+<included>
+    <!-- Supports marking ALERT and AUDIT log lines specially. -->
+    <!-- TODO: General property for listing special markers -->
+    <evaluator name="WITH_MARKER">
+        <expression>null != marker &amp;&amp; "ALERT".equals(marker.getName()) ||
+            "AUDIT".equals(marker.getName())
+        </expression>
+    </evaluator>
+
+    <!-- Ensure all alerts go out regardless of level. -->
+    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+        <marker>ALERT</marker>
+        <onMatch>ACCEPT</onMatch>
+        <onMismatch>NEUTRAL</onMismatch>
+    </turboFilter>
+
+    <!-- Alerts get special treatment, in addition to regular treatment. -->
+    <appender name="alert" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>ALERT</marker>
+            </evaluator>
+            <onMatch>NEUTRAL</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>${${logback.style:-standard}}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Ensure all audits go out regardless of level. -->
+    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+        <marker>AUDIT</marker>
+        <onMatch>ACCEPT</onMatch>
+        <onMismatch>NEUTRAL</onMismatch>
+    </turboFilter>
+
+    <!-- Audits get special treatment, in addition to regular treatment. -->
+    <appender name="audit" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>AUDIT</marker>
+            </evaluator>
+            <onMatch>NEUTRAL</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>${${logback.style:-standard}}</pattern>
+        </encoder>
+    </appender>
+</included>

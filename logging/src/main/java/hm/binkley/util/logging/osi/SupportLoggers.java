@@ -4,8 +4,11 @@
  * Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
  */
 
-package hm.binkley.util.logging;
+package hm.binkley.util.logging.osi;
 
+import ch.qos.logback.classic.Level;
+import hm.binkley.util.logging.MarkedLogger;
+import hm.binkley.util.logging.MinimumLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.ext.XLogger;
@@ -13,29 +16,32 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Nonnull;
 
+import static ch.qos.logback.classic.Level.ALL;
+import static ch.qos.logback.classic.Level.INFO;
+import static ch.qos.logback.classic.Level.WARN;
 import static org.slf4j.MarkerFactory.getMarker;
 
 /**
- * {@code SupportLoggers} are custom {@link MarkedLogger}s for support. Methods create new marked
- * loggers with the enum names as markers.
- *
- * There is one factory method variant for each style of logger creation: <dl> <dt>{@link
- * #getLogger(Class)}</dt> <dd>Creates a new underlying logger from a class</dd> <dt>{@link
- * #getLogger(String)}</dt> <dd>Creates a new underlying logger from a logger name</dd> <dt>{@link
- * #getLogger(Logger)}</dt> <dd>Reuses an existing underlying logger</dd> </dl>
- *
- * Programs should configure logback or other logging system by marker: <dl><dt>{@link #ALERT}</dt>
- * <dd>Send alerts to a human being</dd> <dt>{@link #APPLICATION}</dt> <dd>Logs normally following
- * logback configuration</dd> <dt>{@link #AUDIT}</dt> <dd>Records an audit trail, typically to a
- * database</dd></dl>
+ * {@code SupportLoggers} are custom {@link MarkedLogger}s for Ops Support and the business. Methods
+ * create new marked loggers with the enum names as markers. <p> There is one factory method variant
+ * for each style of logger creation: <dl> <dt>{@link #getLogger(Class)}</dt> <dd>Creates a new
+ * underlying logger from a class</dd> <dt>{@link #getLogger(String)}</dt> <dd>Creates a new
+ * underlying logger from a logger name</dd> <dt>{@link #getLogger(Logger)}</dt> <dd>Reuses an
+ * existing underlying logger</dd> </dl> <p> Applications should configure logback or other logging
+ * system by marker: <dl><dt>{@link #ALERT}</dt> <dd>Send alerts to Ops Support</dd> <dt>{@link
+ * #APPLICATION}</dt> <dd>Logs normally following logback configuration</dd> <dt>{@link #AUDIT}</dt>
+ * <dd>Records an audit trail for the business, typically to a database</dd></dl>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public enum SupportLoggers {
-    /** Marks "ALERT" loggers to send alerts to a human being. */
-    ALERT,
+    /**
+     * Marks "ALERT" loggers to send alerts to Ops Support.  Rejects logging at less than {@code
+     * WARN} level (throws {@code IllegalStateException}).
+     */
+    ALERT(WARN),
     /** Unmarked loggers for normal logging. */
-    APPLICATION {
+    APPLICATION(ALL) {
         @Nonnull
         @Override
         public Logger getLogger(@Nonnull final Class<?> logger) {
@@ -54,10 +60,10 @@ public enum SupportLoggers {
             return logger;
         }
     },
-    /** Marks "AUDIT" loggers to record an audit trail, typically to a database. */
-    AUDIT,
+    /** Marks "AUDIT" loggers to record an audit trail for the business, typically to a database. */
+    AUDIT(INFO),
     /** Trace loggers ({@link XLogger} for debugging. */
-    TRACE {
+    TRACE(ALL) {
         @Nonnull
         @Override
         public XLogger getLogger(@Nonnull final Class<?> logger) {
@@ -76,6 +82,12 @@ public enum SupportLoggers {
             return (XLogger) logger;
         }
     };
+    @Nonnull
+    private final Level minimum;
+
+    SupportLoggers(@Nonnull final Level minimum) {
+        this.minimum = minimum;
+    }
 
     /**
      * Redundant method for {@link #TRACE} returning {@code XLogger}.
@@ -88,25 +100,21 @@ public enum SupportLoggers {
      */
     @Nonnull
     public static XLogger trace(@Nonnull final Class<?> logger) {
-        return (XLogger) TRACE.getLogger(logger);
+        return trace(logger.getName());
     }
 
-    public static void main(final String... args) {
-        final Logger alert = ALERT.getLogger(SupportLoggers.class);
-        final Logger audit = AUDIT.getLogger(SupportLoggers.class);
-        final Logger application = APPLICATION.getLogger(SupportLoggers.class);
-        final XLogger trace = trace(SupportLoggers.class);
-
-        trace.entry(args);
-        try {
-            alert.error("Ouch, {}!", "Robin");
-            audit.error("Ouch, {}!", "Batman");
-            audit.trace("Ouch, {}!", "Joker");
-            application.info("Ouch, {}!", "Batgirl");
-            trace.exit();
-        } catch (final Throwable t) {
-            trace.catching(t);
-        }
+    /**
+     * Redundant method for {@link #TRACE} returning {@code XLogger}.
+     *
+     * @param logger the logger name, never missing
+     *
+     * @return the XLogger, never missing
+     *
+     * @todo Java needs anonymous instance covariant returns to avoid casting
+     */
+    @Nonnull
+    public static XLogger trace(@Nonnull final String logger) {
+        return (XLogger) TRACE.getLogger(logger);
     }
 
     /**
@@ -118,8 +126,7 @@ public enum SupportLoggers {
      */
     @Nonnull
     public Logger getLogger(@Nonnull final Class<?> logger) {
-        return new MarkedLogger(getMarker(name()), LoggerFactory.getLogger(logger),
-                getClass().getName());
+        return getLogger(LoggerFactory.getLogger(logger));
     }
 
     /**
@@ -131,8 +138,7 @@ public enum SupportLoggers {
      */
     @Nonnull
     public Logger getLogger(@Nonnull final String logger) {
-        return new MarkedLogger(getMarker(name()), LoggerFactory.getLogger(logger),
-                getClass().getName());
+        return getLogger(LoggerFactory.getLogger(logger));
     }
 
     /**
@@ -144,6 +150,8 @@ public enum SupportLoggers {
      */
     @Nonnull
     public Logger getLogger(@Nonnull final Logger logger) {
-        return new MarkedLogger(getMarker(name()), logger, getClass().getName());
+        return ALL == minimum ? new MarkedLogger(logger, getMarker(name())) : new MinimumLogger(
+                new MarkedLogger(logger, MinimumLogger.class.getName(), getMarker(name())),
+                minimum);
     }
 }

@@ -10,36 +10,45 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.ext.LoggerWrapper;
 
-import javax.annotation.Nonnull;
-
 /**
  * {@code MarkedLogger} is an SLF4J logger with a default marker applied to all methods with a
  * marker variant.
- *
+ * <p/>
  * Example: <pre>
- * final Marker marker = MarkerFactory.getMarker("ALERT");
- * final Logger alert = new MarkedLogger(LoggerFactory.getLogger(getClass()), marker);
- * alert.error("Mismatched socks: {} vs. {}", leftSock, rightSock);
- * alert.error(marker, "Mismatched socks: {} vs. {}", leftSock, rightSock);
+ *     final Marker marker = MarkerFactory.getMarker("AUDIT");
+ *     final Logger logger = new MarkedLogger(LoggerFactory.getLogger(getClass()), marker);
+ *     logger.error("Missing counterparty details on order: {}", order);
+ *     logger.error(marker, "Missing counterparty details on order: {}", order);
  * </pre>
- * Marks this logging event as "ALERT".  Suitable logger configuration might redirect this event to
- * a human being for immediate action.  Both logging lines are equivalent.
- *
+ * Marks this logging event as "AUDIT".  Suitable logger configuration might redirect this event to
+ * Remedy.  Both logging lines are equivalent.
+ * <p/>
  * In Logback configuration use {@code %marker} to print the marker in the encoder pattern.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation
  */
 public class MarkedLogger
         extends LoggerWrapper {
     private final Marker marker;
 
-    public static MarkedLogger markedLogger(final Marker marker, final Logger logger) {
-        return new MarkedLogger(marker, logger, MarkedLogger.class.getName());
+    /**
+     * Constructds a new {@code MarkedLogger} for the given parameters.
+     *
+     * @param logger the logger to delegate to, never missing
+     * @param marker the marker for unmarked logging, never missing
+     */
+    public MarkedLogger(final Logger logger, final Marker marker) {
+        this(logger, MarkedLogger.class.getName(), marker);
     }
 
-    protected MarkedLogger(@Nonnull final Marker marker, @Nonnull final Logger logger,
-            @Nonnull final String fqcn) {
+    /**
+     * Constructds a new {@code MarkedLogger} for the given parameters suitable as a base class.
+     *
+     * @param logger the logger to delegate to, never missing
+     * @param fqcn the fully-qualified class name of the extending logger, never missing
+     * @param marker the marker for unmarked logging, never missing
+     */
+    public MarkedLogger(final Logger logger, final String fqcn, final Marker marker) {
         super(logger, fqcn);
         this.marker = marker;
     }
