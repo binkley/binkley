@@ -22,22 +22,23 @@ import static ch.qos.logback.classic.Level.WARN;
 import static org.slf4j.MarkerFactory.getMarker;
 
 /**
- * {@code SupportLoggers} are custom {@link MarkedLogger}s for Ops Support and the business. Methods
- * create new marked loggers with the enum names as markers. <p> There is one factory method variant
- * for each style of logger creation: <dl> <dt>{@link #getLogger(Class)}</dt> <dd>Creates a new
- * underlying logger from a class</dd> <dt>{@link #getLogger(String)}</dt> <dd>Creates a new
- * underlying logger from a logger name</dd> <dt>{@link #getLogger(Logger)}</dt> <dd>Reuses an
- * existing underlying logger</dd> </dl> <p> Applications should configure logback or other logging
- * system by marker: <dl><dt>{@link #ALERT}</dt> <dd>Send alerts to Ops Support</dd> <dt>{@link
- * #APPLICATION}</dt> <dd>Logs normally following logback configuration</dd> <dt>{@link #AUDIT}</dt>
- * <dd>Records an audit trail for the business, typically to a database</dd></dl>
+ * {@code SupportLoggers} are custom {@link MarkedLogger}s for specialized use. Methods create new
+ * marked loggers with the enum names as markers. <p> There is one factory method variant for each
+ * style of logger creation: <dl> <dt>{@link #getLogger(Class)}</dt> <dd>Creates a new underlying
+ * logger from a class</dd> <dt>{@link #getLogger(String)}</dt> <dd>Creates a new underlying logger
+ * from a logger name</dd> <dt>{@link #getLogger(Logger)}</dt> <dd>Reuses an existing underlying
+ * logger</dd> </dl> <p> Applications should configure logback or other logging system by marker:
+ * <dl><dt>{@link #ALERT}</dt> <dd>Send alerts for system issues</dd> <dt>{@link #APPLICATION}</dt>
+ * <dd>Logs normally following logback configuration</dd> <dt>{@link #AUDIT}</dt> <dd>Records an
+ * audit trail, typically to a database</dd> <dt>{@link #TRACE}</dt> <dd>A tracing logger for method
+ * entry and exit</dd></dl>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public enum SupportLoggers {
     /**
-     * Marks "ALERT" loggers to send alerts to Ops Support.  Rejects logging at less than {@code
-     * WARN} level (throws {@code IllegalStateException}).
+     * Marks "ALERT" loggers for system issues.  Rejects logging at less than {@code WARN} level
+     * (throws {@code IllegalStateException}).
      */
     ALERT(WARN),
     /** Unmarked loggers for normal logging. */
@@ -60,7 +61,7 @@ public enum SupportLoggers {
             return logger;
         }
     },
-    /** Marks "AUDIT" loggers to record an audit trail for the business, typically to a database. */
+    /** Marks "AUDIT" loggers to record an audit trail, typically to a database. */
     AUDIT(INFO),
     /** Trace loggers ({@link XLogger} for debugging. */
     TRACE(ALL) {

@@ -142,7 +142,7 @@ public final class OSI {
         @Nonnull
         @Override
         public final String toString() {
-            return key;
+            return String.format("%s(%s)", name(), key);
         }
     }
 }

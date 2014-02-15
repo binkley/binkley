@@ -55,4 +55,9 @@
             <pattern>${${logback.style:-standard}}</pattern>
         </encoder>
     </appender>
+
+    <!--
+    In addition to console logging, audits might log to a database, etc.
+    Configure that in your own "included.xml" and include this file to pick up this configuration.
+    -->
 </included>

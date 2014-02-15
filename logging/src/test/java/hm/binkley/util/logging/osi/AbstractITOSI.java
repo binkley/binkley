@@ -46,12 +46,12 @@ public abstract class AbstractITOSI
     }
 
     @Before
-    public void setUpAbstractITOSI() {
+    public final void setUpAbstractITOSI() {
         setOSISystemProperty(LOGBACK_CONFIGURATION_FILE, "osi-logback.xml");
     }
 
     @After
-    public void tearDownAbstractITOSI() {
+    public final void tearDownAbstractITOSI() {
         setProperties.forEach(OSI.SystemProperty::unset);
     }
 }

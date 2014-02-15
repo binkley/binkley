@@ -15,7 +15,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  * {@code OSIMain} demonstrates OSI logging.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public final class OSIMain {
     public static void main(final String... args) {
@@ -24,14 +23,14 @@ public final class OSIMain {
 
         getLogger("example").error("Hi, mom!");
 
+        // Turn logging of logging on
         setProperty("logback.debug", "true");
         refreshLogback();
-
         getLogger("example").error("Hi, mom!");
 
+        // Turn it back off
         clearProperty("logback.debug");
         refreshLogback();
-
         getLogger("example").error("Hi, mom!");
     }
 }

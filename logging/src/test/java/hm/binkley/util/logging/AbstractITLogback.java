@@ -54,8 +54,9 @@ public abstract class AbstractITLogback {
         return out.toString();
     }
 
+    @SuppressWarnings("unchecked")
     @Before
-    public void setUpAbstractITLogback() {
+    public final void setUpAbstractITLogback() {
         stdout = System.out;
         out = new ByteArrayOutputStream();
         setOut(new PrintStream(out));
@@ -65,7 +66,7 @@ public abstract class AbstractITLogback {
     }
 
     @After
-    public void tearDownAbstractITLogback() {
+    public final void tearDownAbstractITLogback() {
         setOut(stdout);
         getProperties().clear();
         getProperties().putAll(systemProperties);
