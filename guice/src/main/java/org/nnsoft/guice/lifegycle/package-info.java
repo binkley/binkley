@@ -14,7 +14,5 @@
  *  limitations under the License.
  */
 
-/**
- * Objects lifecycle management made easy with Google Guice.
- */
+/** Objects lifecycle management made easy with Google Guice. */
 package org.nnsoft.guice.lifegycle;

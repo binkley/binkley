@@ -5,8 +5,8 @@
  */
 
 /**
- * Guice extras.
+ * Additional features for SLF4J Logback.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-package hm.binkley.inject;
+package hm.binkley.util.logging;
