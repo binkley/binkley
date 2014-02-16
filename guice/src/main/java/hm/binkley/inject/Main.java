@@ -7,6 +7,7 @@
 package hm.binkley.inject;
 
 import com.google.inject.Injector;
+import hm.binkley.util.ServiceBinder;
 import joptsimple.OptionDeclarer;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -35,6 +36,7 @@ import static java.util.Collections.unmodifiableMap;
  * For a full-featured library see <a href="https://github.com/Netflix/governator/wiki">Governator</a>.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Rework with {@link ServiceBinder}
  */
 public abstract class Main<C extends Config> {
     private final Class<C> configType;
