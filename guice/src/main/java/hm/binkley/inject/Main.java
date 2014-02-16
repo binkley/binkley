@@ -52,14 +52,7 @@ public abstract class Main<C extends Config> {
      * @param args the command line arguments
      */
     public static void main(final String... args) {
-        final Main main = getOnlyElement(ServiceLoader.load(Main.class));
-        final JOptSimpleModule.Builder builder = JOptSimpleModule.builder();
-        main.addOptions(builder);
-        final Injector bootstrap = createInjector(builder.parse(args));
-        final OptionSet options = bootstrap.getInstance(OptionSet.class);
-        final OwnerModule ownerModule = ownerModule(main.configType, mapOf(options, main.prefix));
-        bootstrap.createChildInjector(ownerModule, new LifecycleModule(),
-                new InjectedServicesModule(bootstrap)).injectMembers(main);
+        final Main<? extends Config> main = build();
     }
 
     /**
@@ -85,6 +78,20 @@ public abstract class Main<C extends Config> {
         this.prefix = prefix;
     }
 
+    private static <C extends Config> Main<C> build(final String... args) {
+        @SuppressWarnings("unchecked") final Main<C> main = getOnlyElement(
+                ServiceLoader.load(Main.class));
+        final JOptSimpleModule.Builder builder = JOptSimpleModule.builder();
+        main.addOptions(builder);
+        final Injector bootstrap = createInjector(builder.parse(args));
+        final OptionSet options = bootstrap.getInstance(OptionSet.class);
+        final OwnerModule<C> ownerModule = ownerModule(main.configType,
+                mapOf(options, main.prefix));
+        bootstrap.createChildInjector(ownerModule, new LifecycleModule(),
+                new InjectedServicesModule(bootstrap)).injectMembers(main);
+        return main;
+    }
+
     private static Map<String, String> mapOf(final OptionSet options, final String prefix) {
         final Map<String, String> map = new HashMap<>();
         for (final Entry<OptionSpec<?>, List<?>> entry : options.asMap().entrySet()) {
@@ -97,9 +104,11 @@ public abstract class Main<C extends Config> {
 
     private static String asPropertyKey(final String prefix, final OptionSpec<?> spec) {
         final Collection<String> flags = spec.options();
-        for (final String flag : flags)
-            if (1 < flag.length())
+        for (final String flag : flags) {
+            if (1 < flag.length()) {
                 return null == prefix ? flag : (prefix + '.' + flag);
+            }
+        }
         throw new IllegalArgumentException("No usable non-short flag: " + flags);
     }
 

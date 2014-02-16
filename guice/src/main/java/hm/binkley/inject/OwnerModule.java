@@ -38,7 +38,8 @@ public final class OwnerModule<C extends Config>
      * @return the Guice module, never missing
      */
     @Nonnull
-    public static <C extends Config> OwnerModule ownerModule(@Nonnull final Class<C> configType) {
+    public static <C extends Config> OwnerModule<C> ownerModule(
+            @Nonnull final Class<C> configType) {
         return new OwnerModule<>(configType);
     }
 
@@ -53,7 +54,7 @@ public final class OwnerModule<C extends Config>
      * @return the Guice module, never missing
      */
     @Nonnull
-    public static <C extends Config> OwnerModule ownerModule(@Nonnull final Class<C> configType,
+    public static <C extends Config> OwnerModule<C> ownerModule(@Nonnull final Class<C> configType,
             @Nonnull final Map<String, String> overrides) {
         return new OwnerModule<>(configType, overrides);
     }

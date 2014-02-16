@@ -236,6 +236,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
+                    <compilerArgs>
+                        <compilerArg>-Xlint:all</compilerArg>
+                    </compilerArgs>
                     <debug>true</debug>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
