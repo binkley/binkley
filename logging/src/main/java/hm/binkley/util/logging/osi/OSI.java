@@ -6,6 +6,8 @@
 
 package hm.binkley.util.logging.osi;
 
+import hm.binkley.util.logging.Level;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -58,7 +60,13 @@ public final class OSI {
          */
         LOGBACK_INCLUDED_FILE("logback.includedFile"),
         /** Enables logback debugging. */
-        LOGBACK_DEBUG("logback.debug");
+        LOGBACK_DEBUG("logback.debug"),
+        /**
+         * Sets overall logging level.
+         *
+         * @see Level
+         */
+        LOG_LEVEL("log.level");
         private static final Map<SystemProperty, String> totem = new HashMap<>(values().length);
         @Nonnull
         private final String key;
@@ -107,16 +115,19 @@ public final class OSI {
          */
         public final boolean set(@Nullable final String value, final boolean override) {
             final String existing = getProperty(key);
-            if (totem.containsKey(this))
+            if (totem.containsKey(this)) {
                 throw new IllegalStateException(
                         format("%s: Already modified, unset first: %s", this, existing));
-            if (null != value && null != existing && !override)
+            }
+            if (null != value && null != existing && !override) {
                 return false;
+            }
             final String previous;
-            if (null == value)
+            if (null == value) {
                 clearProperty(key);
-            else
+            } else {
                 setProperty(key, value);
+            }
             totem.put(this, existing);
             return true;
         }
@@ -129,13 +140,15 @@ public final class OSI {
          * @throws IllegalStateException if not set
          */
         public final void unset() {
-            if (!totem.containsKey(this))
+            if (!totem.containsKey(this)) {
                 throw new IllegalStateException(format("%s: Not set", this));
+            }
             final String value = totem.get(this);
-            if (null == value)
+            if (null == value) {
                 clearProperty(key);
-            else
+            } else {
                 setProperty(key, value);
+            }
             totem.remove(this);
         }
 
