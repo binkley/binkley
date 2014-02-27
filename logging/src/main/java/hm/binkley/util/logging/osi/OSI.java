@@ -62,7 +62,8 @@ public final class OSI {
         /** Enables logback debugging. */
         LOGBACK_DEBUG("logback.debug"),
         /**
-         * Sets overall logging level.
+         * Adjusts the general logging level when no more specific level is configured for a
+         * logger.
          *
          * @see Level
          */
