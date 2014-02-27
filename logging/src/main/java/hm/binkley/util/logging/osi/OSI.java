@@ -6,6 +6,8 @@
 
 package hm.binkley.util.logging.osi;
 
+import hm.binkley.util.logging.Level;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -58,7 +60,14 @@ public final class OSI {
          */
         LOGBACK_INCLUDED_FILE("logback.includedFile"),
         /** Enables logback debugging. */
-        LOGBACK_DEBUG("logback.debug");
+        LOGBACK_DEBUG("logback.debug"),
+        /**
+         * Adjusts the general logging level when no more specific level is configured for a
+         * logger.
+         *
+         * @see Level
+         */
+        LOG_LEVEL("log.level");
         private static final Map<SystemProperty, String> totem = new HashMap<>(values().length);
         @Nonnull
         private final String key;
