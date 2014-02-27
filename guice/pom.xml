@@ -26,6 +26,10 @@
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-assistedinject</artifactId>
+        </dependency>
         <!-- TODO: Replace with Apache Onami release
         <dependency>
             <groupId>org.99soft.guice</groupId>

@@ -172,6 +172,11 @@
                 <artifactId>guice</artifactId>
                 <version>${guice.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.inject.extensions</groupId>
+                <artifactId>guice-assistedinject</artifactId>
+                <version>${guice.version}</version>
+            </dependency>
             <!-- TODO: Replace with Apache Onami release
             <dependency>
                 <groupId>org.99soft.guice</groupId>
