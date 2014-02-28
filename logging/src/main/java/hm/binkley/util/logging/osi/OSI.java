@@ -7,6 +7,7 @@
 package hm.binkley.util.logging.osi;
 
 import hm.binkley.util.logging.Level;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,6 +32,7 @@ public final class OSI {
      * properties}. <p> Must be called before first use of logback.
      */
     public static void enable() {
+        SLF4JBridgeHandler.install();
         LOGBACK_CONFIGURATION_FILE.set("osi-logback.xml", false);
     }
 
