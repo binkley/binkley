@@ -24,7 +24,7 @@
         </encoder>
     </appender>
     <root level="${log.level:-WARN}">
-        <appender-ref ref="console"/>
+        <appender-ref ref="${logback.rootAppender:-console}"/>
     </root>
     <jmxConfigurator/>
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">

@@ -42,34 +42,39 @@ public final class OSI {
      */
     public static enum SystemProperty {
         /**
-         * Sets the logback configuration file, rarely changed except for testing.
+         * Sets the logback configuration file, rarely changed except for testing.  Default is
+         * "osi-logback.xml".
          *
          * @see #enable()
          */
         LOGBACK_CONFIGURATION_FILE("logback.configurationFile"),
-        /** Sets a custom style file for logging, rarely changed. */
+        /**
+         * Sets a custom style file for logging, rarely changed.  Default is
+         * "osi-logback-style.properties".
+         */
         LOGBACK_STYLES_FILE("logback.stylesFile"),
         /**
-         * Sets the default logging style.  The three default styles are: <ul> <li>standard</li>
-         * <li>short-deals</li> <li>long-deals</li> </ul> See "osi-logback-styles.properties" for
-         * details.
+         * Sets the default logging style.  See "osi-logback-styles.properties" for details. Default
+         * is "standard".
          */
         LOGBACK_STYLE("logback.style"),
         /**
          * Sets the file of additional included logging directives.  This is often changed (or one
          * named "osi-logback-included.xml" is provided in the application class path) to control
-         * logging such as changing log levels.
+         * logging such as changing log levels.  Default is "osi-logback-included.xml".
          */
         LOGBACK_INCLUDED_FILE("logback.includedFile"),
-        /** Enables logback debugging. */
+        /** Enables logback debugging.  Default is "false". */
         LOGBACK_DEBUG("logback.debug"),
         /**
-         * Adjusts the general logging level when no more specific level is configured for a
-         * logger.
+         * Adjusts the general logging level when no more specific level is configured for a logger.
+         * Default is "WARN".
          *
          * @see Level
          */
-        LOG_LEVEL("log.level");
+        LOG_LEVEL("log.level"),
+        /** Sets the root appender.  Default is "console". */
+        LOGBACK_ROOT_APPENDER("logback.rootAppender");
         private static final Map<SystemProperty, String> totem = new HashMap<>(values().length);
         @Nonnull
         private final String key;
@@ -118,16 +123,19 @@ public final class OSI {
          */
         public final boolean set(@Nullable final String value, final boolean override) {
             final String existing = getProperty(key);
-            if (totem.containsKey(this))
+            if (totem.containsKey(this)) {
                 throw new IllegalStateException(
                         format("%s: Already modified, unset first: %s", this, existing));
-            if (null != value && null != existing && !override)
+            }
+            if (null != value && null != existing && !override) {
                 return false;
+            }
             final String previous;
-            if (null == value)
+            if (null == value) {
                 clearProperty(key);
-            else
+            } else {
                 setProperty(key, value);
+            }
             totem.put(this, existing);
             return true;
         }
@@ -140,13 +148,15 @@ public final class OSI {
          * @throws IllegalStateException if not set
          */
         public final void unset() {
-            if (!totem.containsKey(this))
+            if (!totem.containsKey(this)) {
                 throw new IllegalStateException(format("%s: Not set", this));
+            }
             final String value = totem.get(this);
-            if (null == value)
+            if (null == value) {
                 clearProperty(key);
-            else
+            } else {
                 setProperty(key, value);
+            }
             totem.remove(this);
         }
 
