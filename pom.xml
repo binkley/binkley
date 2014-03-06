@@ -63,12 +63,13 @@
 
     <modules>
         <module>guice</module>
+        <module>spring</module>
         <module>logging</module>
         <module>mixin</module>
     </modules>
 
     <properties>
-        <guava.version>16.0-rc1</guava.version>
+        <guava.version>16.0.1</guava.version>
         <guice.version>3.0</guice.version>
         <hamcrest.version>1.3</hamcrest.version>
         <janino.version>2.6.1</janino.version>
@@ -79,7 +80,7 @@
         <jsr305.version>2.0.3</jsr305.version>
         <junit.version>4.11</junit.version>
         <!-- <lifegycle.version>0.2-SNAPSHOT</lifegycle.version> -->
-        <logback.version>1.0.13</logback.version>
+        <logback.version>1.1.1</logback.version>
         <maven.version>3.1</maven.version>
         <metainf-services.version>1.5</metainf-services.version>
         <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
@@ -95,8 +96,9 @@
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <service-binder.version>0.2</service-binder.version>
-        <slf4j.version>1.7.5</slf4j.version>
+        <service-binder.version>0.3</service-binder.version>
+        <slf4j.version>1.7.6</slf4j.version>
+        <spring.version>4.0.2.RELEASE</spring.version>
         <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
     </properties>
 
@@ -138,6 +140,21 @@
                 <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-mixin</artifactId>
                 <version>${project.version</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>1</version>
+                <scope>compile</scope>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.kohsuke.metainf-services</groupId>
+                <artifactId>metainf-services</artifactId>
+                <version>${metainf-services.version}</version>
+                <scope>compile</scope>
+                <optional>true</optional>
             </dependency>
 
             <dependency>
@@ -206,17 +223,27 @@
                 <version>${lifegycle.version}</version>
             </dependency>
             -->
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jdbc</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>hm.binkley</groupId>
                 <artifactId>service-binder</artifactId>
                 <version>${service-binder.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.kohsuke.metainf-services</groupId>
-                <artifactId>metainf-services</artifactId>
-                <version>${metainf-services.version}</version>
-                <scope>compile</scope>
-                <optional>true</optional>
             </dependency>
 
             <dependency>

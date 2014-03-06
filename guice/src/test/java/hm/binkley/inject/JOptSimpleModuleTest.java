@@ -16,7 +16,6 @@ import org.junit.Test;
 import java.io.File;
 import java.util.List;
 
-import static com.google.inject.Guice.createInjector;
 import static com.google.inject.name.Names.named;
 import static hm.binkley.inject.JOptSimpleModule.bindArgs;
 import static hm.binkley.inject.JOptSimpleModule.bootstrapInjector;
@@ -34,7 +33,7 @@ import static org.junit.Assert.assertThat;
 public class JOptSimpleModuleTest {
     @Test
     public void shouldParse() {
-        final Injector bootstrap = createInjector(bootstrapInjector());
+        final Injector bootstrap = bootstrapInjector();
         final JOptSimpleModule jOptSimpleModule = bindArgs(bootstrap);
         final ArgumentAcceptingOptionSpec<File> rootsOption = jOptSimpleModule.accepts("r").
                 withRequiredArg().
@@ -48,7 +47,7 @@ public class JOptSimpleModuleTest {
 
     @Test
     public void shouldBindCommandLine() {
-        final Injector bootstrap = createInjector(bootstrapInjector());
+        final Injector bootstrap = bootstrapInjector();
         final JOptSimpleModule jOptSimpleModule = bindArgs(bootstrap, "a", "b");
 
         assertThat(bootstrap.createChildInjector(jOptSimpleModule)
