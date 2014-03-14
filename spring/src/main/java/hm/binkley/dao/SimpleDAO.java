@@ -7,6 +7,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * A very simple DAO wrapper for using Spring transactions and JDBC template, designed for lambda
@@ -30,6 +32,16 @@ public class SimpleDAO {
     @Inject
     public SimpleDAO(@Nonnull final DataSourceTransactionManager transactionManager) {
         this.transactionManager = transactionManager;
+    }
+
+    /**
+     * Gets the JDBC URL for management.
+     */
+    public final String jdbcURL()
+            throws SQLException {
+        try (final Connection conn = transactionManager.getDataSource().getConnection()) {
+            return conn.getMetaData().getURL();
+        }
     }
 
     /**
