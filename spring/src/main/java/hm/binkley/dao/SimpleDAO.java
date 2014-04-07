@@ -8,8 +8,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,13 +36,13 @@ public class SimpleDAO {
     }
 
     /**
-     * Gets the JDBC URL for management.
+     * Access to the underlying transaction manager.
+     *
+     * @return the transaction manager, never missing
      */
-    public final String jdbcURL()
-            throws SQLException {
-        try (final Connection conn = transactionManager.getDataSource().getConnection()) {
-            return conn.getMetaData().getURL();
-        }
+    @Nonnull
+    public DataSourceTransactionManager getTransactionManager() {
+        return transactionManager;
     }
 
     /**
