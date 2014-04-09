@@ -6,6 +6,7 @@
 
 package hm.binkley.util.logging;
 
+import com.google.common.annotations.Beta;
 import com.google.inject.assistedinject.Assisted;
 import org.slf4j.Logger;
 
@@ -20,6 +21,7 @@ import static java.text.MessageFormat.format;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
+@Beta
 public final class LogMessage {
     private final Level level;
     private final String message;

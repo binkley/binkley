@@ -25,8 +25,16 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <!-- Just for the annotations -->
             <groupId>com.google.inject.extensions</groupId>
             <artifactId>guice-assistedinject</artifactId>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <!-- Just for the annotations -->
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
             <scope>compile</scope>
             <optional>true</optional>
         </dependency>

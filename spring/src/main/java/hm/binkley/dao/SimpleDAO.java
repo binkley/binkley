@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * A very simple DAO wrapper for using Spring transactions and JDBC template, designed for lambda
@@ -41,7 +42,7 @@ public class SimpleDAO {
      * @return the transaction manager, never missing
      */
     @Nonnull
-    public DataSourceTransactionManager getTransactionManager() {
+    public final DataSourceTransactionManager getTransactionManager() {
         return transactionManager;
     }
 
@@ -61,7 +62,7 @@ public class SimpleDAO {
      * Runs the given <var>dao</var> within Spring transaction, requiring 0 or 1 results.
      *
      * @param dao the dao callback, never missing
-     * @param wrongSize the exception factory for more than 0 or 1 results, never missing
+     * @param wrongSize the exception factory for 2 or more results, never missing
      * @param <T> the return type of the callback
      *
      * @return an optional of the return
@@ -69,7 +70,7 @@ public class SimpleDAO {
      * @throws DataAccessException if the results are the wrong size
      */
     public final <T> Optional<T> daoMaybe(@Nonnull final Dao<List<T>> dao,
-            @Nonnull final WrongSize wrongSize) {
+            @Nonnull final Function<Integer, DataAccessException> wrongSize) {
         final List<T> result = dao(dao);
         final int size = result.size();
         switch (size) {
@@ -78,7 +79,7 @@ public class SimpleDAO {
         case 1:
             return Optional.of(result.get(0));
         default:
-            throw wrongSize.fail(size);
+            throw wrongSize.apply(size);
         }
     }
 
@@ -113,10 +114,5 @@ public class SimpleDAO {
          * @return the callback result
          */
         T with(@Nonnull final JdbcTemplate jdbcTemplate, @Nonnull final TransactionStatus status);
-    }
-
-    @FunctionalInterface
-    public interface WrongSize {
-        DataAccessException fail(final int size);
     }
 }

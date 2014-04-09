@@ -32,18 +32,21 @@ public final class ITSupportLoggers
         ALERT.getLogger("test").info("Ignored");
     }
 
+    @SuppressWarnings("JUnitTestMethodWithNoAssertions")
     @Test
     public void applicationShouldLogNormally() {
         APPLICATION.getLogger("test").error("Test");
         assertLogLine(containsString("Test"));
     }
 
+    @SuppressWarnings("JUnitTestMethodWithNoAssertions")
     @Test
     public void alertShouldSayAlertWarn() {
         ALERT.getLogger("test").warn("Ignored");
         assertLogLine(containsString("ALERT/WARN"));
     }
 
+    @SuppressWarnings("JUnitTestMethodWithNoAssertions")
     @Test
     public void auditShouldSayAuditWarn() {
         AUDIT.getLogger("test").warn("Ignored");
