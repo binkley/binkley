@@ -72,8 +72,32 @@ public interface Mixin {
             private final List<Object> delegates;
 
             private Handler(final Class<T> as, final List<Object> delegates) {
+                this.delegates = delegates(as, delegates);
                 matches = new ConcurrentHashMap<>(as.getMethods().length);
-                this.delegates = delegates;
+            }
+
+            private List<Object> delegates(final Class<T> as, final List<Object> delegates) {
+                for (final Method method : as.getMethods()) {
+                    if (method.isDefault()) try {
+                        final List<Object> delegatesPlus = new ArrayList<>(delegates.size() + 1);
+                        delegatesPlus.addAll(delegates);
+                        delegatesPlus.add(InterfaceInstance.newInstance(as));
+                        return delegatesPlus;
+                    } catch (final IllegalAccessException e) {
+                        final IllegalAccessError x = new IllegalAccessError(e.getMessage());
+                        x.setStackTrace(e.getStackTrace());
+                        throw x;
+                    } catch (final ClassNotFoundException e) {
+                        final UnknownError x = new UnknownError(e.getMessage());
+                        x.setStackTrace(e.getStackTrace());
+                        throw x;
+                    } catch (final InstantiationException e) {
+                        final InstantiationError x = new InstantiationError(e.getMessage());
+                        x.setStackTrace(e.getStackTrace());
+                        throw x;
+                    }
+                }
+                return delegates;
             }
 
             @Override

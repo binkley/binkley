@@ -135,6 +135,24 @@ public class MixinTest {
         newMixin(Testy.class, new Object()).die();
     }
 
+    @Test
+    public void shouldFindDefaultMethod() {
+        newMixin(DefaultMethodPublic.class).foo();
+    }
+
+    @Test(expected = IllegalAccessError.class)
+    public void shouldThrowOnNonPublicForDefaultMethod() {
+        newMixin(DefaultMethodNotPublic.class).foo();
+    }
+
+    public interface DefaultMethodPublic {
+        default void foo() {}
+    }
+
+    interface DefaultMethodNotPublic {
+        default void foo() {}
+    }
+
     interface Testy
             extends Bob, Mixin {
         String quack(final int quacks);
