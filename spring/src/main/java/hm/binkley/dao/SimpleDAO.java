@@ -3,6 +3,7 @@ package hm.binkley.dao;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -54,7 +55,7 @@ public class SimpleDAO {
     }
 
     /**
-     * Gets JDBC URL for this transaction manager.  This does use two connections, managed within.
+     * Gets JDBC URL for this transaction manager.  This uses two connections, managed within.
      *
      * @return the JDBC URL or {@code null} if not applicable for the data source
      *
@@ -119,15 +120,20 @@ public class SimpleDAO {
         /**
          * Manages the JDBC callback, wrapping it in a Spring transaction.  The JDBC template passed
          * to the callback shares the data source of the transaction manager, and executes within a
-         * transaction template.
+         * transaction template.  Calls {@link #with(JdbcTemplate, TransactionStatus) with} to
+         * execute JDBC methods.
          *
          * @param transactionManager the transaction manager, never missing
          *
          * @return the callback result
+         *
+         * @throws DataAccessException if JDBC fails
          */
-        default T using(@Nonnull final DataSourceTransactionManager transactionManager) {
+        default T using(@Nonnull final DataSourceTransactionManager transactionManager)
+                throws DataAccessException {
             return new TransactionTemplate(transactionManager).execute(status -> {
-                final JdbcTemplate jdbcTemplate = new JdbcTemplate(transactionManager.getDataSource());
+                final JdbcTemplate jdbcTemplate = new JdbcTemplate(
+                        transactionManager.getDataSource());
                 try {
                     return with(jdbcTemplate, status);
                 } catch (final SQLException e) {
@@ -140,6 +146,9 @@ public class SimpleDAO {
          * Executes the callback, passing in the given <var>jdbcTemplate</var> and transaction
          * <var>status</var>.  This is typically implemented as a lambda.
          *
+         * Exceptions are translated into {@link DataAccessException} instances in {@link
+         * #using(DataSourceTransactionManager) using}.
+         *
          * @param jdbcTemplate the JDBC template, never missing
          * @param status the transaction status, never missing
          *
@@ -150,12 +159,28 @@ public class SimpleDAO {
         T with(@Nonnull final JdbcTemplate jdbcTemplate, @Nonnull final TransactionStatus status)
                 throws SQLException;
 
-        @Nonnull
+        /**
+         * Names the task for the Spring JDBC exception translator for more descriptive error
+         * messages.  Defaults to {@code null}.  Implementors <strong></strong> return a non-{@code
+         * null} values, relying on the default otherwise.
+         *
+         * @return the task name
+         *
+         * @see SQLExceptionTranslator#translate(String, String, SQLException)
+         */
         default String task() {
-            return "DAO";
+            return null;
         }
 
-        @Nullable
+        /**
+         * Provides the executed SQL for the Spring JDBC exception translator for more descriptive
+         * error messages.  Defaults to {@code null}.  Implementors <strong></strong> return a
+         * non-{@code null} values, relying on the default otherwise.
+         *
+         * @return the executed SQL
+         *
+         * @see SQLExceptionTranslator#translate(String, String, SQLException)
+         */
         default String sql() {
             return null;
         }
