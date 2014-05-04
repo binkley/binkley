@@ -7,10 +7,17 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+
+import static org.springframework.jdbc.datasource.DataSourceUtils.getConnection;
+import static org.springframework.jdbc.datasource.DataSourceUtils.releaseConnection;
 
 /**
  * A very simple DAO wrapper for using Spring transactions and JDBC template, designed for lambda
@@ -44,6 +51,25 @@ public class SimpleDAO {
     @Nonnull
     public final DataSourceTransactionManager getTransactionManager() {
         return transactionManager;
+    }
+
+    /**
+     * Gets JDBC URL for this transaction manager.  This does use two connections, managed within.
+     *
+     * @return the JDBC URL or {@code null} if not applicable for the data source
+     *
+     * @throws DataAccessException if JDBC fails
+     */
+    @Nullable
+    public String getJdbcUrl()
+            throws DataAccessException {
+        final DataSource dataSource = transactionManager.getDataSource();
+        final Connection connection = getConnection(dataSource);
+        try {
+            return dao((jdbcTemplate, status) -> connection.getMetaData().getURL());
+        } finally {
+            releaseConnection(connection, dataSource);
+        }
     }
 
     /**
@@ -100,8 +126,14 @@ public class SimpleDAO {
          * @return the callback result
          */
         default T using(@Nonnull final DataSourceTransactionManager transactionManager) {
-            return new TransactionTemplate(transactionManager).execute(
-                    status -> with(new JdbcTemplate(transactionManager.getDataSource()), status));
+            return new TransactionTemplate(transactionManager).execute(status -> {
+                final JdbcTemplate jdbcTemplate = new JdbcTemplate(transactionManager.getDataSource());
+                try {
+                    return with(jdbcTemplate, status);
+                } catch (final SQLException e) {
+                    throw jdbcTemplate.getExceptionTranslator().translate(task(), sql(), e);
+                }
+            });
         }
 
         /**
@@ -112,7 +144,20 @@ public class SimpleDAO {
          * @param status the transaction status, never missing
          *
          * @return the callback result
+         *
+         * @throws SQLException if JDBC fails
          */
-        T with(@Nonnull final JdbcTemplate jdbcTemplate, @Nonnull final TransactionStatus status);
+        T with(@Nonnull final JdbcTemplate jdbcTemplate, @Nonnull final TransactionStatus status)
+                throws SQLException;
+
+        @Nonnull
+        default String task() {
+            return "DAO";
+        }
+
+        @Nullable
+        default String sql() {
+            return null;
+        }
     }
 }
