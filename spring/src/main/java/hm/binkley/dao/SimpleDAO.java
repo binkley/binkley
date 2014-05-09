@@ -3,6 +3,7 @@ package hm.binkley.dao;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.support.MetaDataAccessException;
 import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -10,15 +11,13 @@ import org.springframework.transaction.support.TransactionTemplate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import javax.sql.DataSource;
-import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.springframework.jdbc.datasource.DataSourceUtils.getConnection;
-import static org.springframework.jdbc.datasource.DataSourceUtils.releaseConnection;
+import static org.springframework.jdbc.support.JdbcUtils.extractDatabaseMetaData;
 
 /**
  * A very simple DAO wrapper for using Spring transactions and JDBC template, designed for lambda
@@ -60,17 +59,13 @@ public class SimpleDAO {
      * @return the JDBC URL or {@code null} if not applicable for the data source
      *
      * @throws DataAccessException if JDBC fails
+     * @throws MetaDataAccessException if JDBC database metadata fails
      */
     @Nullable
     public String getJdbcUrl()
-            throws DataAccessException {
-        final DataSource dataSource = transactionManager.getDataSource();
-        final Connection connection = getConnection(dataSource);
-        try {
-            return dao((jdbcTemplate, status) -> connection.getMetaData().getURL());
-        } finally {
-            releaseConnection(connection, dataSource);
-        }
+            throws DataAccessException, MetaDataAccessException {
+        return (String) extractDatabaseMetaData(transactionManager.getDataSource(),
+                DatabaseMetaData::getURL);
     }
 
     /**
