@@ -62,6 +62,7 @@
     </developers>
 
     <modules>
+        <module>finance</module>
         <module>guice</module>
         <module>spring</module>
         <module>logging</module>
