@@ -62,13 +62,13 @@
     </developers>
 
     <modules>
-        <module>finance</module>
+        <module>testing</module>
+        <module>logging</module>
         <module>guice</module>
         <module>spring</module>
-        <module>logging</module>
         <module>mixin</module>
-        <module>testing</module>
         <module>xprops</module>
+        <module>finance</module>
     </modules>
 
     <properties>
