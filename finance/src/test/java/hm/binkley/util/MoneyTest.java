@@ -6,6 +6,8 @@
 
 package hm.binkley.util;
 
+import org.ini4j.Profile.Section;
+import org.ini4j.Wini;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -15,11 +17,14 @@ import org.junit.runners.Parameterized.Parameters;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOError;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Currency;
+import java.util.List;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -30,11 +35,24 @@ public class MoneyTest {
 
     @Parameters(name = "{index}: {0}: {1}")
     public static Collection<Object[]> parameters() {
-        return asList(array("Missing currency", "1", null, null),
-                array("Single dollar, no whitespace", "USD1", USD, new BigDecimal("1.00")),
-                array("Single dollar and no cents, no whitespace", "USD1.00", USD, new BigDecimal("1.00")),
-                array("Single dollar, whitespace", "USD\t1", USD, new BigDecimal("1.00")),
-                array("Single dollar and no cents, whitespace", "USD\t1.00", USD, new BigDecimal("1.00")));
+        final List<Object[]> parameters = new ArrayList<>();
+        try {
+            final String path = "/" + MoneyTest.class.getName().replace(".", "/") + ".ini";
+            final Wini ini = new Wini(MoneyTest.class.getResourceAsStream(path));
+            for (final Section section : ini.values()) {
+                final String currency = section.get("currency");
+                final String amount = section.get("amount");
+                parameters.add(array(section.getName(), section.get("value"),
+                        null == currency ? null : Currency.getInstance(currency),
+                        null == amount ? null : new BigDecimal(amount)));
+            }
+
+            return parameters;
+        } catch (final IOException e) {
+            final IOError x = new IOError(e);
+            x.setStackTrace(e.getStackTrace());
+            throw x;
+        }
     }
 
     @Rule

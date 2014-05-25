@@ -16,4 +16,12 @@
     </parent>
 
     <artifactId>binkley-finance</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.ini4j</groupId>
+            <artifactId>ini4j</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>
