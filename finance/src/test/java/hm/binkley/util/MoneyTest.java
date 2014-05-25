@@ -6,6 +6,7 @@
 
 package hm.binkley.util;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
@@ -18,7 +19,6 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Currency;
 
-import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -28,35 +28,34 @@ import static org.junit.Assert.assertThat;
 public class MoneyTest {
     private static final Currency USD = Currency.getInstance("USD");
 
-    @Parameters(name = "{index}: {0} - {1}")
+    @Parameters(name = "{index}: {0}: {1}")
     public static Collection<Object[]> parameters() {
-        return asList(array("Single dollar, no whitespace", "USD1", false, USD, new BigDecimal("1.00")),
-                array("Single dollar and no cents, no whitespace", "USD1.00", false, USD, new BigDecimal("1.00")),
-                array("Single dollar, whitespace", "USD\t1", false, USD, new BigDecimal("1.00")),
-                array("Single dollar and no cents, whitespace", "USD\t1.00", false, USD, new BigDecimal("1.00")));
+        return asList(array("Missing currency", "1", null, null),
+                array("Single dollar, no whitespace", "USD1", USD, new BigDecimal("1.00")),
+                array("Single dollar and no cents, no whitespace", "USD1.00", USD, new BigDecimal("1.00")),
+                array("Single dollar, whitespace", "USD\t1", USD, new BigDecimal("1.00")),
+                array("Single dollar and no cents, whitespace", "USD\t1.00", USD, new BigDecimal("1.00")));
     }
 
-    private final ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     private final String description;
     private final String value;
-    private final boolean fail;
     private final Currency currency;
     private final BigDecimal amount;
 
-    public MoneyTest(@Nonnull final String description, @Nonnull final String value,
-            final boolean fail, @Nullable final Currency currency,
+    public MoneyTest(@Nonnull final String description, @Nonnull final String value, @Nullable final Currency currency,
             @Nullable final BigDecimal amount) {
         this.description = description;
         this.value = value;
-        this.fail = fail;
         this.currency = currency;
         this.amount = amount;
     }
 
     @Test
     public void shouldParse() {
-        if (fail) {
+        if (null == currency) {
             thrown.expect(MoneyFormatException.class);
             thrown.expectMessage(value);
         }
@@ -68,17 +67,10 @@ public class MoneyTest {
     }
 
     private static Object[] array(@Nonnull final String description, @Nonnull final String value,
-            final boolean fail, @Nullable final Currency currency,
-            @Nullable final BigDecimal amount) {
-        if (fail && (null != currency || null != amount))
-            throw new IllegalArgumentException(
-                    format("Currency '%s' and amount '%s' must both be null if fail is true",
-                            currency, amount));
-        else if (!fail && (null == currency || null == amount))
-            throw new IllegalArgumentException(
-                    format("Currency '%s' and amount '%s' must both be non-null if fail is false",
-                            currency, amount));
+            @Nullable final Currency currency, @Nullable final BigDecimal amount) {
+        if ((null == currency && null == amount) || (null != currency && null != amount))
+            return new Object[]{description, value, currency, amount};
 
-        return new Object[]{description, value, fail, currency, amount};
+        throw new IllegalArgumentException("Both currency and amount cannot be null");
     }
 }
