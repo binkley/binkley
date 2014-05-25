@@ -6,8 +6,10 @@
 
 package hm.binkley.util;
 
+import org.ini4j.Config;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
+import org.ini4j.Wini;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
@@ -28,6 +30,23 @@ public final class ParameterizedHelper {
 
     /**
      * Creates a list of parmeters for the {@link Parameters} static method.
+     * <p>
+     * For each {@code Object[]} the first element is the {@link Section#getName() section name}.
+     * The remaining elements are supplied by each {@link Key key} in order formed by {@link
+     * Section#fetch(Object) fetching} the section value for the key and applying the {@link Key#get
+     * value function}.  Missing keys in the INI produce a {@code null} value.
+     * <p>
+     * For example use {@code Parameterized} like this: <pre>
+     * &#64;Parameters(name = "{index}: {0}")
+     * public static Collection&lt;Object[]&gt; parameters() {
+     *     return ParameterizedHelper.parameters(new Ini(...),
+     *             Key.of("a"), Key.of("b", BigDecimal::new));
+     * }
+     * </pre> JUnit will then include the INI section name in describing failed cases.
+     * <p>
+     * Please read the documentation on {@link Config INI configuration} to control processing of
+     * the INI source.  For example, the default {@link Ini} class respects escape sequences (e.g.,
+     * "\t" for TAB); the {@link Wini} class does not.
      *
      * @param ini the INI file, never mising
      * @param keys the {@link Key keys}
