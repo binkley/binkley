@@ -6,8 +6,8 @@
 
 package hm.binkley.util;
 
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
-import org.ini4j.Wini;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -17,7 +17,6 @@ import org.junit.runners.Parameterized.Parameters;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOError;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -31,28 +30,20 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(Parameterized.class)
 public class MoneyTest {
-    private static final Currency USD = Currency.getInstance("USD");
-
     @Parameters(name = "{index}: {0}: {1}")
-    public static Collection<Object[]> parameters() {
+    public static Collection<Object[]> parameters()
+            throws IOException {
         final List<Object[]> parameters = new ArrayList<>();
-        try {
-            final String path = "/" + MoneyTest.class.getName().replace(".", "/") + ".ini";
-            final Wini ini = new Wini(MoneyTest.class.getResourceAsStream(path));
-            for (final Section section : ini.values()) {
-                final String currency = section.get("currency");
-                final String amount = section.get("amount");
-                parameters.add(array(section.getName(), section.get("value"),
-                        null == currency ? null : Currency.getInstance(currency),
-                        null == amount ? null : new BigDecimal(amount)));
-            }
-
-            return parameters;
-        } catch (final IOException e) {
-            final IOError x = new IOError(e);
-            x.setStackTrace(e.getStackTrace());
-            throw x;
+        final Ini ini = new Ini(MoneyTest.class.getResource("MoneyTest.ini"));
+        for (final Section section : ini.values()) {
+            final String currency = section.get("currency");
+            final String amount = section.get("amount");
+            parameters.add(array(section.getName(), section.get("value"),
+                    null == currency ? null : Currency.getInstance(currency),
+                    null == amount ? null : new BigDecimal(amount)));
         }
+
+        return parameters;
     }
 
     @Rule
