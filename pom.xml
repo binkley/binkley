@@ -67,6 +67,7 @@
         <module>spring</module>
         <module>logging</module>
         <module>mixin</module>
+        <module>testing</module>
         <module>xprops</module>
     </modules>
 
@@ -239,6 +240,12 @@
                 <version>${lifegycle.version}</version>
             </dependency>
             -->
+
+            <dependency>
+                <groupId>org.ini4j</groupId>
+                <artifactId>ini4j</artifactId>
+                <version>${ini4j.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.springframework</groupId>
