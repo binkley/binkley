@@ -8,7 +8,9 @@ package hm.binkley.util;
 
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Currency;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,8 +39,6 @@ public final class Money
      * @return the money instance, never missing
      *
      * @throws MoneyFormatException if <var>value</var> is not well-formed
-     * @todo Implement by formatted symbol
-     * @todo Amount needs to have correct decimal places for the currency
      * @todo Are Special Drawing Rights, et al, handled correctly?
      * @todo Negative amounts: accept surrounding parens or only minus sign?
      * @todo Some kind of caching?
@@ -49,11 +49,10 @@ public final class Money
             final Matcher matcher = ISO.matcher(value);
             if (matcher.matches()) {
                 final Currency currency = Currency.getInstance(matcher.group(1));
-                BigDecimal amount = new BigDecimal(matcher.group(2));
+                final BigDecimal amount = new BigDecimal(matcher.group(2));
                 final int digits = currency.getDefaultFractionDigits();
-                if (0 <= digits) // SDR returns -1
-                    amount = amount.setScale(digits);
-                return new Money(currency, amount);
+                // SDR returns -1
+                return new Money(currency, 0 > digits ? amount : amount.setScale(digits));
             }
         } catch (final IllegalArgumentException | ArithmeticException ignored) {
         }
@@ -64,6 +63,68 @@ public final class Money
     private Money(@Nonnull final Currency currency, @Nonnull final BigDecimal amount) {
         this.currency = currency;
         this.amount = amount;
+    }
+
+    /**
+     * Gets the currency of this money.
+     *
+     * @return the currency, never missing
+     */
+    @Nonnull
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    /**
+     * Gets the amount of this money.
+     *
+     * @return the amount, never missing
+     */
+    @Nonnull
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public Money convert(@Nonnull final Currency currency, @Nonnull final BigDecimal rate) {
+        return new Money(currency, amount.multiply(rate));
+    }
+
+    public Money convert(@Nonnull final Function<Money, Money> rate) {
+        return rate.apply(this);
+    }
+
+    public Money negate() {
+        return new Money(currency, amount.negate());
+    }
+
+    public Money abs() {
+        return new Money(currency, amount.abs());
+    }
+
+    public Money add(@Nonnull final Money that) {
+        checkCurrency(that);
+        return new Money(currency, amount.add(that.amount));
+    }
+
+    public Money subtract(@Nonnull final Money that) {
+        checkCurrency(that);
+        return new Money(currency, amount.subtract(that.amount));
+    }
+
+    public Money multiply(@Nonnull final BigDecimal rate) {
+        return new Money(currency, amount.multiply(rate));
+    }
+
+    public Money divide(@Nonnull final BigDecimal rate) {
+        return new Money(currency, amount.divide(rate));
+    }
+
+    public Money divide(@Nonnull final BigDecimal rate, @Nonnull final RoundingMode mode) {
+        return new Money(currency, amount.divide(rate, mode));
+    }
+
+    public Money remainder(@Nonnull final BigDecimal rate) {
+        return new Money(currency, amount.remainder(rate));
     }
 
     /**
@@ -79,9 +140,7 @@ public final class Money
 
     @Override
     public int compareTo(@Nonnull final Money that) {
-        if (!currency.equals(that.currency))
-            throw new IllegalArgumentException(
-                    format("Different currencies: %s vs %s", currency, that.currency));
+        checkCurrency(that);
         return amount.compareTo(that.amount);
     }
 
@@ -102,5 +161,11 @@ public final class Money
         int result = currency.hashCode();
         result = 31 * result + amount.hashCode();
         return result;
+    }
+
+    private void checkCurrency(final Money that) {
+        if (!currency.equals(that.currency))
+            throw new IllegalArgumentException(
+                    format("Different currencies: %s vs %s", currency, that.currency));
     }
 }
