@@ -24,7 +24,6 @@ import java.util.Currency;
 
 import static hm.binkley.util.ParameterizedHelper.parametersFrom;
 import static java.lang.String.format;
-import static java.util.function.Function.identity;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -35,28 +34,28 @@ public class MoneyTest {
     public static Collection<Object[]> parameters()
             throws IOException {
         return parametersFrom(new Ini(MoneyTest.class.getResource("MoneyTest.ini")),
-                Key.of("value", identity()), Key.of("currency", Currency::getInstance),
+                Key.of("value"), Key.of("currency", Currency::getInstance),
                 Key.of("amount", BigDecimal::new));
     }
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    private final String description;
+    private final String name;
     private final String value;
     private final Currency currency;
     private final BigDecimal amount;
 
-    public MoneyTest(@Nonnull final String description, @Nonnull final String value,
+    public MoneyTest(@Nonnull final String name, @Nonnull final String value,
             @Nullable final Currency currency, @Nullable final BigDecimal amount) {
-        this.description = description;
+        this.name = name;
         this.value = value;
         this.currency = currency;
         this.amount = amount;
 
         if (!((null == currency && null == amount) || (null != currency && null != amount)))
             throw new IllegalArgumentException(
-                    format("%s: currency and amount must both be null or non-null", description));
+                    format("%s: currency and amount must both be null or non-null", name));
     }
 
     @Test
