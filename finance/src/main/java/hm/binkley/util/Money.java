@@ -9,12 +9,14 @@ package hm.binkley.util;
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.util.Currency;
+import java.util.Locale;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
+import static java.text.NumberFormat.getCurrencyInstance;
 
 /**
  * {@code Money} <b>needs documentation</b>.
@@ -22,6 +24,7 @@ import static java.lang.String.format;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  * @todo Help with formatting, perhaps format()?
+ * @todo How to handle currencies with more than one locale, e.g., EUR?
  */
 public final class Money
         implements Comparable<Money> {
@@ -138,6 +141,36 @@ public final class Money
         return currency.getCurrencyCode() + amount;
     }
 
+    /**
+     * Formats in the current default {@link Locale.Category#FORMAT format} locale.
+     *
+     * @return the formatted money, never missing
+     *
+     * @see NumberFormat#getCurrencyInstance()
+     */
+    @Nonnull
+    public String format() {
+        final NumberFormat format = getCurrencyInstance();
+        format.setCurrency(currency);
+        return format.format(amount);
+    }
+
+    /**
+     * Formats in the given <var>locale</var>.
+     *
+     * @param locale the locale guiding formatting, never missing
+     *
+     * @return the formatted money, never missing
+     *
+     * @see NumberFormat#getCurrencyInstance(Locale)
+     */
+    @Nonnull
+    public String format(@Nonnull final Locale locale) {
+        final NumberFormat format = getCurrencyInstance(locale);
+        format.setCurrency(currency);
+        return format.format(amount);
+    }
+
     @Override
     public int compareTo(@Nonnull final Money that) {
         checkCurrency(that);
@@ -166,6 +199,6 @@ public final class Money
     private void checkCurrency(final Money that) {
         if (!currency.equals(that.currency))
             throw new IllegalArgumentException(
-                    format("Different currencies: %s vs %s", currency, that.currency));
+                    String.format("Different currencies: %s vs %s", currency, that.currency));
     }
 }
