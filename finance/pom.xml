@@ -15,18 +15,13 @@
         <version>0.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>binkley-testing</artifactId>
+    <artifactId>binkley-finance</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>org.ini4j</groupId>
-            <artifactId>ini4j</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>compile</scope>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>binkley-testing</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -47,6 +47,8 @@ public final class ParameterizedHelper {
      * Please read the documentation on {@link Config INI configuration} to control processing of
      * the INI source.  For example, the default {@link Ini} class respects escape sequences (e.g.,
      * "\t" for TAB); the {@link Wini} class does not.
+     * <p>
+     * The name "parametersFrom" was choosen to aid static import.
      *
      * @param ini the INI file, never mising
      * @param keys the {@link Key keys}
@@ -54,7 +56,7 @@ public final class ParameterizedHelper {
      * @return the parameters list, never missing
      */
     @Nonnull
-    public static List<Object[]> parameters(@Nonnull final Ini ini, final Key... keys) {
+    public static List<Object[]> parametersFrom(@Nonnull final Ini ini, final Key... keys) {
         final List<Object[]> parameters = new ArrayList<>();
         for (final Section section : ini.values()) {
             final Object[] array = new Object[1 + keys.length];
@@ -72,7 +74,7 @@ public final class ParameterizedHelper {
     /**
      * Tuple for defining INI section keys and how to map their values to test parameters.
      *
-     * @see #parameters(Ini, Key...)
+     * @see #parametersFrom(Ini, Key...)
      */
     public static final class Key {
         public final String name;
