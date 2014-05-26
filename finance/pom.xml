@@ -19,8 +19,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.ini4j</groupId>
-            <artifactId>ini4j</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>binkley-testing</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
