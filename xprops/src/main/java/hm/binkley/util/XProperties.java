@@ -147,6 +147,20 @@ public class XProperties
             throw new DuplicatePropertyException(prefix);
     }
 
+    /** @todo Documentation */
+    public XProperties() {
+    }
+
+    /** @todo Documentation */
+    public XProperties(@Nonnull final Properties defaults) {
+        super(defaults);
+    }
+
+    /** @todo Documentation */
+    public XProperties(@Nonnull final Map<String, String> defaults) {
+        putAll(defaults);
+    }
+
     /**
      * {@inheritDoc} <p/>
      * Processes lines of the form: <pre>
