@@ -72,7 +72,7 @@
     </modules>
 
     <properties>
-        <commons-lang3.version>3.2.1</commons-lang3.version>
+        <commons-lang3.version>3.3.2</commons-lang3.version>
         <guava.version>16.0.1</guava.version>
         <guava.version>17.0</guava.version>
         <guice.version>3.0</guice.version>
@@ -98,14 +98,14 @@
         <maven-jgitflow-plugin.version>1.0-alpha21.1</maven-jgitflow-plugin.version>
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
-        <owner.version>1.0.5</owner.version>
+        <owner.version>1.0.5.1</owner.version>
         <pojo-mbean.version>1.1</pojo-mbean.version>
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <service-binder.version>0.3</service-binder.version>
         <slf4j.version>1.7.7</slf4j.version>
-        <spring.version>4.0.4.RELEASE</spring.version>
+        <spring.version>4.0.5.RELEASE</spring.version>
         <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
     </properties>
 
