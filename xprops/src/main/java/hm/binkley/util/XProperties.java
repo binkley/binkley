@@ -35,9 +35,15 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.AbstractSet;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -49,14 +55,19 @@ import static java.lang.String.format;
 import static java.lang.Thread.currentThread;
 import static java.net.InetSocketAddress.createUnresolved;
 import static java.util.Arrays.asList;
+import static java.util.Collections.enumeration;
 import static java.util.regex.Pattern.compile;
 
 /**
  * {@code XProperties} is a {@code java.util.Properties} supporting inclusion of other properties
- * files, parameter substition and typed return values.
+ * files, parameter substition and typed return values.  Key order is preserved; keys from included
+ * properties are prior to those from the current properties.
+ *
+ * Keys are restricted to {@code String}s.
  *
  * @see #load(Reader) loading properties with inclusions
  * @see #getProperty(String) getting properties with substitution
+ * @todo Implement defaults
  * @todo Using cache for conversions assumes constant properties; is this correct?
  */
 public class XProperties
@@ -99,6 +110,7 @@ public class XProperties
         register("url", URL::new);
     }
 
+    private final Set<String> keys = new LinkedHashSet<String>();
     private final LoadingCache<Key, Object> converted = CacheBuilder.newBuilder().
             build(new Converted());
 
@@ -151,14 +163,9 @@ public class XProperties
     public XProperties() {
     }
 
-    /** @todo Documentation */
-    public XProperties(@Nonnull final Properties defaults) {
-        super(defaults);
-    }
-
-    /** @todo Documentation */
-    public XProperties(@Nonnull final Map<String, String> defaults) {
-        putAll(defaults);
+    /** * @todo Documentation */
+    public XProperties(@Nonnull final Map<String, String> initial) {
+        putAll(initial);
     }
 
     /**
@@ -295,6 +302,49 @@ public class XProperties
         }
     }
 
+    @Override
+    public synchronized Object put(final Object key, final Object value) {
+        keys.add((String) key);
+        return super.put(key, value);
+    }
+
+    @Override
+    public synchronized Object remove(final Object key) {
+        keys.remove((String) key);
+        return super.remove(key);
+    }
+
+    @Nonnull
+    @Override
+    @SuppressWarnings("unchecked")
+    public synchronized Enumeration<Object> keys() {
+        return enumeration((Set) keys);
+    }
+
+    @Nonnull
+    @Override
+    @SuppressWarnings("unchecked")
+    public Set<Object> keySet() {
+        return (Set) stringPropertyNames();
+    }
+
+    @Override
+    public Enumeration<?> propertyNames() {
+        return enumeration(keys);
+    }
+
+    @Override
+    public Set<String> stringPropertyNames() {
+        return new KeySet();
+    }
+
+    @Nonnull
+    @Override
+    @SuppressWarnings("unchecked")
+    public Set<Entry<Object, Object>> entrySet() {
+        return (Set<Entry<Object, Object>>) (Set) new EntrySet();
+    }
+
     @Nonnull
     @SuppressWarnings("unchecked")
     private static <T, E extends Exception> Conversion<T, E> factoryFor(final String type) {
@@ -318,7 +368,6 @@ public class XProperties
         throw new Bug("Unsupported conversion: %s", type);
     }
 
-    @Nullable
     @SuppressWarnings("unchecked")
     private static <T, E extends Exception> Conversion<T, E> invokeValueOf(final Class<T> token)
             throws NoSuchMethodError {
@@ -343,7 +392,6 @@ public class XProperties
         }
     }
 
-    @Nullable
     @SuppressWarnings("unchecked")
     private static <T, E extends Exception> Conversion<T, E> invokeOf(final Class<T> token)
             throws NoSuchMethodError {
@@ -368,7 +416,6 @@ public class XProperties
         }
     }
 
-    @Nullable
     private static <T, E extends Exception> Conversion<T, E> invokeConstructor(final Class<T> token)
             throws NoSuchMethodError {
         try {
@@ -396,7 +443,6 @@ public class XProperties
         }
     }
 
-    @Nullable
     @SuppressWarnings("unchecked")
     private static <T> Class<T> tokenFor(final String type) {
         try {
@@ -446,12 +492,14 @@ public class XProperties
                 throws E;
     }
 
+    /** @todo Documentation */
     public static final class FailedConversionException extends RuntimeException {
         public FailedConversionException(final String key, final String value, final Throwable cause) {
             super(format("%s = %s", key, value), cause);
         }
     }
 
+    /** @todo Documentation */
     public static class DuplicatePropertyException
             extends IllegalArgumentException {
         public DuplicatePropertyException(final String key) {
@@ -459,6 +507,7 @@ public class XProperties
         }
     }
 
+    /** @todo Documentation */
     public static class MissingPropertyException
             extends IllegalArgumentException {
         public MissingPropertyException(final String key) {
@@ -478,7 +527,6 @@ public class XProperties
 
     private class Converted
             extends CacheLoader<Key, Object> {
-        @Nullable
         @Override
         public Object load(@Nonnull final Key key)
                 throws Exception {
@@ -490,6 +538,101 @@ public class XProperties
             if (null == value)
                 return key.fallback;
             return XProperties.factoryFor(parts[0]).convert(value);
+        }
+    }
+
+    private final class KeySet
+            extends AbstractSet<String> {
+        @Nonnull
+        @Override
+        public Iterator<String> iterator() {
+            return new KeyIterator();
+        }
+
+        @Override
+        public int size() {
+            return keys.size();
+        }
+
+        @Override
+        public boolean remove(final Object o) {
+            return null != XProperties.this.remove(o);
+        }
+
+        private final class KeyIterator
+                implements Iterator<String> {
+            private final Iterator<String> it = keys.iterator();
+            private String key;
+
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @Override
+            public String next() {
+                return key = it.next();
+            }
+
+            @Override
+            public void remove() {
+                KeySet.this.remove(key);
+            }
+        }
+    }
+
+    private final class EntrySet
+            extends AbstractSet<Entry<String, Object>> {
+        @Nonnull
+        @Override
+        public Iterator<Entry<String, Object>> iterator() {
+            return new EntryIterator();
+        }
+
+        @Override
+        public int size() {
+            return XProperties.this.size();
+        }
+
+        private final class EntryIterator
+                implements Iterator<Entry<String, Object>> {
+            private final Iterator<String> it = keys.iterator();
+            private String key;
+
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @Override
+            public Entry<String, Object> next() {
+                key = it.next();
+                return new EntryEntry();
+            }
+
+            @Override
+            public void remove() {
+                XProperties.this.remove(key);
+            }
+
+            private final class EntryEntry
+                    implements Entry<String, Object> {
+                @Override
+                public String getKey() {
+                    return key;
+                }
+
+                @Override
+                public Object getValue() {
+                    return get(key);
+                }
+
+                @Override
+                public Object setValue(final Object value) {
+                    // TODO: Will this reorder the current it, and make a loop?
+                    return put(key, value);
+                }
+            }
         }
     }
 }
