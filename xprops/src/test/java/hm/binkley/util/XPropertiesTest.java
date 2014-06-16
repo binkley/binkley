@@ -236,13 +236,6 @@ public final class XPropertiesTest {
     }
 
     @Test
-    public void shouldGetInlineInt() {
-        xprops.setProperty("int:inline", "3");
-
-        assertThat(xprops.getObject("int:inline"), is(equalTo(3)));
-    }
-
-    @Test
     public void shouldThrowForBadAddress() {
         thrown.expect(FailedConversionException.class);
         thrown.expectMessage(containsString("address:bar"));
