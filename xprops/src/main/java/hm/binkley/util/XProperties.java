@@ -35,15 +35,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.AbstractSet;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -55,7 +48,6 @@ import static java.lang.String.format;
 import static java.lang.Thread.currentThread;
 import static java.net.InetSocketAddress.createUnresolved;
 import static java.util.Arrays.asList;
-import static java.util.Collections.enumeration;
 import static java.util.regex.Pattern.compile;
 
 /**
@@ -71,7 +63,7 @@ import static java.util.regex.Pattern.compile;
  * @todo Using cache for conversions assumes constant properties; is this correct?
  */
 public class XProperties
-        extends Properties {
+        extends OrderedProperties {
     private static final Pattern include = compile("^#include\\s+(.*)\\s*$");
     private static final Pattern comma = compile("\\s*,\\s*");
     private static final Pattern colon = compile(":");
@@ -110,7 +102,6 @@ public class XProperties
         register("url", URL::new);
     }
 
-    private final Set<String> keys = new LinkedHashSet<String>();
     private final LoadingCache<Key, Object> converted = CacheBuilder.newBuilder().
             build(new Converted());
 
@@ -300,49 +291,6 @@ public class XProperties
             final String[] parts = colon.split(key, 2);
             throw new FailedConversionException(key, getProperty(parts[1]), e.getCause());
         }
-    }
-
-    @Override
-    public synchronized Object put(final Object key, final Object value) {
-        keys.add((String) key);
-        return super.put(key, value);
-    }
-
-    @Override
-    public synchronized Object remove(final Object key) {
-        keys.remove((String) key);
-        return super.remove(key);
-    }
-
-    @Nonnull
-    @Override
-    @SuppressWarnings("unchecked")
-    public synchronized Enumeration<Object> keys() {
-        return enumeration((Set) keys);
-    }
-
-    @Nonnull
-    @Override
-    @SuppressWarnings("unchecked")
-    public Set<Object> keySet() {
-        return (Set) stringPropertyNames();
-    }
-
-    @Override
-    public Enumeration<?> propertyNames() {
-        return enumeration(keys);
-    }
-
-    @Override
-    public Set<String> stringPropertyNames() {
-        return new KeySet();
-    }
-
-    @Nonnull
-    @Override
-    @SuppressWarnings("unchecked")
-    public Set<Entry<Object, Object>> entrySet() {
-        return (Set<Entry<Object, Object>>) (Set) new EntrySet();
     }
 
     @Nonnull
@@ -538,101 +486,6 @@ public class XProperties
             if (null == value)
                 return key.fallback;
             return XProperties.factoryFor(parts[0]).convert(value);
-        }
-    }
-
-    private final class KeySet
-            extends AbstractSet<String> {
-        @Nonnull
-        @Override
-        public Iterator<String> iterator() {
-            return new KeyIterator();
-        }
-
-        @Override
-        public int size() {
-            return keys.size();
-        }
-
-        @Override
-        public boolean remove(final Object o) {
-            return null != XProperties.this.remove(o);
-        }
-
-        private final class KeyIterator
-                implements Iterator<String> {
-            private final Iterator<String> it = keys.iterator();
-            private String key;
-
-            @Override
-            public boolean hasNext() {
-                return it.hasNext();
-            }
-
-            @Override
-            public String next() {
-                return key = it.next();
-            }
-
-            @Override
-            public void remove() {
-                KeySet.this.remove(key);
-            }
-        }
-    }
-
-    private final class EntrySet
-            extends AbstractSet<Entry<String, Object>> {
-        @Nonnull
-        @Override
-        public Iterator<Entry<String, Object>> iterator() {
-            return new EntryIterator();
-        }
-
-        @Override
-        public int size() {
-            return XProperties.this.size();
-        }
-
-        private final class EntryIterator
-                implements Iterator<Entry<String, Object>> {
-            private final Iterator<String> it = keys.iterator();
-            private String key;
-
-            @Override
-            public boolean hasNext() {
-                return it.hasNext();
-            }
-
-            @Override
-            public Entry<String, Object> next() {
-                key = it.next();
-                return new EntryEntry();
-            }
-
-            @Override
-            public void remove() {
-                XProperties.this.remove(key);
-            }
-
-            private final class EntryEntry
-                    implements Entry<String, Object> {
-                @Override
-                public String getKey() {
-                    return key;
-                }
-
-                @Override
-                public Object getValue() {
-                    return get(key);
-                }
-
-                @Override
-                public Object setValue(final Object value) {
-                    // TODO: Will this reorder the current it, and make a loop?
-                    return put(key, value);
-                }
-            }
         }
     }
 }

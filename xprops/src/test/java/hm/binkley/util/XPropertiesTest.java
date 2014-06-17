@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,9 +25,6 @@ import static java.lang.String.format;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.delete;
 import static java.nio.file.Files.newOutputStream;
-import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.IntStream.range;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
@@ -248,24 +244,6 @@ public final class XPropertiesTest {
         xprops.setProperty("bar", "-@-");
 
         xprops.getObject("address:bar");
-    }
-
-    /** @todo This a stochastic test - how to make it deterministic? */
-    @Test
-    public void shouldPreserveOrder() {
-        final int size = 1024;
-        final List<String> keys = range(0, size).mapToObj(String::valueOf).collect(toList());
-        keys.forEach(key -> xprops.put(key, key));
-        assertThat(keys, is(equalTo(xprops.stringPropertyNames().stream().collect(toList()))));
-    }
-
-    @Test
-    public void shouldPreserveOrderOnReinsert() {
-        xprops.setProperty("bar", "a");
-        xprops.setProperty("foo", "b");
-        xprops.setProperty("bar", "c");
-
-        assertThat(new ArrayList<>(xprops.keySet()), is(equalTo(asList("bar", "foo"))));
     }
 
     private static boolean isWindows() {
