@@ -1,3 +1,9 @@
+/*
+ * This is free and unencumbered software released into the public domain.
+ *
+ * Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
+ */
+
 package hm.binkley.util;
 
 import com.google.common.cache.CacheBuilder;
@@ -5,6 +11,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import lombok.NonNull;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -148,6 +155,24 @@ public class XProperties
             throws DuplicatePropertyException {
         if (null != factories.putIfAbsent(prefix, factory))
             throw new DuplicatePropertyException(prefix);
+    }
+
+    /**
+     * Creates a new {@code XProperties} for the given <var>absolutePath</var> found in the
+     * classpath.
+     *
+     * @param absolutePath the absolute path to search on the classpath, never missing
+     *
+     * @throws IOException if <var>absolutePath</var> cannot be loaded
+     */
+    @Nonnull
+    public static XProperties from(@Nonnull @NonNull final String absolutePath)
+            throws IOException {
+        try (final InputStream in = XProperties.class.getResourceAsStream(absolutePath)) {
+            final XProperties xprops = new XProperties();
+            xprops.load(in);
+            return xprops;
+        }
     }
 
     /** @todo Documentation */
