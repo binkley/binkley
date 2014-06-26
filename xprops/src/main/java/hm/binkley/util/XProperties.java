@@ -6,11 +6,7 @@
 
 package hm.binkley.util;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.net.HostAndPort;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.NonNull;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
@@ -27,6 +23,7 @@ import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -46,7 +43,6 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,13 +57,40 @@ import static java.util.regex.Pattern.compile;
  * {@code XProperties} is a {@code java.util.Properties} supporting inclusion of other properties
  * files, parameter substition and typed return values.  Key order is preserved; keys from included
  * properties are prior to those from the current properties.
- *
+ * <p>
  * Keys are restricted to {@code String}s.
+ * <p>
+ * Loading processes lines of the form: <pre>
+ * #include <var>Spring style resource path</var></pre> for inclusion.  Looks up <var>resource
+ * path</var> with a {@link ResourcePatternResolver}; loading found resources in turn. Similarly
+ * processes resource recursively for further inclusion.  Includes multiple resources separated by
+ * comma (",") in the same "#include" statement.
+ * <p>
+ * Substitutes in resource paths of the
+ * form: <pre>
+ * #include ${<var>variable</var>}</pre> or portions thereof.  Looks up <var>variable</var> in
+ * the current properties, and if not found, in the system properties.  If found, replaces the text
+ * with the variable value, including "${" and trailing "}".
+ * <p>
+ * Use forward slashes ("/") only for path separators; <strong>do not</strong> use back slashes
+ * ("\").
+ * <p>
+ * Examples: <table><tr><th>Text</th> <th>Result</th></tr> <tr><td>{@code #include
+ * foo/file.properties}</td> <td>Includes {@code foo.properties} found in the classpath</td></tr>
+ * <tr><td>{@code #include foo.properties, bar.properties}</td> <td>Includes both {@code
+ * foo.properties} and {@code bar.properties}</td></tr> <tr><td>{@code #include
+ * file:/var/tmp/${user.name }/foo.properties}</td> <td>Includes {@code foo.properties} found in a
+ * directory named after the current user</td></tr> <tr><td>{@code #include
+ * classpath*:**&#47;foo.properties}</td> <td>Includes all {@code foo.properties}</tr> files found
+ * subdirectories of the classpath</td></tr> </table>
  *
- * @see #load(Reader) loading properties with inclusions
- * @see #getProperty(String) getting properties with substitution
  * @todo Implement defaults
  * @todo Using cache for conversions assumes constant properties; is this correct?
+ * @see PathMatchingResourcePatternResolver
+ * @see StrSubstitutor
+ * @see #load(Reader) loading properties with inclusions
+ * @see #load(InputStream) loading properties with inclusions
+ * @see #getProperty(String) getting properties with substitution
  */
 public class XProperties
         extends OrderedProperties {
@@ -109,8 +132,7 @@ public class XProperties
         register("url", URL::new);
     }
 
-    private final LoadingCache<Key, Object> converted = CacheBuilder.newBuilder().
-            build(new Converted());
+    private final Map<Key, Object> x = new ConcurrentHashMap<>();
 
     private final StrSubstitutor substitutor = new StrSubstitutor(new FindValue());
 
@@ -185,35 +207,11 @@ public class XProperties
     }
 
     /**
-     * {@inheritDoc} <p/>
-     * Processes lines of the form: <pre>
-     * #include <var>Spring style resource path</var></pre> for inclusion.  Looks up <var>resource
-     * path</var> with a {@link ResourcePatternResolver}; loading found resources in turn. Similarly
-     * processes resource recursively for further inclusion.  Includes multiple resources separated
-     * by comma (",") in the same "#include" statement.
-     * <p>
-     * Substitutes in resource paths of the
-     * form: <pre>
-     * #include ${<var>variable</var>}</pre> or portions thereof.  Looks up <var>variable</var> in
-     * the current properties, and if not found, in the system properties.  If found, replaces the
-     * text with the variable value, including "${" and trailing "}".
-     * <p>
-     * Use forward slashes ("/") only for path separators; <strong>do not</strong> use back slashes
-     * ("\").
-     * <p>
-     * Examples: <table><tr><th>Text</th> <th>Result</th></tr> <tr><td>{@code #include
-     * foo/file.properties}</td> <td>Includes {@code foo.properties} found in the
-     * classpath</td></tr> <tr><td>{@code #include foo.properties, bar.properties}</td> <td>Includes
-     * both {@code foo.properties} and {@code bar.properties}</td></tr> <tr><td>{@code #include
-     * file:/var/tmp/${user.name }/foo.properties}</td> <td>Includes {@code foo.properties} found in
-     * a directory named after the current user</td></tr> <tr><td>{@code #include
-     * classpath*:**&#47;foo.properties}</td> <td>Includes all {@code foo.properties}</tr> files
-     * found subdirectories of the classpath</td></tr> </table>
+     * Note {@link XProperties} description for additional features over plain properties loading.
+     * {@inheritDoc}
      *
      * @throws IOException if the properties cannot be loaded or if included resources cannot be
      * read
-     * @see PathMatchingResourcePatternResolver
-     * @see StrSubstitutor
      */
     @Override
     public synchronized void load(@Nonnull final Reader reader)
@@ -236,6 +234,19 @@ public class XProperties
 
             super.load(new CharArrayReader(writer.toCharArray()));
         }
+    }
+
+    /**
+     * Note {@link XProperties} description for additional features over plain properties loading.
+     * {@inheritDoc}
+     *
+     * @throws IOException if the properties cannot be loaded or if included resources cannot be
+     * read
+     */
+    @Override
+    public synchronized void load(final InputStream inStream)
+            throws IOException {
+        load(new InputStreamReader(inStream));
     }
 
     /**
@@ -310,11 +321,23 @@ public class XProperties
     @Nullable
     @SuppressWarnings("unchecked")
     public <T> T getObjectOrDefault(@Nonnull final String key, final T defaultValue) {
+        return (T) x.computeIfAbsent(new Key(key, defaultValue), this::convert);
+    }
+
+    private Object convert(final Key key) {
+        final String property = key.property;
+        final String wholeValue = getProperty(property);
+        if (null != wholeValue)
+            return wholeValue; // Literal key match wins - assume T==String
+        final String[] parts = colon.split(property, 2);
+        final String value = getProperty(parts[1]);
+        if (null == value)
+            return key.fallback;
         try {
-            return (T) converted.get(new Key(key, defaultValue));
-        } catch (final ExecutionException | UncheckedExecutionException e) {
-            final String[] parts = colon.split(key, 2);
-            throw new FailedConversionException(key, getProperty(parts[1]), e.getCause());
+            return XProperties.factoryFor(parts[0]).convert(value);
+        } catch (final Exception e) {
+            final String[] x = colon.split(property, 2);
+            throw new FailedConversionException(property, getProperty(x[1]), e.getCause());
         }
     }
 
@@ -495,22 +518,6 @@ public class XProperties
         private Key(final String property, final Object fallback) {
             this.property = property;
             this.fallback = fallback;
-        }
-    }
-
-    private class Converted
-            extends CacheLoader<Key, Object> {
-        @Override
-        public Object load(@Nonnull final Key key)
-                throws Exception {
-            final String wholeValue = getProperty(key.property);
-            if (null != wholeValue)
-                return wholeValue; // Literal key match wins - assume T==String
-            final String[] parts = colon.split(key.property, 2);
-            final String value = getProperty(parts[1]);
-            if (null == value)
-                return key.fallback;
-            return XProperties.factoryFor(parts[0]).convert(value);
         }
     }
 }
