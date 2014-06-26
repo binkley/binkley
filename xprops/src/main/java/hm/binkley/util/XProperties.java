@@ -39,8 +39,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -132,7 +136,8 @@ public class XProperties
         register("url", URL::new);
     }
 
-    private final Map<Key, Object> x = new ConcurrentHashMap<>();
+    private final Set<URI> included = new LinkedHashSet<>();
+    private final Map<Key, Object> converted = new ConcurrentHashMap<>();
 
     private final StrSubstitutor substitutor = new StrSubstitutor(new FindValue());
 
@@ -190,8 +195,10 @@ public class XProperties
     @Nonnull
     public static XProperties from(@Nonnull @NonNull final String absolutePath)
             throws IOException {
-        try (final InputStream in = XProperties.class.getResourceAsStream(absolutePath)) {
+        final URL resource = XProperties.class.getResource(absolutePath);
+        try (final InputStream in = resource.openStream()) {
             final XProperties xprops = new XProperties();
+            xprops.included.add(URI.create(resource.toString()));
             xprops.load(in);
             return xprops;
         }
@@ -225,15 +232,20 @@ public class XProperties
                     final Matcher matcher = include.matcher(line);
                     if (matcher.matches())
                         for (final String x : comma.split(substitutor.replace(matcher.group(1))))
-                            for (final Resource resource : loader.getResources(x))
+                            for (final Resource resource : loader.getResources(x)) {
+                                final URI uri = resource.getURI();
+                                if (!included.add(uri))
+                                    throw new RecursiveIncludeException(uri, included);
                                 try (final InputStream in = resource.getInputStream()) {
                                     load(in);
                                 }
+                            }
                 }
             }
 
             super.load(new CharArrayReader(writer.toCharArray()));
         }
+        included.clear();
     }
 
     /**
@@ -321,7 +333,7 @@ public class XProperties
     @Nullable
     @SuppressWarnings("unchecked")
     public <T> T getObjectOrDefault(@Nonnull final String key, final T defaultValue) {
-        return (T) x.computeIfAbsent(new Key(key, defaultValue), this::convert);
+        return (T) converted.computeIfAbsent(new Key(key, defaultValue), this::convert);
     }
 
     private Object convert(final Key key) {
@@ -489,8 +501,25 @@ public class XProperties
     }
 
     /** @todo Documentation */
-    public static final class FailedConversionException extends RuntimeException {
-        public FailedConversionException(final String key, final String value, final Throwable cause) {
+    public static final class RecursiveIncludeException
+            extends RuntimeException {
+        public RecursiveIncludeException(final URI duplicate, final Collection<URI> included) {
+            super(message(duplicate, included));
+        }
+
+        private static String message(final URI duplicate, final Collection<URI> included) {
+            final ArrayList<URI> x = new ArrayList<>(included.size() + 1);
+            x.addAll(included);
+            x.add(duplicate);
+            return x.toString();
+        }
+    }
+
+    /** @todo Documentation */
+    public static final class FailedConversionException
+            extends RuntimeException {
+        public FailedConversionException(final String key, final String value,
+                final Throwable cause) {
             super(format("%s = %s", key, value), cause);
         }
     }

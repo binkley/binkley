@@ -2,6 +2,7 @@ package hm.binkley.util;
 
 import hm.binkley.util.XProperties.FailedConversionException;
 import hm.binkley.util.XProperties.MissingPropertyException;
+import hm.binkley.util.XProperties.RecursiveIncludeException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,6 +58,15 @@ public final class XPropertiesTest {
     }
 
     @Test
+    public void shouldNoticeRecursiveInclude()
+            throws IOException {
+        thrown.expect(RecursiveIncludeException.class);
+        thrown.expectMessage(containsString(format("%s/tweedle-dee.properties", pathPrefix)));
+
+        XProperties.from(format("%s/tweedle-dee.properties", pathPrefix));
+    }
+
+    @Test
     public void shouldReplaceInclude()
             throws IOException {
         xprops.setProperty("foo", "util");
@@ -70,10 +80,8 @@ public final class XPropertiesTest {
     public void shouldIncludeResource()
             throws IOException {
         final Path tmp = createTempFile("test", ".tmp");
-        try {
-            try (final OutputStream out = newOutputStream(tmp)) {
-                new PrintStream(out).println("bar=found");
-            }
+        try (final OutputStream out = newOutputStream(tmp)) {
+            new PrintStream(out).println("bar=found");
             xprops.setProperty("tmp", tmp.toString());
             xprops.load(new StringReader("#include file:${tmp}"));
 
