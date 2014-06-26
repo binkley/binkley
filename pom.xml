@@ -87,6 +87,7 @@
         <junit.version>4.11</junit.version>
         <!-- <lifegycle.version>0.2-SNAPSHOT</lifegycle.version> -->
         <logback.version>1.1.2</logback.version>
+        <lombok.version>1.12.4</lombok.version>
         <maven.version>3.1</maven.version>
         <metainf-services.version>1.5</metainf-services.version>
         <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
@@ -114,6 +115,13 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>${jsr305.version}</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
             <scope>compile</scope>
             <optional>true</optional>
         </dependency>
