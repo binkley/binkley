@@ -87,7 +87,7 @@
         <junit.version>4.11</junit.version>
         <!-- <lifegycle.version>0.2-SNAPSHOT</lifegycle.version> -->
         <logback.version>1.1.2</logback.version>
-        <lombok.version>1.12.4</lombok.version>
+        <lombok.version>1.14.2</lombok.version>
         <maven.version>3.1</maven.version>
         <metainf-services.version>1.5</metainf-services.version>
         <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
