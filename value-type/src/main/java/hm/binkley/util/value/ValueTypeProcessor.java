@@ -38,7 +38,6 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,12 +48,10 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.singleton;
 import static java.util.regex.Pattern.compile;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.PACKAGE;
-import static javax.lang.model.util.ElementFilter.fieldsIn;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.Diagnostic.Kind.NOTE;
 import static javax.tools.Diagnostic.Kind.WARNING;
@@ -110,12 +107,6 @@ public final class ValueTypeProcessor
                         messenger.error("@ValueType only supported on top-level interfaces");
                         continue;
                     }
-
-                    for (final VariableElement field : fieldsIn(singleton(element)))
-                        if ("$cache".equals(field.getSimpleName().toString())) {
-                            messenger.error("@ValueType duplicates '$cache' field");
-                            continue ELEMEMT;
-                        }
 
                     // Rely on knowledge there is only the value field
                     final AnnotationValue value = mirror.getElementValues().values().stream().
