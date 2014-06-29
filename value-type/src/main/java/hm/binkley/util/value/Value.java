@@ -1,9 +1,9 @@
-package lab.util.value;
-
-import lombok.NonNull;
+package hm.binkley.util.value;
 
 import javax.annotation.Nonnull;
 import java.util.function.Function;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * {@code Value} <b>needs documentation</b>.
@@ -17,7 +17,7 @@ public abstract class Value<T, V extends Value<T, V>>
     @Nonnull
     protected final T value;
 
-    protected Value(@Nonnull @NonNull final T value) {
+    protected Value(@Nonnull final T value) {
         this.value = value;
     }
 
@@ -31,7 +31,8 @@ public abstract class Value<T, V extends Value<T, V>>
 
     @Nonnull
     public final <U, W extends Value<U, W>> W map(
-            @Nonnull @NonNull final Function<? super T, ? extends W> mapper) {
+            @Nonnull final Function<? super T, ? extends W> mapper) {
+        requireNonNull(mapper, "mapper");
         return mapper.apply(value);
     }
 

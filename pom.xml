@@ -317,12 +317,6 @@
                 <artifactId>jnr-posix</artifactId>
                 <version>${jnr.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>org.ini4j</groupId>
-                <artifactId>ini4j</artifactId>
-                <version>${ini4j.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 

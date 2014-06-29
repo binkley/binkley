@@ -25,19 +25,14 @@
  * For more information, please refer to <http://unlicense.org/>.
  */
 
-package lab.util.value;
-
-import static java.lang.System.out;
+package hm.binkley.util.value;
 
 /**
- * {@code FooValue} <b>needs documentation</b>.
- *
- * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
- */
-@ValueType(String.class)
-public interface Foo {
-    static void main(final String... args) {
-        out.println(FooValue.of("apple core"));
-    }
+* {@code Testy} <b>needs documentation</b>.
+*
+* @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+* @todo Needs documentation.
+*/
+@ValueType(Integer.class)
+interface Testy {
 }

@@ -1,4 +1,4 @@
-package lab.util.value;
+package hm.binkley.util.value;
 
 import org.junit.Rule;
 import org.junit.Test;

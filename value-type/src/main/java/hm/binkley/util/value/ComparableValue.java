@@ -1,8 +1,8 @@
-package lab.util.value;
-
-import lombok.NonNull;
+package hm.binkley.util.value;
 
 import javax.annotation.Nonnull;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * {@code StringValue} <b>needs documentation</b>.
@@ -18,7 +18,8 @@ public abstract class ComparableValue<T extends Comparable<T>, V extends Compara
     }
 
     @Override
-    public final int compareTo(@Nonnull @NonNull final V that) {
+    public final int compareTo(@Nonnull final V that) {
+        requireNonNull(that, "that");
         return value.compareTo(that.value);
     }
 }

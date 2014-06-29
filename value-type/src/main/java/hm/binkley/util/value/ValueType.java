@@ -1,4 +1,4 @@
-package lab.util.value;
+package hm.binkley.util.value;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

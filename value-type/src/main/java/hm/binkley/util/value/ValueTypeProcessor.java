@@ -25,7 +25,7 @@
  * For more information, please refer to <http://unlicense.org/>.
  */
 
-package lab.util.value;
+package hm.binkley.util.value;
 
 import org.kohsuke.MetaInfServices;
 
@@ -65,7 +65,7 @@ import static javax.tools.Diagnostic.Kind.WARNING;
  * @todo Needs documentation.
  */
 @MetaInfServices(Processor.class)
-@SupportedAnnotationTypes("lab.util.value.ValueType")
+@SupportedAnnotationTypes("hm.binkley.util.value.ValueType")
 @SupportedSourceVersion(RELEASE_8)
 public final class ValueTypeProcessor
         extends AbstractProcessor {
