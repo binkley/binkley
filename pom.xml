@@ -67,6 +67,7 @@
         <module>guice</module>
         <module>spring</module>
         <module>mixin</module>
+        <module>value-type</module>
         <module>xprops</module>
         <module>finance</module>
     </modules>
@@ -154,6 +155,16 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-mixin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-value-type</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-xprops</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -306,12 +317,6 @@
                 <artifactId>jnr-posix</artifactId>
                 <version>${jnr.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>org.ini4j</groupId>
-                <artifactId>ini4j</artifactId>
-                <version>${ini4j.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -340,6 +345,7 @@
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <compilerArgs>
+                        <compilerArg>-parameters</compilerArg>
                         <compilerArg>-Xlint:all</compilerArg>
                     </compilerArgs>
                     <debug>true</debug>
