@@ -114,7 +114,7 @@ public final class ValueTypeProcessor
                             map(ExecutableElement.class::cast).
                             filter(ValueTypeProcessor::unsupported).
                             forEach(m -> messenger
-                                    .error("@ValueType only supports static and default methods: %s",
+                                    .error("@ValueType supports only static and default methods: %s",
                                             m));
 
                     // Rely on knowledge there is only the value field
