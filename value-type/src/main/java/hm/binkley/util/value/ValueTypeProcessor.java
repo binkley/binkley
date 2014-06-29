@@ -39,6 +39,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -71,6 +72,7 @@ public final class ValueTypeProcessor
         extends AbstractProcessor {
     private static final Pattern packageVar = compile("\\$\\{package\\}");
     private static final Pattern classVar = compile("\\$\\{class\\}");
+    private static final Pattern baseVar = compile("\\$\\{base\\}");
     private static final Pattern typeVar = compile("\\$\\{type\\}");
 
     private final String template;
@@ -93,11 +95,11 @@ public final class ValueTypeProcessor
             for (final Element element : roundEnv.getElementsAnnotatedWith(
                     processingEnv.getElementUtils().getTypeElement(aName))) {
                 final List<? extends AnnotationMirror> aMirrors = element.getAnnotationMirrors();
-                for (final AnnotationMirror aMirror : aMirrors) {
-                    if (!ValueType.class.getName().equals(aMirror.getAnnotationType().toString()))
+                for (final AnnotationMirror mirror : aMirrors) {
+                    if (!ValueType.class.getName().equals(mirror.getAnnotationType().toString()))
                         continue;
 
-                    final Messenger messenger = new Messenger(element, aMirror);
+                    final Messenger messenger = new Messenger(element, mirror);
 
                     if (INTERFACE != element.getKind()) {
                         messenger.error("@ValueType only supported on interfaces");
@@ -116,19 +118,24 @@ public final class ValueTypeProcessor
                         }
 
                     // Rely on knowledge there is only the value field
-                    final AnnotationValue type = aMirror.getElementValues().values().stream().
+                    final AnnotationValue value = mirror.getElementValues().values().stream().
                             findFirst().get();
 
                     final String packaj = processingEnv.getElementUtils().getPackageOf(element)
                             .getQualifiedName().toString();
                     final String clazz = element.getSimpleName().toString();
                     final String source = format("%s.%sValue", packaj, clazz);
+                    final DeclaredType type = (DeclaredType) value.getValue();
+
+                    final boolean comparable = comparable(type);
+                    final String base = comparable ? "ComparableValue" : "Value";
+
                     try (final OutputStream out = processingEnv.getFiler()
                             .createSourceFile(source, element).openOutputStream()) {
                         String generated = packageVar.matcher(template).replaceAll(packaj);
                         generated = classVar.matcher(generated).replaceAll(clazz);
-                        generated = typeVar.matcher(generated)
-                                .replaceAll(type.getValue().toString());
+                        generated = baseVar.matcher(generated).replaceAll(base);
+                        generated = typeVar.matcher(generated).replaceAll(type.toString());
                         out.write(generated.getBytes(UTF_8));
                     } catch (final IOException e) {
                         messenger.error("Cannot generate source: %s", e);
@@ -141,6 +148,15 @@ public final class ValueTypeProcessor
         }
 
         return true;
+    }
+
+    private static boolean comparable(final DeclaredType type) {
+        final String comparable = format("java.lang.Comparable<%s>", type);
+        return ((TypeElement) type.asElement()).getInterfaces().stream().
+                map(Object::toString).
+                filter(comparable::equals).
+                findFirst().
+                isPresent();
     }
 
     private final class Messenger {

@@ -2,7 +2,7 @@ package ${package};
 
 @javax.annotation.Generated("hm.binkley.util.value.ValueTypeProcessor")
 public final class ${class}Value
-        extends hm.binkley.util.value.Value<${type}, ${class}Value>
+        extends hm.binkley.util.value.${base}<${type}, ${class}Value>
         implements ${class} {
     private static final java.util.Map<${type}, ${class}Value> $cache = new java.util.concurrent.ConcurrentHashMap<>();
 
