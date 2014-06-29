@@ -73,6 +73,7 @@ public final class ValueTypeProcessor
     private static final Pattern classVar = compile("\\$\\{class\\}");
     private static final Pattern baseVar = compile("\\$\\{base\\}");
     private static final Pattern typeVar = compile("\\$\\{type\\}");
+    private static final Pattern modifyVar = compile("\\$\\{modify\\}");
 
     private final String template;
 
@@ -125,9 +126,11 @@ public final class ValueTypeProcessor
                             .getQualifiedName().toString();
                     final String clazz = element.getSimpleName().toString();
                     final String source = format("%s.%sValue", packaj, clazz);
-                    final DeclaredType type = (DeclaredType) value.getValue();
+                    final DeclaredType valueType = (DeclaredType) value.getValue();
+                    final String type = valueType.toString();
+                    final String modify = "java.lang.String".equals(type) ? ".intern()" : "";
 
-                    final boolean comparable = comparable(type);
+                    final boolean comparable = comparable(valueType);
                     final String base = comparable ? "ComparableValue" : "Value";
 
                     try (final OutputStream out = processingEnv.getFiler()
@@ -135,7 +138,8 @@ public final class ValueTypeProcessor
                         String generated = packageVar.matcher(template).replaceAll(packaj);
                         generated = classVar.matcher(generated).replaceAll(clazz);
                         generated = baseVar.matcher(generated).replaceAll(base);
-                        generated = typeVar.matcher(generated).replaceAll(type.toString());
+                        generated = typeVar.matcher(generated).replaceAll(type);
+                        generated = modifyVar.matcher(generated).replaceAll(modify);
                         out.write(generated.getBytes(UTF_8));
                     } catch (final IOException e) {
                         messenger.error("Cannot generate source: %s", e);

@@ -13,7 +13,7 @@ public final class ${class}Value
     }
 
     private ${class}Value(final ${type} value) {
-        super(value);
+        super(value${modify});
     }
 
     @Override

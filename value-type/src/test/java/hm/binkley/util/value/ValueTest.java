@@ -7,6 +7,7 @@ import org.junit.rules.ExpectedException;
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -25,17 +26,17 @@ public class ValueTest {
         thrown.expectMessage("value");
         // TODO: How to check call stack?
 
-        TestyValue.of(null);
+        IntTestyValue.of(null);
     }
 
     @Test
     public void shouldEqual() {
-        assertThat(TestyValue.of(3), is(equalTo(TestyValue.of(3))));
+        assertThat(IntTestyValue.of(3), is(equalTo(IntTestyValue.of(3))));
     }
 
     @Test
     public void shouldCompare() {
-        assertThat(TestyValue.of(3), comparesEqualTo(TestyValue.of(3)));
+        assertThat(IntTestyValue.of(3), comparesEqualTo(IntTestyValue.of(3)));
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -44,11 +45,19 @@ public class ValueTest {
         thrown.expect(NullPointerException.class);
         thrown.expectMessage("that");
 
-        TestyValue.of(3).compareTo(null);
+        IntTestyValue.of(3).compareTo(null);
     }
 
     @Test
     public void shouldProcessDefaultMethods() {
-        assertThat(TestyValue.of(3).return7(), is(equalTo(7)));
+        assertThat(IntTestyValue.of(3).return7(), is(equalTo(7)));
+    }
+
+    @Test
+    public void shouldInternStringValues() {
+        final String value = new String(new char[]{'a', 'b'});
+
+        assertThat(StringTestyValue.of(value).get(), is(
+                sameInstance(StringTestyValue.of("ab").get())));
     }
 }
