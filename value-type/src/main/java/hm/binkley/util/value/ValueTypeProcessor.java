@@ -37,6 +37,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import java.io.IOException;
@@ -52,6 +53,7 @@ import static java.util.regex.Pattern.compile;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.PACKAGE;
+import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.Diagnostic.Kind.NOTE;
 import static javax.tools.Diagnostic.Kind.WARNING;
@@ -108,6 +110,13 @@ public final class ValueTypeProcessor
                         continue;
                     }
 
+                    ((TypeElement) element).getEnclosedElements().stream().
+                            map(ExecutableElement.class::cast).
+                            filter(ValueTypeProcessor::unsupported).
+                            forEach(m -> messenger
+                                    .error("@ValueType only supports static and default methods: %s",
+                                            m));
+
                     // Rely on knowledge there is only the value field
                     final AnnotationValue value = mirror.getElementValues().values().stream().
                             findFirst().get();
@@ -139,6 +148,10 @@ public final class ValueTypeProcessor
         }
 
         return true;
+    }
+
+    private static boolean unsupported(final ExecutableElement e) {
+        return !(e.isDefault() || e.getModifiers().contains(STATIC));
     }
 
     private static boolean comparable(final DeclaredType type) {

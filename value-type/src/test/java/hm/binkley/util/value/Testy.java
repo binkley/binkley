@@ -27,12 +27,20 @@
 
 package hm.binkley.util.value;
 
+import static java.lang.System.out;
+
 /**
-* {@code Testy} <b>needs documentation</b>.
-*
-* @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
-* @todo Needs documentation.
-*/
+ * {@code Testy} is an example value type for testing.
+ *
+ * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ */
 @ValueType(Integer.class)
 interface Testy {
+    default int return7() {
+        return 7;
+    }
+
+    static void main(final String... args) {
+        out.println(TestyValue.of(8));
+    }
 }

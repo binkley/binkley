@@ -9,6 +9,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+/**
+ * {@code ValueTest} tests {@link Value} and {@link ValueTypeProcessor}.
+ *
+ * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ */
 public class ValueTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
@@ -40,5 +45,10 @@ public class ValueTest {
         thrown.expectMessage("that");
 
         TestyValue.of(3).compareTo(null);
+    }
+
+    @Test
+    public void shouldProcessDefaultMethods() {
+        assertThat(TestyValue.of(3).return7(), is(equalTo(7)));
     }
 }
