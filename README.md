@@ -14,4 +14,5 @@ This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
 * Spring - Examples with Spring
 * Testing - Small testing improvements
 * Value-type - Java annotation and processor for value types
+* Xio - Strongly typed I/O
 * Xprops - Extended Java properties
