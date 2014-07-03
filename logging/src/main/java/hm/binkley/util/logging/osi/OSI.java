@@ -22,7 +22,6 @@ import java.util.Objects;
 
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_DEBUG;
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOG_LEVEL;
 import static java.lang.String.format;
 import static java.lang.System.clearProperty;
 import static java.lang.System.getProperty;
@@ -103,6 +102,8 @@ public final class OSI {
          * logging such as changing log levels.  Default is "osi-logback-included.xml".
          */
         LOGBACK_INCLUDED_RESOURCE("logback.includedResource"),
+        /** Enables JMX support for logback.  Default is "true". */
+        LOGBACK_JMX("logback.jmx"),
         /** Enables logback debugging.  Default is "false". */
         LOGBACK_DEBUG("logback.debug"),
         /**
@@ -202,11 +203,11 @@ public final class OSI {
     }
 
     public static void main(final String... args) {
-        LOG_LEVEL.set("ERROR", false);
         enable(true);
         final Logger log = LoggerFactory.getLogger(OSI.class);
         log.warn("Won't log");
         log.error("Will log");
-        log.error("Example stacktrace: {}", "Hi, mom!", new IOException("Nothing actually is wrong"));
+        log.error("Example stacktrace: {}", "Hi, mom!",
+                new IOException("Nothing actually is wrong"));
     }
 }

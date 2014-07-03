@@ -37,7 +37,11 @@
         <!-- If overriden, define encoder pattern as for console -->
         <appender-ref ref="${logback.rootAppender:-console}"/>
     </root>
-    <jmxConfigurator/>
+    <if condition='Boolean.valueOf(property("logback.jmx")) || "" == property("logback.jmx")'>
+        <then>
+            <jmxConfigurator/>
+        </then>
+    </if>
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <resetJUL>true</resetJUL>
     </contextListener>
