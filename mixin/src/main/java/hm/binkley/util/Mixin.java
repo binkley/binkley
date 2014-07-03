@@ -6,8 +6,6 @@
 
 package hm.binkley.util;
 
-import com.google.common.collect.ImmutableList;
-
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -22,6 +20,7 @@ import java.util.concurrent.ConcurrentMap;
 import static java.lang.String.format;
 import static java.lang.reflect.Proxy.newProxyInstance;
 import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * {@code Mixin} implements concrete class mixins via JDK proxies.  Proxy handler strategy tries:
@@ -152,9 +151,10 @@ public interface Mixin {
                 final List<Object> mixed = new ArrayList<>(delegates.length + 1);
                 mixed.addAll(asList(delegates));
                 mixed.add(this);
-                this.mixed = ImmutableList.copyOf(mixed);
+                this.mixed = unmodifiableList(mixed);
             }
 
+            @SuppressWarnings("ReturnOfCollectionOrArrayField")
             @Nonnull
             @Override
             public List<Object> mixinDelegates() {
