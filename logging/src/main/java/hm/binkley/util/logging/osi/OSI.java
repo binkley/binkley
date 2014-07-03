@@ -6,19 +6,28 @@
 
 package hm.binkley.util.logging.osi;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.util.StatusPrinter;
 import hm.binkley.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
+import java.io.IOException;
+import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOG_LEVEL;
 import static java.lang.String.format;
 import static java.lang.System.clearProperty;
 import static java.lang.System.getProperty;
+import static java.lang.System.out;
 import static java.lang.System.setProperty;
+import static java.util.Arrays.asList;
 
 /**
  * {@code OSI} enable OSI logging for simple cases.
@@ -30,17 +39,34 @@ public final class OSI {
      * Enable OSI logging using the default configuration file, "osi-logback.xml" as found on the
      * class path.  Control configuration through use of other {@link SystemProperty OSI system
      * properties}. <p> Must be called before first use of logback.
+     * <p>
+     * Do not show status of the logging system.
      */
     public static void enable() {
+        enable(false);
+    }
+
+    /**
+     * Enable OSI logging using the default configuration file, "osi-logback.xml" as found on the
+     * class path.  Control configuration through use of other {@link SystemProperty OSI system
+     * properties}. <p> Must be called before first use of logback.
+     *
+     * @param show if {@code true} log the status of the logging system including setup details.
+     */
+    public static void enable(final boolean show) {
         SLF4JBridgeHandler.install();
         LOGBACK_CONFIGURATION_FILE.set("osi-logback.xml", false);
+        if (!show)
+            return;
+        asList(SystemProperty.values()).forEach(out::println);
+        StatusPrinter.print((LoggerContext) LoggerFactory.getILoggerFactory());
     }
 
     /**
      * {@code SystemProperty} defines system properties used by OSI. Use {@link #set(String,
      * boolean)} and {@link #unset()} to control these properties.
      */
-    public static enum SystemProperty {
+    public enum SystemProperty {
         /**
          * Sets the logback configuration file, rarely changed except for testing.  Default is
          * "osi-logback.xml".
@@ -75,7 +101,8 @@ public final class OSI {
         LOG_LEVEL("log.level"),
         /** Sets the root appender.  Default is "console". */
         LOGBACK_ROOT_APPENDER("logback.rootAppender");
-        private static final Map<SystemProperty, String> totem = new HashMap<>(values().length);
+        private static final Map<SystemProperty, String> totem = new EnumMap<>(
+                SystemProperty.class);
         @Nonnull
         private final String key;
 
@@ -123,19 +150,15 @@ public final class OSI {
          */
         public final boolean set(@Nullable final String value, final boolean override) {
             final String existing = getProperty(key);
-            if (totem.containsKey(this)) {
+            if (totem.containsKey(this))
                 throw new IllegalStateException(
                         format("%s: Already modified, unset first: %s", this, existing));
-            }
-            if (null != value && null != existing && !override) {
+            if (null != value && null != existing && !override)
                 return false;
-            }
-            final String previous;
-            if (null == value) {
+            if (null == value)
                 clearProperty(key);
-            } else {
+            else
                 setProperty(key, value);
-            }
             totem.put(this, existing);
             return true;
         }
@@ -148,22 +171,29 @@ public final class OSI {
          * @throws IllegalStateException if not set
          */
         public final void unset() {
-            if (!totem.containsKey(this)) {
+            if (!totem.containsKey(this))
                 throw new IllegalStateException(format("%s: Not set", this));
-            }
             final String value = totem.get(this);
-            if (null == value) {
+            if (null == value)
                 clearProperty(key);
-            } else {
+            else
                 setProperty(key, value);
-            }
             totem.remove(this);
         }
 
         @Nonnull
         @Override
         public final String toString() {
-            return String.format("%s(%s)", name(), key);
+            return format("%s(%s)=%s", name(), key, Objects.toString(getProperty(key), "<default>"));
         }
+    }
+
+    public static void main(final String... args) {
+        LOG_LEVEL.set("ERROR", false);
+        enable(true);
+        final Logger log = LoggerFactory.getLogger(OSI.class);
+        log.warn("Won't log");
+        log.error("Will log");
+        log.error("Example stacktrace", new IOException("Nothing actually is wrong"));
     }
 }
