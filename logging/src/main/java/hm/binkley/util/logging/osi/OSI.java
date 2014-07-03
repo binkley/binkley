@@ -75,6 +75,14 @@ public final class OSI {
          */
         LOGBACK_CONFIGURATION_FILE("logback.configurationFile"),
         /**
+         * As an alternative to setting system properties, put properties here.  Default is
+         * "osi-logback.properties" in the classpath root.  These cannot, however, override these
+         * system properties which are used before the properties resource is loaded:
+         * <ul><li>logback.configurationFile</li> <li>logback.propertiesResource</li>
+         * <li>logback.debug</li></ul>
+         */
+        LOGBACK_PROPERTIES_RESOURCE("logback.propertiesResources"),
+        /**
          * Sets a custom style file for logging, rarely changed.  Default is
          * "osi-logback-style.properties".
          */
@@ -194,6 +202,6 @@ public final class OSI {
         final Logger log = LoggerFactory.getLogger(OSI.class);
         log.warn("Won't log");
         log.error("Will log");
-        log.error("Example stacktrace", new IOException("Nothing actually is wrong"));
+        log.error("Example stacktrace: {}", "Hi, mom!", new IOException("Nothing actually is wrong"));
     }
 }

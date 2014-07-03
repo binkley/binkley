@@ -9,6 +9,7 @@
 <!-- Select with -Dlogback.configurationFile=osi-logback.xml -->
 <!-- See OSI.enable() -->
 <configuration debug="${logback.debug:-false}">
+    <property resource="${logback.propertiesResource:-osi-logback.properties}"/>
     <!-- Default logging to 'logback.level' -->
     <if condition='"true".equals(property("logback.debug"))'>
         <then>
