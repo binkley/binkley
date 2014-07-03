@@ -20,7 +20,8 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_RESOURCE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_DEBUG;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOG_LEVEL;
 import static java.lang.String.format;
 import static java.lang.System.clearProperty;
@@ -36,8 +37,8 @@ import static java.util.Arrays.asList;
  */
 public final class OSI {
     /**
-     * Enable OSI logging using the default configuration file, "osi-logback.xml" as found on the
-     * class path.  Control configuration through use of other {@link SystemProperty OSI system
+     * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
+     * the class path.  Control configuration through use of other {@link SystemProperty OSI system
      * properties}. <p> Must be called before first use of logback.
      * <p>
      * Do not show status of the logging system.
@@ -47,18 +48,21 @@ public final class OSI {
     }
 
     /**
-     * Enable OSI logging using the default configuration file, "osi-logback.xml" as found on the
-     * class path.  Control configuration through use of other {@link SystemProperty OSI system
+     * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
+     * the class path.  Control configuration through use of other {@link SystemProperty OSI system
      * properties}. <p> Must be called before first use of logback.
      *
      * @param show if {@code true} log the status of the logging system including setup details.
      */
     public static void enable(final boolean show) {
         SLF4JBridgeHandler.install();
-        LOGBACK_CONFIGURATION_RESOURCE.set("osi-logback.xml", false);
+        LOGBACK_CONFIGURATION_FILE.set("osi-logback.xml", false);
         if (!show)
             return;
         asList(SystemProperty.values()).forEach(out::println);
+        // No point duplicating the status messages
+        if (Boolean.valueOf(LOGBACK_DEBUG.get()))
+            return;
         StatusPrinter.print((LoggerContext) LoggerFactory.getILoggerFactory());
     }
 
@@ -68,17 +72,18 @@ public final class OSI {
      */
     public enum SystemProperty {
         /**
-         * Sets the logback configuration file, rarely changed except for testing.  Default is
-         * "osi-logback.xml".
+         * Sets the logback configuration resource, rarely changed except for testing.  Default is
+         * "osi-logback.xml".  Although looked for on the classpath, Logback names this
+         * "configurationFile".
          *
          * @see #enable()
          */
-        LOGBACK_CONFIGURATION_RESOURCE("logback.configurationResource"),
+        LOGBACK_CONFIGURATION_FILE("logback.configurationFile"),
         /**
          * As an alternative to setting system properties, put properties here.  Default is
          * "osi-logback.properties" in the classpath root.  These cannot, however, override these
          * system properties which are used before the properties resource is loaded:
-         * <ul><li>logback.configurationResource</li> <li>logback.propertiesResource</li>
+         * <ul><li>logback.configurationFile</li> <li>logback.propertiesResource</li>
          * <li>logback.debug</li></ul>
          */
         LOGBACK_PROPERTIES_RESOURCE("logback.propertiesResource"),

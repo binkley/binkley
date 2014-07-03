@@ -6,12 +6,13 @@
   ~ Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
   -->
 
-<!-- Select with -Dlogback.configurationResource=osi-logback.xml -->
+<!-- Select with -Dlogback.configurationFile=osi-logback.xml -->
 <!-- See OSI.enable() -->
 <configuration debug="${logback.debug:-false}">
+    <!-- As an alternative to system properties -->
     <property resource="${logback.propertiesResource:-osi-logback.properties}"/>
     <!-- Default logging to 'logback.level' -->
-    <if condition='"true".equals(property("logback.debug"))'>
+    <if condition='Boolean.valueOf(property("logback.debug"))'>
         <then>
             <!-- Unless log.debug is set -->
             <variable name="log.level" value="debug"/>

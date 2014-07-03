@@ -29,15 +29,15 @@ public final class ITMatchConverter
 
     @Before
     public void setUpITMatchConverter() {
-        previous = setProperty("logback.configurationResource", "it-match-converter-logback.xml");
+        previous = setProperty("logback.configurationFile", "it-match-converter-logback.xml");
     }
 
     @After
     public void tearDownITMatchConverter() {
         if (null == previous)
-            clearProperty("logback.configurationResource");
+            clearProperty("logback.configurationFile");
         else
-            setProperty("logback.configurationResource", previous);
+            setProperty("logback.configurationFile", previous);
         clearProperty("logback.pattern");
     }
 
