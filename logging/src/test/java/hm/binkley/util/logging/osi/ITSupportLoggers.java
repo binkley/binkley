@@ -9,7 +9,7 @@ package hm.binkley.util.logging.osi;
 import org.junit.Before;
 import org.junit.Test;
 
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_INCLUDED_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_INCLUDED_RESOURCE;
 import static hm.binkley.util.logging.osi.SupportLoggers.ALERT;
 import static hm.binkley.util.logging.osi.SupportLoggers.APPLICATION;
 import static hm.binkley.util.logging.osi.SupportLoggers.AUDIT;
@@ -24,7 +24,7 @@ public final class ITSupportLoggers
         extends AbstractITOSI {
     @Before
     public void setUpITSupportLogger() {
-        setOSISystemProperty(LOGBACK_INCLUDED_FILE, "osi-support-loggers-included.xml");
+        setOSISystemProperty(LOGBACK_INCLUDED_RESOURCE, "osi-support-loggers-included.xml");
     }
 
     @Test(expected = IllegalStateException.class)

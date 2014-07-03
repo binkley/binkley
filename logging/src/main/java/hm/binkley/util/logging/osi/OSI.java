@@ -20,7 +20,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_RESOURCE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOG_LEVEL;
 import static java.lang.String.format;
 import static java.lang.System.clearProperty;
@@ -55,7 +55,7 @@ public final class OSI {
      */
     public static void enable(final boolean show) {
         SLF4JBridgeHandler.install();
-        LOGBACK_CONFIGURATION_FILE.set("osi-logback.xml", false);
+        LOGBACK_CONFIGURATION_RESOURCE.set("osi-logback.xml", false);
         if (!show)
             return;
         asList(SystemProperty.values()).forEach(out::println);
@@ -73,20 +73,20 @@ public final class OSI {
          *
          * @see #enable()
          */
-        LOGBACK_CONFIGURATION_FILE("logback.configurationFile"),
+        LOGBACK_CONFIGURATION_RESOURCE("logback.configurationResource"),
         /**
          * As an alternative to setting system properties, put properties here.  Default is
          * "osi-logback.properties" in the classpath root.  These cannot, however, override these
          * system properties which are used before the properties resource is loaded:
-         * <ul><li>logback.configurationFile</li> <li>logback.propertiesResource</li>
+         * <ul><li>logback.configurationResource</li> <li>logback.propertiesResource</li>
          * <li>logback.debug</li></ul>
          */
-        LOGBACK_PROPERTIES_RESOURCE("logback.propertiesResources"),
+        LOGBACK_PROPERTIES_RESOURCE("logback.propertiesResource"),
         /**
          * Sets a custom style file for logging, rarely changed.  Default is
          * "osi-logback-style.properties".
          */
-        LOGBACK_STYLES_FILE("logback.stylesFile"),
+        LOGBACK_STYLES_RESOURCE("logback.stylesResource"),
         /**
          * Sets the default logging style.  See "osi-logback-styles.properties" for details. Default
          * is "standard".
@@ -97,7 +97,7 @@ public final class OSI {
          * named "osi-logback-included.xml" is provided in the application class path) to control
          * logging such as changing log levels.  Default is "osi-logback-included.xml".
          */
-        LOGBACK_INCLUDED_FILE("logback.includedFile"),
+        LOGBACK_INCLUDED_RESOURCE("logback.includedResource"),
         /** Enables logback debugging.  Default is "false". */
         LOGBACK_DEBUG("logback.debug"),
         /**

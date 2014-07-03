@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_RESOURCE;
 import static java.lang.String.format;
 
 /**
@@ -47,7 +47,7 @@ public abstract class AbstractITOSI
 
     @Before
     public final void setUpAbstractITOSI() {
-        setOSISystemProperty(LOGBACK_CONFIGURATION_FILE, "osi-logback.xml");
+        setOSISystemProperty(LOGBACK_CONFIGURATION_RESOURCE, "osi-logback.xml");
     }
 
     @After
