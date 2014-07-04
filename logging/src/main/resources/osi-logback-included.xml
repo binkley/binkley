@@ -10,5 +10,7 @@
 
     Create a custom osi-logback-included.xml and either make it a file in the current
     directory, or place it at the root of the classpath ahead of binkley-logging.jar.
+
+    For custom appenders also set "logback.rootAppender" to change from console logging.
     -->
 </included>
