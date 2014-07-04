@@ -164,7 +164,7 @@ public final class OSI {
          */
         public final boolean set(@Nullable final String value, final boolean override) {
             final String existing = getProperty(key);
-            if (totem.containsKey(this))
+            if (totem.containsKey(this) && !override)
                 throw new IllegalStateException(
                         format("%s: Already modified, unset first: %s", this, existing));
             if (null != value && null != existing && !override)
@@ -199,6 +199,10 @@ public final class OSI {
         @Override
         public final String toString() {
             return format("%s(%s)=%s", name(), key, Objects.toString(getProperty(key), "<default>"));
+        }
+
+        static void resetForTesting() {
+            totem.clear();
         }
     }
 
