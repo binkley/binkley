@@ -53,7 +53,7 @@ public class MoneyTest {
         this.currency = currency;
         this.amount = amount;
 
-        if (!((null == currency && null == amount) || (null != currency && null != amount)))
+        if (!(null == currency && null == amount || null != currency && null != amount))
             throw new IllegalArgumentException(
                     format("%s: currency and amount must both be null or non-null", name));
     }

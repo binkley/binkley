@@ -80,7 +80,7 @@ public final class JOptSimpleModule
     }
 
     @Inject
-    private JOptSimpleModule(@Nonnull final OptionParser parser, @Assisted final String[] args) {
+    private JOptSimpleModule(@Nonnull final OptionParser parser, @Assisted final String... args) {
         this.parser = parser;
         this.args = args;
     }

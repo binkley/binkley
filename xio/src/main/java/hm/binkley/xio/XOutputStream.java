@@ -73,9 +73,9 @@ public interface XOutputStream
      */
     default void write(@Nonnull final byte[] b, final int off, final int len)
             throws IOException {
-        if (len == 0)
+        if (0 == len)
             return;
-        if (off < 0 || off > b.length || len < 0 || off + len > b.length || off + len < 0)
+        if (0 > off || off > b.length || 0 > len || off + len > b.length || 0 > off + len)
             throw new IndexOutOfBoundsException();
         for (int i = 0; i < len; i++)
             write(b[off + i]);
@@ -110,7 +110,7 @@ public interface XOutputStream
             throws IOException {
     }
 
-    public class JOutputStream
+    class JOutputStream
             extends OutputStream {
         private final XOutputStream out;
 

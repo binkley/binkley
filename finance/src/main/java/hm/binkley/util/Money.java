@@ -45,6 +45,7 @@ public final class Money
      * @todo Are Special Drawing Rights, et al, handled correctly?
      * @todo Negative amounts: accept surrounding parens or only minus sign?
      * @todo Some kind of caching?
+     * @todo Needs a rounding mode!
      */
     public static Money parse(@Nonnull final String value)
             throws MoneyFormatException {
@@ -181,7 +182,7 @@ public final class Money
     public boolean equals(final Object o) {
         if (this == o)
             return true;
-        if (o == null || getClass() != o.getClass())
+        if (null == o || getClass() != o.getClass())
             return false;
 
         final Money that = (Money) o;

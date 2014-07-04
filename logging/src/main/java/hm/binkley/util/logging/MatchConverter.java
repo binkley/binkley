@@ -85,9 +85,9 @@ public final class MatchConverter
             return null != evaluator && evaluator.evaluate(event);
         } catch (final EvaluationException e) {
             errors++;
-            if (errors < MAX_ERROR_COUNT) {
+            if (MAX_ERROR_COUNT > errors) {
                 addError("Exception thrown for evaluator named [" + evaluator.getName() + "]", e);
-            } else if (errors == MAX_ERROR_COUNT) {
+            } else if (MAX_ERROR_COUNT == errors) {
                 final ErrorStatus errorStatus = new ErrorStatus(
                         "Exception thrown for evaluator named [" + evaluator.getName() + "].", this,
                         e);

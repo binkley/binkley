@@ -70,8 +70,7 @@ public final class TraceModule
                 // Pass Error straight through, no logging - state of VM unknown
                 throw e;
             } catch (final Throwable e) {
-                logger.throwing(e);
-                throw e;
+                throw logger.throwing(e);
             }
         }
     }

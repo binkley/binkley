@@ -16,7 +16,7 @@ public interface XInputStream
      *
      * @see JInputStream#MAX_SKIP_BUFFER_SIZE
      */
-    static final int MAX_SKIP_BUFFER_SIZE = 2048;
+    int MAX_SKIP_BUFFER_SIZE = 2048;
 
     /**
      * Creates a new JDK {@code InputStream} forwarding all calls to this {@code XInputStream}.
@@ -125,11 +125,11 @@ public interface XInputStream
             throws IOException {
         if (0 == len)
             return 0;
-        if (off < 0 || len < 0 || len > b.length - off)
+        if (0 > off || 0 > len || len > b.length - off)
             throw new IndexOutOfBoundsException();
 
         int c = read();
-        if (c == -1)
+        if (-1 == c)
             return -1;
         b[off] = (byte) c;
 
@@ -137,7 +137,7 @@ public interface XInputStream
         try {
             for (; i < len; i++) {
                 c = read();
-                if (c == -1)
+                if (-1 == c)
                     break;
                 b[off + i] = (byte) c;
             }
@@ -169,16 +169,15 @@ public interface XInputStream
     default long skip(final long n)
             throws IOException {
         long remaining = n;
-        int nr;
 
-        if (n <= 0)
+        if (0 >= n)
             return 0;
 
         final int size = (int) Math.min(MAX_SKIP_BUFFER_SIZE, remaining);
         final byte[] skipBuffer = new byte[size];
-        while (remaining > 0) {
-            nr = read(skipBuffer, 0, (int) Math.min(size, remaining));
-            if (nr < 0)
+        while (0 < remaining) {
+            final int nr = read(skipBuffer, 0, (int) Math.min(size, remaining));
+            if (0 > nr)
                 break;
             remaining -= nr;
         }
@@ -224,7 +223,7 @@ public interface XInputStream
             throws IOException {
     }
 
-    public class JInputStream
+    class JInputStream
             extends InputStream {
         private final XInputStream in;
 

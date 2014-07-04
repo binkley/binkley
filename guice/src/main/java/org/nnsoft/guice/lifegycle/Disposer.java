@@ -16,22 +16,22 @@ package org.nnsoft.guice.lifegycle;
  *  limitations under the License.
  */
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * A Disposer is a mini-container that releases resources
- * invoking injectees methods annotated by {@code Dispose}.
+ * A Disposer is a mini-container that releases resources invoking injectees methods annotated by
+ * {@code Dispose}.
  */
-public final class Disposer
-{
+public final class Disposer {
 
     /**
      * List of elements have to be disposed.
      */
-    private final List<Disposable> disposables = new LinkedList<Disposable>();
+    private final List<Disposable> disposables = new LinkedList<>();
 
     /**
      * Register an injectee and its related method to release resources.
@@ -39,36 +39,31 @@ public final class Disposer
      * @param disposeMethod the method to be invoked to release resources
      * @param injectee the target injectee has to release the resources
      */
-    <I> void register( Method disposeMethod, I injectee )
-    {
-        disposables.add( new Disposable( disposeMethod, injectee ) );
+    <I> void register(final Method disposeMethod, final I injectee) {
+        disposables.add(new Disposable(disposeMethod, injectee));
     }
 
     /**
-     * Releases resources invoking the {@code Dispose} annotated methods,
-     * successes/errors will be muted.
+     * Releases resources invoking the {@code Dispose} annotated methods, successes/errors will be
+     * muted.
      */
-    public void dispose()
-    {
-        dispose( new NoOpDisposeHandler() );
+    public void dispose() {
+        dispose(new NoOpDisposeHandler());
     }
 
     /**
-     * Releases resources invoking the {@code Dispose} annotated methods,
-     * successes/errors will be tracked in the input {@link DisposeHandler}.
+     * Releases resources invoking the {@code Dispose} annotated methods, successes/errors will be
+     * tracked in the input {@link DisposeHandler}.
      *
      * @param disposeHandler the DisposeHandler instance that tracks dispose progresses.
      */
-    public void dispose( DisposeHandler disposeHandler )
-    {
-        if ( disposeHandler == null )
-        {
+    public void dispose(DisposeHandler disposeHandler) {
+        if (null == disposeHandler) {
             disposeHandler = new NoOpDisposeHandler();
         }
 
-        for ( Disposable disposable : disposables )
-        {
-            disposable.dispose( disposeHandler );
+        for (final Disposable disposable : disposables) {
+            disposable.dispose(disposeHandler);
         }
     }
 
@@ -76,32 +71,29 @@ public final class Disposer
      * NOOP {@code DisposeHandler} implementation.
      */
     private static final class NoOpDisposeHandler
-        implements DisposeHandler
-    {
+            implements DisposeHandler {
 
         /**
          * {@inheritDoc}
          */
-        public <I, E extends Throwable> void onError( I injectee, E error )
-        {
+        public <I, E extends Throwable> void onError(@Nonnull final I injectee, @Nonnull final E error) {
             // do nothing
         }
 
         /**
          * {@inheritDoc}
          */
-        public <I> void onSuccess( I injectee )
-        {
+        public <I> void onSuccess(@Nonnull final I injectee) {
             // do nothing
         }
 
     }
 
     /**
-     * A {@code Disposable} is a reference to a disposable injectee and related method to release resources.
+     * A {@code Disposable} is a reference to a disposable injectee and related method to release
+     * resources.
      */
-    private static final class Disposable
-    {
+    private static final class Disposable {
 
         /**
          * The method to be invoked to release resources.
@@ -119,36 +111,24 @@ public final class Disposer
          * @param disposeMethod the method to be invoked to release resources
          * @param injectee the target injectee has to release the resources
          */
-        public Disposable( Method disposeMethod, Object injectee )
-        {
+        public Disposable(final Method disposeMethod, final Object injectee) {
             this.disposeMethod = disposeMethod;
             this.injectee = injectee;
         }
 
         /**
-         * Disposes allocated resources by invoking the injectee method
-         * annotated by {@code Dispose}, tracking progresses in the
-         * input {@code DisposeHandler}.
+         * Disposes allocated resources by invoking the injectee method annotated by {@code
+         * Dispose}, tracking progresses in the input {@code DisposeHandler}.
          *
          * @param disposeHandler the handler to track dispose progresses.
          */
-        public void dispose( DisposeHandler disposeHandler )
-        {
-            try
-            {
-                disposeMethod.invoke( injectee );
-            }
-            catch ( IllegalArgumentException e )
-            {
-                disposeHandler.onError( injectee, e );
-            }
-            catch ( IllegalAccessException e )
-            {
-                disposeHandler.onError( injectee, e );
-            }
-            catch ( InvocationTargetException e )
-            {
-                disposeHandler.onError( injectee, e.getTargetException() );
+        public void dispose(final DisposeHandler disposeHandler) {
+            try {
+                disposeMethod.invoke(injectee);
+            } catch (final IllegalArgumentException | IllegalAccessException e) {
+                disposeHandler.onError(injectee, e);
+            } catch (final InvocationTargetException e) {
+                disposeHandler.onError(injectee, e.getTargetException());
             }
         }
 

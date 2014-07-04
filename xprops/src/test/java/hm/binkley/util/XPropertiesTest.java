@@ -36,11 +36,12 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public final class XPropertiesTest {
+    @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
     private static final String pathPrefix = "/" + XPropertiesTest.class.getPackage().getName()
             .replaceAll("\\.", "/");
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public final ExpectedException thrown = ExpectedException.none();
 
     private XProperties xprops;
 
@@ -183,7 +184,7 @@ public final class XPropertiesTest {
 
         xprops.setProperty("bar", "");
 
-        // Ignored but required to force type conversion
+        //noinspection UnusedDeclaration - required for type conversion
         final Integer ignored = xprops.getObject("bar");
     }
 

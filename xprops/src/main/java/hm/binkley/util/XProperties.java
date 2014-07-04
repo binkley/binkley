@@ -346,7 +346,7 @@ public class XProperties
         if (null == value)
             return key.fallback;
         try {
-            return XProperties.factoryFor(parts[0]).convert(value);
+            return factoryFor(parts[0]).convert(value);
         } catch (final Exception e) {
             final String[] x = colon.split(property, 2);
             throw new FailedConversionException(property, getProperty(x[1]), e.getCause());
@@ -486,7 +486,7 @@ public class XProperties
      * @param <E> the exception type on failed converstion, {@code RuntimeException} if none
      */
     @FunctionalInterface
-    public static interface Conversion<T, E extends Exception> {
+    public interface Conversion<T, E extends Exception> {
         /**
          * Converts the given property <var>value</var> into a typed object.
          *

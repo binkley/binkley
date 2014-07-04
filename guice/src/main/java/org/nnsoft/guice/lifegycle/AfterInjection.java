@@ -16,21 +16,20 @@ package org.nnsoft.guice.lifegycle;
  *  limitations under the License.
  */
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 /**
- * The {@code AfterInjection} annotation is used on a method that needs to be executed after dependency injection is
- * done to perform any initialization.
+ * The {@code AfterInjection} annotation is used on a method that needs to be executed after
+ * dependency injection is done to perform any initialization.
  */
 @Documented
-@Retention( RUNTIME )
-@Target( METHOD )
-public @interface AfterInjection
-{
+@Retention(RUNTIME)
+@Target(METHOD)
+public @interface AfterInjection {
 
 }

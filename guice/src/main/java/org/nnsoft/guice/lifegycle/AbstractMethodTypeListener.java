@@ -27,8 +27,7 @@ import java.lang.reflect.Method;
  * A Guice {@code TypeListener} to hear annotated methods with lifecycle annotations.
  */
 abstract class AbstractMethodTypeListener
-    implements TypeListener
-{
+        implements TypeListener {
 
     /**
      * The {@code java} package constants.
@@ -45,17 +44,15 @@ abstract class AbstractMethodTypeListener
      *
      * @param annotationType the lifecycle annotation to search on methods.
      */
-    public <A extends Annotation> AbstractMethodTypeListener( Class<A> annotationType )
-    {
+    public <A extends Annotation> AbstractMethodTypeListener(final Class<A> annotationType) {
         this.annotationType = annotationType;
     }
 
     /**
      * {@inheritDoc}
      */
-    public final <I> void hear( TypeLiteral<I> type, TypeEncounter<I> encounter )
-    {
-        hear( type.getRawType(), encounter );
+    public final <I> void hear(final TypeLiteral<I> type, final TypeEncounter<I> encounter) {
+        hear(type.getRawType(), encounter);
     }
 
     /**
@@ -64,34 +61,29 @@ abstract class AbstractMethodTypeListener
      * @param type encountered by Guice.
      * @param encounter the injection context.
      */
-    private <I> void hear( Class<? super I> type, TypeEncounter<I> encounter )
-    {
-        if ( type == null )
-        {
+    private <I> void hear(final Class<? super I> type, final TypeEncounter<I> encounter) {
+        if (null == type) {
             return;
         }
         // JDK proxies of public interfaces have no package
-        Package packaj = type.getPackage();
-        if ( packaj == null || packaj.getName().startsWith( JAVA_PACKAGE ) )
-        {
+        final Package packaj = type.getPackage();
+        if (null == packaj || packaj.getName().startsWith(JAVA_PACKAGE)) {
             return;
         }
 
-        for ( Method method : type.getDeclaredMethods() )
-        {
-            if ( method.isAnnotationPresent( annotationType ) )
-            {
-                if ( method.getParameterTypes().length != 0 )
-                {
-                    encounter.addError( "Annotated methods with @%s must not accept any argument, found %s",
-                                        annotationType.getName(), method );
+        for (final Method method : type.getDeclaredMethods()) {
+            if (method.isAnnotationPresent(annotationType)) {
+                if (0 != method.getParameterTypes().length) {
+                    encounter.addError(
+                            "Annotated methods with @%s must not accept any argument, found %s",
+                            annotationType.getName(), method);
                 }
 
-                hear( method, encounter );
+                hear(method, encounter);
             }
         }
 
-        hear( type.getSuperclass(), encounter );
+        hear(type.getSuperclass(), encounter);
     }
 
     /**
@@ -99,17 +91,17 @@ abstract class AbstractMethodTypeListener
      *
      * @return the lifecycle annotation to search on methods.
      */
-    protected final Class<? extends Annotation> getAnnotationType()
-    {
+    protected final Class<? extends Annotation> getAnnotationType() {
         return annotationType;
     }
 
     /**
-     * Allows implementations to define the behavior when lifecycle annotation is found on the method.
+     * Allows implementations to define the behavior when lifecycle annotation is found on the
+     * method.
      *
      * @param method encountered by this type handler.
      * @param encounter the injection context.
      */
-    protected abstract <I> void hear( Method method, TypeEncounter<I> encounter );
+    protected abstract <I> void hear(Method method, TypeEncounter<I> encounter);
 
 }

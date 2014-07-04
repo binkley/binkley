@@ -27,6 +27,8 @@ public final class LogMessage {
     private final String message;
     private final Object[] parameters;
 
+    // TODO: Should IntelliJ warn for varargs parameters?
+    @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
     @Inject
     public LogMessage(final ResourceBundle bundle, @Assisted final String key,
             @Assisted final Object... parameters) {

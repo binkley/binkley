@@ -37,9 +37,7 @@ public final class DemoMain
      * instantiate freely.
      */
     public DemoMain() {
-        super(DemoMainConfig.class, declarer -> {
-            declarer.accepts("debug");
-        });
+        super(DemoMainConfig.class, declarer -> declarer.accepts("debug"));
     }
 
     /**

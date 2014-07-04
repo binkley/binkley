@@ -16,20 +16,19 @@ package org.nnsoft.guice.lifegycle;
  *  limitations under the License.
  */
 
-import static com.google.inject.internal.util.$Preconditions.checkArgument;
-import static com.google.inject.matcher.Matchers.any;
+import com.google.inject.AbstractModule;
+import com.google.inject.matcher.Matcher;
 
 import java.lang.annotation.Annotation;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.matcher.Matcher;
+import static com.google.inject.internal.util.$Preconditions.checkArgument;
+import static com.google.inject.matcher.Matchers.any;
 
 /**
  * Abstract implementation of a module that requires an annotation type and a type matcher.
  */
 abstract class AbstractLifeCycleModule
-    extends AbstractModule
-{
+        extends AbstractModule {
 
     /**
      * The annotation type the scanner will look for in the types methods.
@@ -46,23 +45,21 @@ abstract class AbstractLifeCycleModule
      *
      * @param annotationType the lifecycle annotation to be searched.
      */
-    public <A extends Annotation> AbstractLifeCycleModule( Class<A> annotationType )
-    {
-        this( annotationType, any() );
+    public <A extends Annotation> AbstractLifeCycleModule(final Class<A> annotationType) {
+        this(annotationType, any());
     }
 
     /**
-     * Creates a new module which looks for the input lifecycle annotation on methods
-     * in types filtered by the input matcher.
+     * Creates a new module which looks for the input lifecycle annotation on methods in types
+     * filtered by the input matcher.
      *
      * @param annotationType the lifecycle annotation to be searched.
      * @param typeMatcher the filter for injectee types.
      */
-    public <A extends Annotation> AbstractLifeCycleModule( Class<A> annotationType,
-                                                           Matcher<Object> typeMatcher )
-    {
-        checkArgument( annotationType != null, "annotationType must be specified" );
-        checkArgument( typeMatcher != null, "typeMatcher must be specified" );
+    public <A extends Annotation> AbstractLifeCycleModule(final Class<A> annotationType,
+            final Matcher<Object> typeMatcher) {
+        checkArgument(null != annotationType, "annotationType must be specified");
+        checkArgument(null != typeMatcher, "typeMatcher must be specified");
         this.annotationType = annotationType;
         this.typeMatcher = typeMatcher;
     }
@@ -72,8 +69,7 @@ abstract class AbstractLifeCycleModule
      *
      * @return The annotation type the scanner will look for in the types methods.
      */
-    protected final Class<? extends Annotation> getAnnotationType()
-    {
+    protected final Class<? extends Annotation> getAnnotationType() {
         return annotationType;
     }
 
@@ -82,8 +78,7 @@ abstract class AbstractLifeCycleModule
      *
      * @return the type matcher to filter classes where looking for lifecycle annotations.
      */
-    protected final Matcher<Object> getTypeMatcher()
-    {
+    protected final Matcher<Object> getTypeMatcher() {
         return typeMatcher;
     }
 

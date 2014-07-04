@@ -16,69 +16,57 @@ package org.nnsoft.guice.lifegycle;
  *  limitations under the License.
  */
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-
 import com.google.inject.matcher.Matcher;
 import com.google.inject.spi.InjectionListener;
 import com.google.inject.spi.TypeEncounter;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 
 /**
  * Guice module to register methods to be invoked when {@link Disposer#dispose()} is invoked.
  */
 public final class DisposeModule
-    extends AbstractLifeCycleModule
-{
+        extends AbstractLifeCycleModule {
 
     /**
-     * Creates a new module which register methods annotated with {@link Dispose} on methods in any type.
+     * Creates a new module which register methods annotated with {@link Dispose} on methods in any
+     * type.
      */
-    public DisposeModule()
-    {
-        super( Dispose.class );
+    public DisposeModule() {
+        super(Dispose.class);
     }
 
     /**
-     * Creates a new module which register methods annotated with input annotation on methods
-     * in types filtered by the input matcher.
+     * Creates a new module which register methods annotated with input annotation on methods in
+     * types filtered by the input matcher.
      *
      * @param disposeAnnotationType the <i>Dispose</i> annotation to be searched.
      * @param typeMatcher the filter for injectee types.
      */
-    public <A extends Annotation> DisposeModule( Class<A> disposeAnnotationType,
-                                                 Matcher<Object> typeMatcher )
-    {
-        super( disposeAnnotationType, typeMatcher );
+    public <A extends Annotation> DisposeModule(final Class<A> disposeAnnotationType,
+            final Matcher<Object> typeMatcher) {
+        super(disposeAnnotationType, typeMatcher);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void configure()
-    {
+    protected void configure() {
         final Disposer disposer = new Disposer();
 
-        bind( Disposer.class ).toInstance( disposer );
+        bind(Disposer.class).toInstance(disposer);
 
-        bindListener( getTypeMatcher(), new AbstractMethodTypeListener( getAnnotationType() )
-        {
+        bindListener(getTypeMatcher(), new AbstractMethodTypeListener(getAnnotationType()) {
 
             @Override
-            protected <I> void hear( final Method disposeMethod, TypeEncounter<I> encounter )
-            {
-                encounter.register( new InjectionListener<I>()
-                {
-
-                    public void afterInjection( I injectee )
-                    {
-                        disposer.register( disposeMethod, injectee );
-                    }
-
-                } );
+            protected <I> void hear(final Method disposeMethod, final TypeEncounter<I> encounter) {
+                encounter.register((InjectionListener<I>) injectee -> disposer
+                        .register(disposeMethod, injectee));
             }
 
-        } );
+        });
     }
 
 }

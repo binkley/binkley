@@ -1,5 +1,7 @@
 package hm.binkley.util.value;
 
+import lombok.EqualsAndHashCode;
+
 import javax.annotation.Nonnull;
 import java.util.function.Function;
 
@@ -11,7 +13,7 @@ import static java.util.Objects.requireNonNull;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-//@EqualsAndHashCode
+@EqualsAndHashCode
 public abstract class Value<T, V extends Value<T, V>>
         implements Cloneable {
     @Nonnull
@@ -45,28 +47,5 @@ public abstract class Value<T, V extends Value<T, V>>
     @Override
     public final String toString() {
         return "<" + value + ">";
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final Value value1 = (Value) o;
-
-        if (!value.equals(value1.value)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
     }
 }
