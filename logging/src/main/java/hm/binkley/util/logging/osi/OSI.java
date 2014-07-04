@@ -72,39 +72,57 @@ public final class OSI {
     public enum SystemProperty {
         /**
          * Sets the logback configuration resource, rarely changed except for testing.  Default is
-         * "osi-logback.xml".  Although looked for on the classpath, Logback names this
-         * "configurationFile".
+         * "osi-logback.xml".
+         * <p>
+         * Note this is defined by logback.  Although looked for on the classpath, logback names
+         * this "configurationFile".
          *
          * @see #enable()
          */
         LOGBACK_CONFIGURATION_FILE("logback.configurationFile"),
         /**
          * As an alternative to setting system properties, put properties here.  Default is
-         * "osi-logback.properties" in the classpath root.  These cannot, however, override these
-         * system properties which are used before the properties resource is loaded:
-         * <ul><li>logback.configurationFile</li> <li>logback.propertiesResource</li>
-         * <li>logback.debug</li></ul>
+         * "osi-logback.properties" in the classpath root.
+         * <p>
+         * These cannot, however, override these system properties which are used before the
+         * properties resource is loaded: <ul><li>logback.configurationFile</li>
+         * <li>logback.propertiesResource</li> <li>logback.debug</li></ul>
          */
         LOGBACK_PROPERTIES_RESOURCE("logback.propertiesResource"),
         /**
          * Sets a custom style file for logging, rarely changed.  Default is
          * "osi-logback-style.properties".
+         *
+         * @see #LOGBACK_STYLES_RESOURCE
          */
         LOGBACK_STYLES_RESOURCE("logback.stylesResource"),
         /**
-         * Sets the default logging style.  See "osi-logback-styles.properties" for details. Default
-         * is "standard".
+         * Sets the default logging style. Default is "standard".
+         * <p>
+         * See {@code osi-logback-styles.properties} for help and details.
+         *
+         * @see #LOGBACK_STYLES_RESOURCE
          */
         LOGBACK_STYLE("logback.style"),
         /**
-         * Sets the file of additional included logging directives.  This is often changed (or one
-         * named "osi-logback-included.xml" is provided in the application class path) to control
-         * logging such as changing log levels.  Default is "osi-logback-included.xml".
+         * Sets the resource for additional included logging directives.  Default is
+         * "osi-logback-included.xml".
+         * <p>
+         * This is often changed (or one named {@code osi-logback-included.xml} is provided in the
+         * application class path) to control logging such as changing log levels.
+         *
+         * @see #LOGBACK_INCLUDED_RESOURCE
          */
         LOGBACK_INCLUDED_RESOURCE("logback.includedResource"),
         /** Enables JMX support for logback.  Default is "true". */
         LOGBACK_JMX("logback.jmx"),
-        /** Enables logback debugging.  Default is "false". */
+        /**
+         * Enables logback debugging.  Default is "false".
+         * <p>
+         * Enabling logback debugging sets {@code log.level} to "DEBUG".
+         *
+         * @see #LOG_LEVEL
+         */
         LOGBACK_DEBUG("logback.debug"),
         /**
          * Adjusts the general logging level when no more specific level is configured for a logger.
@@ -113,7 +131,13 @@ public final class OSI {
          * @see Level
          */
         LOG_LEVEL("log.level"),
-        /** Sets the root appender.  Default is "console". */
+        /**
+         * Sets the root appender.  Default is "console".
+         * <p>
+         * Use in combination with a custom appender defined in {@code osi-logback-included.xml}.
+         *
+         * @see #LOGBACK_INCLUDED_RESOURCE
+         */
         LOGBACK_ROOT_APPENDER("logback.rootAppender");
         private static final Map<SystemProperty, String> totem = new EnumMap<>(
                 SystemProperty.class);
