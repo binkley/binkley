@@ -59,6 +59,8 @@ public final class ITMatchConverter
 
     @Test
     public void shouldComplainWhenWrong() {
+        // This passes on command line and fails inside IDE - IDEs hijack System.out early in (see
+        // JUnitCore.runMain for details) before we can hijack it for capturing logging output
         previous = setProperty("logback.pattern", "%match");
         refreshLogback();
         getLogger("test").warn("Ignored.");
