@@ -39,6 +39,8 @@ public final class XPropertiesTest {
     @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
     private static final String pathPrefix = "/" + XPropertiesTest.class.getPackage().getName()
             .replaceAll("\\.", "/");
+    public static final Pattern firstPath = Pattern.compile("^(/[^/]+).*");
+    private static final Pattern lastPath = Pattern.compile("/[^/]+$");
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
@@ -190,7 +192,7 @@ public final class XPropertiesTest {
 
     @Test
     public void shouldRegister() {
-        XProperties.register("x", String::toString);
+        xprops.register("x", String::toString);
         xprops.setProperty("bar", "foo");
 
         assertThat(xprops.getObject("x:bar"), is(equalTo("foo")));
@@ -260,11 +262,11 @@ public final class XPropertiesTest {
     }
 
     private static String removeLastPathComponent(final String path) {
-        return path.replaceAll("/[^/]+$", "");
+        return lastPath.matcher(path).replaceAll("");
     }
 
     private static String firstPathComponent(final String path) {
-        final Matcher matcher = Pattern.compile("^(/[^/]+).*").matcher(path);
+        final Matcher matcher = firstPath.matcher(path);
         if (!matcher.find())
             fail();
         return matcher.group(1);
