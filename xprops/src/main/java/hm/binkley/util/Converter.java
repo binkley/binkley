@@ -65,7 +65,8 @@ import static java.util.Arrays.asList;
  * @todo Needs documentation.
  */
 public final class Converter {
-    private final Map<String, Conversion> factories = new ConcurrentHashMap<>();
+    private final Map<String, Conversion<?, ? extends Exception>> factories
+            = new ConcurrentHashMap<>();
 
     public Converter() {
         register("address", value -> {
@@ -139,16 +140,18 @@ public final class Converter {
             throw new DuplicateConversionException(prefix);
     }
 
-    public Object convert(@Nonnull final String key, @Nonnull final String value)
+    /** @todo Documentation */
+    @SuppressWarnings("unchecked")
+    public <T> T convert(@Nonnull final String key, @Nonnull final String value)
             throws Exception {
-        return factoryFor(key).convert(value);
+        return (T) factoryFor(key).convert(value);
     }
 
     @Nonnull
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "ReuseOfLocalVariable"})
     private <T, E extends Exception> Conversion<T, E> factoryFor(final String type) {
         // Look for alias first
-        Conversion<T, E> factory = factories.get(type);
+        Conversion<T, E> factory = (Conversion<T, E>) factories.get(type);
         if (null != factory)
             return factory;
         final Class<T> token = Converter.<T>tokenFor(type);

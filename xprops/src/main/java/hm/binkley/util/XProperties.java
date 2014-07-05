@@ -70,9 +70,10 @@ import static java.util.regex.Pattern.compile;
  * subdirectories of the classpath</td></tr> </table>
  *
  * @todo Implement defaults
- * @todo Using cache for conversions assumes constant properties; is this correct?
+ * @todo Converter assumes cacheable keys; is this correct?
  * @see PathMatchingResourcePatternResolver
  * @see StrSubstitutor
+ * @see Converter
  * @see #load(Reader) loading properties with inclusions
  * @see #load(InputStream) loading properties with inclusions
  * @see #getProperty(String) getting properties with substitution
@@ -129,7 +130,8 @@ public class XProperties
      * @todo Documentation
      * @see Converter#register(String, Conversion)
      */
-    public void register(@Nonnull final String prefix, @Nonnull final Conversion<?, ?> factory) {
+    public void register(@Nonnull final String prefix,
+            @Nonnull final Conversion<?, ? extends Exception> factory) {
         converter.register(prefix, factory);
     }
 
