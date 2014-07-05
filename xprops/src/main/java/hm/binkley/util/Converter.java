@@ -131,12 +131,12 @@ public final class Converter {
      * @param prefix the alias prefix, never missing
      * @param factory the factory, never missing
      *
-     * @throws DuplicatePropertyException if <var>prefix</var> is already registered
+     * @throws DuplicateConversionException if <var>prefix</var> is already registered
      */
     public void register(@Nonnull final String prefix, @Nonnull final Conversion<?, ?> factory)
-            throws DuplicatePropertyException {
+            throws DuplicateConversionException {
         if (null != factories.putIfAbsent(prefix, factory))
-            throw new DuplicatePropertyException(prefix);
+            throw new DuplicateConversionException(prefix);
     }
 
     public Object convert(@Nonnull final String key, @Nonnull final String value)
@@ -275,9 +275,9 @@ public final class Converter {
     }
 
     /** @todo Documentation */
-    public static class DuplicatePropertyException
+    public static class DuplicateConversionException
             extends IllegalArgumentException {
-        public DuplicatePropertyException(final String key) {
+        public DuplicateConversionException(final String key) {
             super(key);
         }
     }
