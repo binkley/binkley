@@ -77,6 +77,7 @@ public final class Converter {
         register("byte", Byte::valueOf);
         register("class", Class::forName);
         register("date", LocalDate::parse);
+        register("decimal", BigDecimal::new);
         register("double", Double::valueOf);
         register("duration", Duration::parse);
         register("file", File::new);
@@ -85,7 +86,6 @@ public final class Converter {
         register("int", Integer::valueOf);
         register("integer", BigInteger::new);
         register("long", Long::valueOf);
-        register("number", BigDecimal::new);
         register("path", Paths::get);
         register("period", Period::parse);
         register("regex", Pattern::compile);
@@ -112,13 +112,13 @@ public final class Converter {
      * java.net.InetSocketAddress}</td></tr> <tr><td>bundle</td> <td>{@code
      * java.util.ResourceBundle}</td></tr> <tr><td>byte</td> <td>{@code java.lang.Byte}</td></tr>
      * <tr><td>class</td> <td>java.lang.Class</td></tr> <tr><td>date</td> <td>{@code
-     * java.time.LocalDate}</td></tr> <tr><td>double</td> <td>{@code java.lang.Double}</td></tr>
-     * <tr><td>duration</td> <td>{@code java.time.Duration}</td></tr> <tr><td>file</td> <td>{@code
-     * java.io.File}</td></tr> <tr><td>float</td> <td>{@code java.lang.Float}</td></tr>
-     * <tr><td>inet</td> <td>{@code java.net.InetAddress}</td></tr> <tr><td>int</td> <td>{@code
-     * java.lang.Integer}</td></tr> <tr><td>integer</td> <td>{@code java.math.BigInteger}</td></tr>
-     * <tr><td>long</td> <td>{@code java.lang.Long}</td></tr> <tr><td>number</td> <td>{@code
-     * java.math.BigDecimal}</td></tr> <tr><td>path</td> <td>{@code java.nio.file.Path}</td></tr>
+     * java.time.LocalDate}</td></tr> <tr><td>decimal</td> <td>{@code java.math.BigDecimal}</td></tr>
+     * <tr><td>double</td> <td>{@code java.lang.Double}</td></tr> <tr><td>duration</td> <td>{@code
+     * java.time.Duration}</td></tr> <tr><td>file</td> <td>{@code java.io.File}</td></tr>
+     * <tr><td>float</td> <td>{@code java.lang.Float}</td></tr> <tr><td>inet</td> <td>{@code
+     * java.net.InetAddress}</td></tr> <tr><td>int</td> <td>{@code java.lang.Integer}</td></tr>
+     * <tr><td>integer</td> <td>{@code java.math.BigInteger}</td></tr> <tr><td>long</td> <td>{@code
+     * java.lang.Long}</td></tr> <tr><td>path</td> <td>{@code java.nio.file.Path}</td></tr>
      * <tr><td>period</td> <td>{@code java.time.Period}</td></tr> <tr><td>resource</td>
      * <tr><td>regex</td> <td>{@code java.util.regex.Pattern}</td></tr> <td>{@code
      * org.springframework.core.io.Resource}</td></tr> <tr><td>resource*</td> <td>{@code
@@ -143,7 +143,7 @@ public final class Converter {
     /** @todo Documentation */
     @SuppressWarnings("unchecked")
     public <T> T convert(@Nonnull final String key, @Nonnull final String value)
-            throws Exception {
+    throws Exception {
         return (T) factoryFor(key).convert(value);
     }
 
@@ -154,7 +154,7 @@ public final class Converter {
         Conversion<T, E> factory = (Conversion<T, E>) factories.get(type);
         if (null != factory)
             return factory;
-        final Class<T> token = Converter.<T>tokenFor(type);
+        final Class<T> token = tokenFor(type);
         // Try Type.valueOf
         factory = invokeValueOf(token);
         if (null != factory)

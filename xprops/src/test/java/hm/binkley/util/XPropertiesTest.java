@@ -224,7 +224,7 @@ public final class XPropertiesTest {
     public void shouldGetDecimal() {
         xprops.setProperty("bar", "3");
 
-        assertThat(xprops.getObject("number:bar"), is(equalTo(new BigDecimal("3"))));
+        assertThat(xprops.getObject("decimal:bar"), is(equalTo(new BigDecimal("3"))));
     }
 
     @Test
