@@ -33,14 +33,14 @@
         </dependency>
 
         <dependency>
-            <!-- Required by static initializtion of Spring core classes -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
+        </dependency>
+        <dependency>
+            <!-- Required by static initializtion of Spring core classes -->
+            <groupId>hm.binkley</groupId>
+            <artifactId>binkley-logging</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
