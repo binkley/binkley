@@ -78,7 +78,6 @@ import static java.util.Collections.unmodifiableSet;
  * @todo Remove duplication with xprop
  * @todo Discuss concurrency safety
  * @todo Do factory methods need to consider CharSequence?
- * @todo Pull out into separate module from binkley-xml
  * @see #register(Class, Conversion)
  * @see #register(TypeToken, Conversion)
  */
