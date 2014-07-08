@@ -67,6 +67,7 @@
         <module>guice</module>
         <module>spring</module>
         <module>mixin</module>
+        <module>util</module>
         <module>value-type</module>
         <module>xio</module>
         <module>xml</module>
@@ -164,6 +165,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-mixin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-util</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
