@@ -63,6 +63,7 @@ import static java.util.Arrays.asList;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
+ * @todo Replace with prefix->class mapping and use the other Converter
  */
 public final class Converter {
     private final Map<String, Conversion<?, ? extends Exception>> factories
