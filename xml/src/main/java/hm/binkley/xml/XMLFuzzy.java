@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
+ * @todo Replace run-time conversion with annotation processor to fix at compile time
  * @see <a href="http://xml.org/">XMLBeam</a>
  * @see <a href="http://en.wikipedia.org/wiki/Little_Fuzzy"><cite>Little Fuzzy</cite></a>
  */
