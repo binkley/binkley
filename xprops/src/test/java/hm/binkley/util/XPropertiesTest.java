@@ -31,7 +31,6 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -224,8 +223,7 @@ public final class XPropertiesTest {
     public void shouldGetDecimal() {
         xprops.setProperty("bar", "3");
 
-        assertThat(xprops.getObject("number:"
-                + "bar"), is(equalTo(new BigDecimal("3"))));
+        assertThat(xprops.getObject("decimal:bar"), is(equalTo(new BigDecimal("3"))));
     }
 
     @Test
@@ -234,7 +232,7 @@ public final class XPropertiesTest {
                 format("classpath*:%s/**/included*.properties", firstPathComponent(pathPrefix)));
         final List<Resource> resources = xprops.getObject("resource*:bar");
 
-        assertThat(resources, is(notNullValue()));
+        //noinspection ConstantConditions
         assertThat(resources.size(), is(equalTo(2)));
         assertThat(resources.get(0).getFilename(), endsWith("included.properties"));
         assertThat(resources.get(1).getFilename(), endsWith("included2.properties"));
@@ -245,7 +243,7 @@ public final class XPropertiesTest {
         xprops.setProperty("bar", "[2001:db8::1]:80");
 
         final InetSocketAddress address = xprops.getObject("address:bar");
-        assertThat(address, is(notNullValue()));
+        //noinspection ConstantConditions
         assertThat(address.getHostString(), is(equalTo("2001:db8::1")));
         assertThat(address.getPort(), is(equalTo(80)));
     }

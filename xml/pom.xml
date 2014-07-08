@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ This is free and unencumbered software released into the public domain.
+  ~
+  ~ Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
+  -->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>hm.binkley</groupId>
+        <artifactId>binkley-blog</artifactId>
+        <version>0.3-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>binkley-xml</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
+        <!-- Blame Spring -->
+        <dependency>
+            <groupId>hm.binkley</groupId>
+            <artifactId>binkley-logging</artifactId>
+        </dependency>
+    </dependencies>
+</project>
