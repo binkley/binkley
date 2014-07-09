@@ -47,7 +47,6 @@ import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -82,7 +81,7 @@ import static javax.tools.StandardLocation.CLASS_PATH;
 @NotThreadSafe
 public class FuzzyProcessor
         extends AbstractProcessor {
-    private static final XPath xpath = XPathFactory.newInstance().newXPath();
+    private static final XPathFactory xpathFactory = XPathFactory.newInstance();
     private static final Map<String, XPathExpression> expressions = new HashMap<>();
 
     /**
@@ -91,19 +90,18 @@ public class FuzzyProcessor
      *
      * @param node the document node, never missing
      * @param expression the xpath expression, never missing
-     *
      * @return the evaluation result
      *
      * @throws XPathExpressionException
-     * @todo Is the return nullable?
      * @todo Thread safety
      */
+    @Nonnull
     public static String evaluate(@Nonnull final Node node, @Nonnull final String expression)
             throws XPathExpressionException {
         try {
             return expressions.computeIfAbsent(expression, expr -> {
                 try {
-                    return xpath.compile(expr);
+                    return xpathFactory.newXPath().compile(expr);
                 } catch (final XPathExpressionException e) {
                     throw new Passing(e);
                 }

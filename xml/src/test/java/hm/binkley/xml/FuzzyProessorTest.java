@@ -27,30 +27,41 @@
 
 package hm.binkley.xml;
 
-import java.math.BigDecimal;
-import java.net.URI;
-import java.time.Instant;
+import org.intellij.lang.annotations.Language;
+import org.junit.Before;
+import org.junit.Test;
+import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
- * {@code WasHe} <b>needs documentation</b>.
+ * {@code FuzzyTest} tests {@link FuzzyProcessor}
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-@Fuzzy
-public interface WasHe {
-    @Fuzzy.Field("//wasHe/needsNoConversion/text()")
-    String needsNoConversion();
+public class FuzzyProessorTest {
+    @Language("XML")
+    public static final String WAS_HE
+            = "<wasHe><needsNoConversion>abc</needsNoConversion><isAPrimitive>3</isAPrimitive><usesParse>1970-01-01T00:00:00Z</usesParse><usesConstructor>1.234</usesConstructor><throwsAnException>not:a-uri</throwsAnException></wasHe>";
+    private WasHe wasHe;
 
-    @Fuzzy.Field("//wasHe/isAPrimitive/text()")
-    int isAPrimitive();
+    @Before
+    public void setUp()
+            throws Exception {
+        final InputSource source = new InputSource(new StringReader(WAS_HE));
+        source.setEncoding("UTF-8");
+        wasHe = WasHeFactory
+                .of(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(source));
+    }
 
-    @Fuzzy.Field("//wasHe/usesParse/text()")
-    Instant usesParse();
-
-    @Fuzzy.Field("//wasHe/usesConstructor/text()")
-    BigDecimal usesConstructor();
-
-    @Fuzzy.Field("//wasHe/throwsAnException/text()")
-    URI throwsAnException();
+    @Test
+    public void shouldHandleNeedsNoConversion() {
+        assertThat(wasHe.needsNoConversion(), is(equalTo("abc")));
+    }
 }
