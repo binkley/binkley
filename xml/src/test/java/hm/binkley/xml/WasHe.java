@@ -27,6 +27,7 @@
 
 package hm.binkley.xml;
 
+import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
@@ -51,6 +52,10 @@ public interface WasHe {
     @Fuzzy.Field("//wasHe/usesConstructor/text()")
     BigDecimal usesConstructor();
 
+    @Fuzzy.Field("//wasHe/nullOk/text()")
+    String nullOk();
+
     @Fuzzy.Field("//wasHe/throwsAnException/text()")
+    @Nonnull
     URI throwsAnException();
 }

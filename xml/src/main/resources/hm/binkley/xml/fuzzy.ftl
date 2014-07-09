@@ -13,10 +13,16 @@ public final class ${simpleName}Factory
     private ${simpleName}Factory(final org.w3c.dom.Node node) throws java.lang.Exception {
 <#list methods as method>
         try {
+            final String $value = hm.binkley.xml.FuzzyProcessor.evaluate(node, "${method.xpath}");
+<#if method.nullable>
+            if ("".equals($value))
+                this.${method.simpleName} = null;
+            else
+</#if>
 <#if "java.lang.String" == method.returnType>
-            this.${method.simpleName} = hm.binkley.xml.FuzzyProcessor.evaluate(node, "${method.xpath}");
+                this.${method.simpleName} = $value;
 <#else>
-            this.${method.simpleName} = ${method.converter}(hm.binkley.xml.FuzzyProcessor.evaluate(node, "${method.xpath}"));
+                this.${method.simpleName} = ${method.converter}($value);
 </#if>
         } catch (final java.lang.Exception $e) {
             $e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s", "${simpleName}::${method.simpleName}", "${method.xpath}")));
@@ -27,6 +33,10 @@ public final class ${simpleName}Factory
     }
 
 <#list methods as method>
-    @Override public ${method.returnType} ${method.simpleName}() { return ${method.simpleName}; }
+<#if !method.nullable>
+    @javax.annotation.Nonnull
+</#if>
+    @Override
+    public ${method.returnType} ${method.simpleName}() { return ${method.simpleName}; }
 </#list>
 }

@@ -30,23 +30,25 @@ package hm.binkley.xml;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import hm.binkley.xml.Fuzzy.Field;
+import org.intellij.lang.annotations.Language;
 import org.kohsuke.MetaInfServices;
 import org.w3c.dom.Node;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Filer;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -90,13 +92,15 @@ public class FuzzyProcessor
      *
      * @param node the document node, never missing
      * @param expression the xpath expression, never missing
+     *
      * @return the evaluation result
      *
      * @throws XPathExpressionException
      * @todo Thread safety
      */
     @Nonnull
-    public static String evaluate(@Nonnull final Node node, @Nonnull final String expression)
+    public static String evaluate(@Nonnull final Node node,
+            @Nonnull @Language("XPath") final String expression)
             throws XPathExpressionException {
         try {
             return expressions.computeIfAbsent(expression, expr -> {
@@ -121,11 +125,12 @@ public class FuzzyProcessor
     @Override
     public boolean process(final Set<? extends TypeElement> annotations,
             final RoundEnvironment roundEnv) {
+        final Filer filer = processingEnv.getFiler();
         final Configuration configuration = new Configuration();
         try {
-            configuration.setDirectoryForTemplateLoading(new File(processingEnv.getFiler()
-                    .getResource(CLASS_PATH, getClass().getPackage().getName(), "fuzzy.ftl")
-                    .toUri()).getParentFile());
+            configuration.setDirectoryForTemplateLoading(new File(
+                    filer.getResource(CLASS_PATH, getClass().getPackage().getName(), "fuzzy.ftl")
+                            .toUri()).getParentFile());
         } catch (final IOException e) {
             processingEnv.getMessager().printMessage(ERROR, e.toString());
             return false;
@@ -135,7 +140,7 @@ public class FuzzyProcessor
             try {
                 final PackageElement packaj = processingEnv.getElementUtils().getPackageOf(element);
                 final Name simpleName = element.getSimpleName();
-                try (final Writer out = processingEnv.getFiler()
+                try (final Writer out = filer
                         .createSourceFile(packaj + "." + simpleName + "Factory", element)
                         .openWriter()) {
                     final Map<String, Object> model = new HashMap<>();
@@ -159,6 +164,9 @@ public class FuzzyProcessor
                         methodModel.put("xpath", methodElement.getAnnotation(Field.class).value());
                         // TODO: Borrow from Converter to work out correct conversion method
                         methodModel.put("converter", converterFor(methodElement, returnType));
+                        methodModel.put("nullable",
+                                0 == methodElement.getAnnotationsByType(Nonnull.class).length
+                                        && !returnType.getKind().isPrimitive());
 
                         methodModels.add(methodModel);
                     });
@@ -167,17 +175,18 @@ public class FuzzyProcessor
                     configuration.getTemplate("fuzzy.ftl").process(model, out);
                 }
             } catch (final IOException | TemplateException e) {
-                processingEnv.getMessager().printMessage(ERROR, e.toString(), element);
+                printError(element, e.toString());
                 return false;
             }
         }
         return true;
     }
 
-    private String converterFor(final ExecutableElement methodElement, final TypeMirror returnType) {
+    private String converterFor(final ExecutableElement methodElement,
+            final TypeMirror returnType) {
         try {
-            return processingEnv.getTypeUtils()
-                    .boxedClass(processingEnv.getTypeUtils().getPrimitiveType(returnType.getKind()))
+            final Types typeUtils = processingEnv.getTypeUtils();
+            return typeUtils.boxedClass(typeUtils.getPrimitiveType(returnType.getKind()))
                     + ".valueOf";
         } catch (final IllegalArgumentException e) {
             // Not primitive
@@ -198,14 +207,14 @@ public class FuzzyProcessor
                 } catch (final NoSuchMethodException ignored) {
                 }
         } catch (final ClassNotFoundException x) {
-            processingEnv.getMessager().printMessage(ERROR, x.toString(), methodElement,
-                    (AnnotationMirror) processingEnv.getElementUtils()
-                            .getTypeElement(Field.class.getName()).asType());
+            printError(methodElement, x.toString());
         }
-        processingEnv.getMessager()
-                .printMessage(ERROR, format("No converter for '%s'", returnType), methodElement,
-                        (AnnotationMirror) processingEnv.getElementUtils()
-                                .getTypeElement(Field.class.getName()).asType());
+        printError(methodElement, "No converter for '%s'", returnType);
         return null;
+    }
+
+    private void printError(final Element element, final String format, final Object... args) {
+        processingEnv.getMessager()
+                .printMessage(ERROR, 0 == args.length ? format : format(format, args), element);
     }
 }

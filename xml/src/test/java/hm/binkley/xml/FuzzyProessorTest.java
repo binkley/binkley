@@ -37,6 +37,7 @@ import java.io.StringReader;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -63,5 +64,10 @@ public class FuzzyProessorTest {
     @Test
     public void shouldHandleNeedsNoConversion() {
         assertThat(wasHe.needsNoConversion(), is(equalTo("abc")));
+    }
+
+    @Test
+    public void shouldHandleNullOk() {
+        assertThat(wasHe.nullOk(), is(nullValue()));
     }
 }
