@@ -41,6 +41,8 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
+ * @see <a href="http://xml.org/">XMLBeam</a>
+ * @see <a href="http://en.wikipedia.org/wiki/Little_Fuzzy"><cite>Little Fuzzy</cite></a>
  */
 @Documented
 @Inherited
@@ -52,7 +54,6 @@ public @interface Fuzzy {
     @Retention(SOURCE)
     @Target(METHOD)
     @interface Field {
-        @Language("XPath")
-        String value();
+        @Language("XPath") String value();
     }
 }

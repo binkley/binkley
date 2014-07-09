@@ -82,7 +82,7 @@ public final class XMLFuzzy
     public static final class MissingAnnotation
             extends RuntimeException {
         private MissingAnnotation(final Method method) {
-            super(format("Missing @X(xpath) annotation: %s", method));
+            super(format("Missing @XMLFuzzy(xpath) annotation: %s", method));
         }
     }
 
@@ -90,7 +90,7 @@ public final class XMLFuzzy
             extends RuntimeException {
         private BadXPath(final Method method, final String expression,
                 final XPathExpressionException e) {
-            super(format("Bad @X(xpath) annotation on '%s': %s: %s", method, expression,
+            super(format("Bad @XMLFuzzy(xpath) annotation on '%s': %s: %s", method, expression,
                     e.getMessage()));
             setStackTrace(e.getStackTrace());
         }
