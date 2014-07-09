@@ -28,6 +28,8 @@
 package hm.binkley.xml;
 
 import java.math.BigDecimal;
+import java.net.URI;
+import java.time.Instant;
 
 /**
  * {@code WasHe} <b>needs documentation</b>.
@@ -37,12 +39,18 @@ import java.math.BigDecimal;
  */
 @Fuzzy
 public interface WasHe {
-    @Fuzzy.Field("//some/path")
-    int bob();
-
     @Fuzzy.Field("//other/way")
-    String carrol();
+    String needsNoConversion();
+
+    @Fuzzy.Field("//some/path")
+    int isAPrimitive();
+
+    @Fuzzy.Field("irrelevant")
+    Instant usesParse();
 
     @Fuzzy.Field("//shall/not/pass")
-    BigDecimal sally();
+    BigDecimal usesConstructor();
+
+    @Fuzzy.Field("ignored")
+    URI throwsAnException();
 }

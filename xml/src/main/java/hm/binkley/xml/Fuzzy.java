@@ -25,6 +25,8 @@ package hm.binkley.xml;/*
  * For more information, please refer to <http://unlicense.org/>.
  */
 
+import org.intellij.lang.annotations.Language;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -50,7 +52,7 @@ public @interface Fuzzy {
     @Retention(SOURCE)
     @Target(METHOD)
     @interface Field {
-        /** XPath */
+        @Language("XPath")
         String value();
     }
 }

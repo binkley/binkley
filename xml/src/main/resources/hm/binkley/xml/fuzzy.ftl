@@ -6,11 +6,11 @@ public final class ${simpleName}Factory
     private final ${method.returnType} ${method.simpleName};
 </#list>
 
-    public static ${simpleName} of(@javax.annotation.Nonnull final org.w3c.dom.Node node) throws javax.xml.xpath.XPathExpressionException {
+    public static ${simpleName} of(@javax.annotation.Nonnull final org.w3c.dom.Node node) throws java.lang.Exception {
         return new ${simpleName}Factory(node);
     }
 
-    private ${simpleName}Factory(final org.w3c.dom.Node node) throws javax.xml.xpath.XPathExpressionException {
+    private ${simpleName}Factory(final org.w3c.dom.Node node) throws java.lang.Exception {
 <#list methods as method>
 <#if "java.lang.String" == method.returnType>
         this.${method.simpleName} = hm.binkley.xml.FuzzyProcessor.evaluate(node, "${method.xpath}");
