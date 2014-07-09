@@ -241,28 +241,23 @@ public final class Converter {
         return value -> {
             try {
                 return (T) handle.invoke(value);
+            } catch(final Error | RuntimeException e) {
+                throw e;
             } catch (final Throwable t) {
-                if (t instanceof Error)
-                    throw (Error) t;
-                if (t instanceof RuntimeException)
-                    throw (RuntimeException) t;
                 throw (E) t;
             }
         };
     }
 
-    private static <T, E extends Exception> Conversion<T, E> valueOf(final TypeToken<T> type)
-            throws NoSuchMethodError {
+    private static <T, E extends Exception> Conversion<T, E> valueOf(final TypeToken<T> type) {
         return method(type, "valueOf");
     }
 
-    private static <T, E extends Exception> Conversion<T, E> of(final TypeToken<T> type)
-            throws NoSuchMethodError {
+    private static <T, E extends Exception> Conversion<T, E> of(final TypeToken<T> type) {
         return method(type, "of");
     }
 
-    private static <T, E extends Exception> Conversion<T, E> ctor(final TypeToken<T> type)
-            throws NoSuchMethodError {
+    private static <T, E extends Exception> Conversion<T, E> ctor(final TypeToken<T> type) {
         final Class<?> raw = type.getRawType();
         // TODO: Parameter type must match exactly
         try {

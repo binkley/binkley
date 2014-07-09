@@ -21,7 +21,19 @@
     <dependencies>
         <dependency>
             <groupId>hm.binkley</groupId>
+            <artifactId>binkley-logging</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>hm.binkley</groupId>
             <artifactId>binkley-util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kohsuke.metainf-services</groupId>
+            <artifactId>metainf-services</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
         </dependency>
     </dependencies>
 </project>
