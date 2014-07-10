@@ -1,4 +1,4 @@
-package hm.binkley.xml;
+package hm.binkley.xml.reflect;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
