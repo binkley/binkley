@@ -33,13 +33,16 @@ import java.net.URI;
 import java.time.Instant;
 
 /**
- * {@code WasHe} <b>needs documentation</b>.
+ * {@code WasHe} is a sample interface for {@link XMLFuzzyProcessor}.
+ * <p>
+ * This is a second line.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
 @XMLFuzzy
 public interface WasHe {
+    /** Some javadoc, example. */
     @XMLFuzzy.Field("//wasHe/needsNoConversion/text()")
     String needsNoConversion();
 

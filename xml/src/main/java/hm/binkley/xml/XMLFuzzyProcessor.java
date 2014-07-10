@@ -55,6 +55,7 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -144,6 +145,8 @@ public class XMLFuzzyProcessor
                         .createSourceFile(packaj + "." + simpleName + "Factory", element)
                         .openWriter()) {
                     final Map<String, Object> model = new HashMap<>();
+                    model.put("generator", XMLFuzzyProcessor.class.getName());
+                    model.put("date", Instant.now());
                     model.put("package", packaj);
                     model.put("simpleName", simpleName);
                     //noinspection unchecked

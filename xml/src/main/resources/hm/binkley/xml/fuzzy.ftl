@@ -1,11 +1,20 @@
 package ${package};
 
+/** {@code ${simpleName}Factory creates new instances of {@code ${simpleName}}. */
+@javax.annotation.Generated(value="${generator}", date="${date}")
 public final class ${simpleName}Factory
         implements ${simpleName} {
 <#list methods as method>
     private final ${method.returnType} ${method.simpleName};
 </#list>
 
+    /**
+     * Creates a new {@code ${simpleName} for the given XML <var>node</var>.
+     *
+     * @param node the XML node, never missing
+     *
+     * @return the new {@code ${simpleName}, never missing
+     */
     public static ${simpleName} of(@javax.annotation.Nonnull final org.w3c.dom.Node node) throws java.lang.Exception {
         return new ${simpleName}Factory(node);
     }
