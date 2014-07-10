@@ -1,8 +1,8 @@
 package ${package};
 
 /**
- * {@code ${simpleName}Factory creates new instances of the {@code ${simpleName}} interface.
- *
+ * {@code ${simpleName}Factory} creates new instances of the {@code ${simpleName}} interface.
+ * <p>
  * Instance creation extracts and converts values from an XML node, saving the typed results to
  * {@code final} fields.  Implemnted methods return the field values.  The instances are
  * immutable.
