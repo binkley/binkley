@@ -14,16 +14,16 @@ public final class ${simpleName}Factory
 <#list methods as method>
         try {
             final String $value = hm.binkley.xml.XMLFuzzyProcessor.evaluate(node, "${method.xpath}");
-<#if method.nullable>
+    <#if method.nullable>
             if ("".equals($value))
                 this.${method.simpleName} = null;
             else
-</#if>
-<#if "java.lang.String" == method.returnType>
+    </#if>
+    <#if "java.lang.String" == method.returnType>
                 this.${method.simpleName} = $value;
-<#else>
+    <#else>
                 this.${method.simpleName} = ${method.converter}($value);
-</#if>
+    </#if>
         } catch (final java.lang.Exception $e) {
             $e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s", "${simpleName}::${method.simpleName}", "${method.xpath}")));
             <#--$e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s: %s", "${simpleName}::${method.simpleName}", "${method.xpath}", node.getTextContent())));-->
@@ -31,11 +31,11 @@ public final class ${simpleName}Factory
         }
 </#list>
     }
-
 <#list methods as method>
-<#if !method.nullable>
+
+    <#if !method.nullable>
     @javax.annotation.Nonnull
-</#if>
+    </#if>
     @Override
     public ${method.returnType} ${method.simpleName}() { return ${method.simpleName}; }
 </#list>

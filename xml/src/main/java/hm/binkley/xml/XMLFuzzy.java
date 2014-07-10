@@ -37,10 +37,126 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
- * {@code Fuzzy} <b>needs documentation</b>.
+ * {@code XMLFuzzy} marks an interface for code generation by {@link XMLFuzzyProcessor}.  Given an
+ * interface named {@code Foo} annotated with {@code XMLFuzzy} and methods marked with {@link
+ * Field}, the result is a class named {@code FooFactory} with an {@code of(org.w3c.dom.Document)}
+ * static factory method which maps XPaths into the document onto return values for the methods.
+ * <p>
+ * Example: <pre>&#64;XMLFuzzy
+ * public interface WasHe {
+ *     &#64;XMLFuzzy.Field("//wasHe/needsNoConversion/text()")
+ *     String needsNoConversion();
+ *
+ *     &#64;XMLFuzzy.Field("//wasHe/isAPrimitive/text()")
+ *     int isAPrimitive();
+ *
+ *     &#64;XMLFuzzy.Field("//wasHe/usesParse/text()")
+ *     Instant usesParse();
+ *
+ *     &#64;XMLFuzzy.Field("//wasHe/usesConstructor/text()")
+ *     BigDecimal usesConstructor();
+ *
+ *     &#64;XMLFuzzy.Field("//wasHe/nullOk/text()")
+ *     String nullOk();
+ *
+ *     &#64;XMLFuzzy.Field("//wasHe/throwsAnException/text()")
+ *     &#64;Nonnull
+ *     URI throwsAnException();
+ * }</pre> then {&#64;code XMLFuzzyProcessor} generates this class: <pre>public final class WasHeFactory
+ *         implements WasHe {
+ *     private final java.lang.String needsNoConversion;
+ *     private final int isAPrimitive;
+ *     private final java.time.Instant usesParse;
+ *     private final java.math.BigDecimal usesConstructor;
+ *     private final java.lang.String nullOk;
+ *     private final java.net.URI throwsAnException;
+ *
+ *     public static WasHe of(&#64;javax.annotation.Nonnull final org.w3c.dom.Node node) throws java.lang.Exception {
+ *         return new WasHeFactory(node);
+ *     }
+ *
+ *     private WasHeFactory(final org.w3c.dom.Node node) throws java.lang.Exception {
+ *         try {
+ *             final String $value = hm.binkley.xml.XMLFuzzyProcessor.evaluate(node, "//wasHe/needsNoConversion/text()");
+ *             if ("".equals($value))
+ *                 this.needsNoConversion = null;
+ *             else
+ *                 this.needsNoConversion = $value;
+ *         } catch (final java.lang.Exception $e) {
+ *             $e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s", "WasHe::needsNoConversion", "//wasHe/needsNoConversion/text()")));
+ *             throw $e;
+ *         }
+ *         try {
+ *             final String $value = hm.binkley.xml.XMLFuzzyProcessor.evaluate(node, "//wasHe/isAPrimitive/text()");
+ *             this.isAPrimitive = java.lang.Integer.valueOf($value);
+ *         } catch (final java.lang.Exception $e) {
+ *             $e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s", "WasHe::isAPrimitive", "//wasHe/isAPrimitive/text()")));
+ *             throw $e;
+ *         }
+ *         try {
+ *             final String $value = hm.binkley.xml.XMLFuzzyProcessor.evaluate(node, "//wasHe/usesParse/text()");
+ *             if ("".equals($value))
+ *                 this.usesParse = null;
+ *             else
+ *                 this.usesParse = java.time.Instant.parse($value);
+ *         } catch (final java.lang.Exception $e) {
+ *             $e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s", "WasHe::usesParse", "//wasHe/usesParse/text()")));
+ *             throw $e;
+ *         }
+ *         try {
+ *             final String $value = hm.binkley.xml.XMLFuzzyProcessor.evaluate(node, "//wasHe/usesConstructor/text()");
+ *             if ("".equals($value))
+ *                 this.usesConstructor = null;
+ *             else
+ *                 this.usesConstructor = new java.math.BigDecimal($value);
+ *         } catch (final java.lang.Exception $e) {
+ *             $e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s", "WasHe::usesConstructor", "//wasHe/usesConstructor/text()")));
+ *             throw $e;
+ *         }
+ *         try {
+ *             final String $value = hm.binkley.xml.XMLFuzzyProcessor.evaluate(node, "//wasHe/nullOk/text()");
+ *             if ("".equals($value))
+ *                 this.nullOk = null;
+ *             else
+ *                 this.nullOk = $value;
+ *         } catch (final java.lang.Exception $e) {
+ *             $e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s", "WasHe::nullOk", "//wasHe/nullOk/text()")));
+ *             throw $e;
+ *         }
+ *         try {
+ *             final String $value = hm.binkley.xml.XMLFuzzyProcessor.evaluate(node, "//wasHe/throwsAnException/text()");
+ *             this.throwsAnException = new java.net.URI($value);
+ *         } catch (final java.lang.Exception $e) {
+ *             $e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s", "WasHe::throwsAnException", "//wasHe/throwsAnException/text()")));
+ *             throw $e;
+ *         }
+ *     }
+ *
+ *     &#64;Override
+ *     public java.lang.String needsNoConversion() { return needsNoConversion; }
+ *
+ *     &#64;javax.annotation.Nonnull
+ *     &#64;Override
+ *     public int isAPrimitive() { return isAPrimitive; }
+ *
+ *     &#64;Override
+ *     public java.time.Instant usesParse() { return usesParse; }
+ *
+ *     &#64;Override
+ *     public java.math.BigDecimal usesConstructor() { return usesConstructor; }
+ *
+ *     &#64;Override
+ *     public java.lang.String nullOk() { return nullOk; }
+ *
+ *     &#64;javax.annotation.Nonnull
+ *     &#64;Override
+ *     public java.net.URI throwsAnException() { return throwsAnException; }
+ * }</pre>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
+ * @see XMLFuzzyProcessor
+ * @see Field
  * @see <a href="http://xml.org/">XMLBeam</a>
  * @see <a href="http://en.wikipedia.org/wiki/Little_Fuzzy"><cite>Little Fuzzy</cite></a>
  */
