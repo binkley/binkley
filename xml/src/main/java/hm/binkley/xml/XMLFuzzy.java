@@ -27,6 +27,7 @@ package hm.binkley.xml;/*
 
 import org.intellij.lang.annotations.Language;
 
+import javax.annotation.Nonnull;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -165,6 +166,14 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 @Retention(SOURCE)
 @Target(TYPE)
 public @interface XMLFuzzy {
+    /**
+     * Marks interface methods with XPath expressions to extract method values from an XML
+     * node.Assigns missing values {@code null} unless marked with {@link Nonnull} in which case
+     * they throw {@code NullPointerException}.
+     * <p>
+     * Primitive return values are always treated as if marked with {@code
+     * javax.annotation.Nonnull}.  Void returns cause compilation errors.
+     */
     @Documented
     @Inherited
     @Retention(SOURCE)

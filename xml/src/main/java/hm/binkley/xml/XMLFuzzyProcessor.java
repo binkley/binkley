@@ -66,6 +66,7 @@ import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.asList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
+import static javax.lang.model.type.TypeKind.VOID;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.StandardLocation.CLASS_PATH;
 
@@ -154,15 +155,18 @@ public class XMLFuzzyProcessor
                             .getElementsAnnotatedWith(Field.class);
                     final List<Map<String, Object>> methodModels = new ArrayList<>(
                             methodElements.size());
-                    methodElements.forEach(methodElement -> {
+                    for (final ExecutableElement methodElement : methodElements) {
                         if (!methodElement.getEnclosingElement().equals(element))
-                            return;
+                            continue;
                         if (!methodElement.getParameters().isEmpty())
-                            throw new UnsupportedOperationException(
-                                    "Too many parameters on @Fuzzy.Field method: " + methodElement);
+                            printError(methodElement,
+                                    "No parameters supported on @XMLFuzzy.Field method");
                         final Map<String, Object> methodModel = new HashMap<>();
                         methodModel.put("simpleName", methodElement.getSimpleName());
                         final TypeMirror returnType = methodElement.getReturnType();
+                        if (VOID == returnType.getKind())
+                            printError(methodElement,
+                                    "Void return unsupported on @XMLFuzzy.Field method");
                         methodModel.put("returnType", returnType);
                         methodModel.put("xpath", methodElement.getAnnotation(Field.class).value());
                         // TODO: Borrow from Converter to work out correct conversion method
@@ -172,7 +176,7 @@ public class XMLFuzzyProcessor
                                         && !returnType.getKind().isPrimitive());
 
                         methodModels.add(methodModel);
-                    });
+                    }
                     model.put("methods", methodModels);
 
                     configuration.getTemplate("fuzzy.ftl").process(model, out);

@@ -1,6 +1,12 @@
 package ${package};
 
-/** {@code ${simpleName}Factory creates new instances of {@code ${simpleName}}. */
+/**
+ * {@code ${simpleName}Factory creates new instances of the {@code ${simpleName}} interface.
+ *
+ * Instance creation extracts and converts values from an XML node, saving the typed results to
+ * {@code final} fields.  Implemnted methods return the field values.  The instances are
+ * immutable.
+ */
 @javax.annotation.Generated(value="${generator}", date="${date}")
 public final class ${simpleName}Factory
         implements ${simpleName} {
@@ -10,10 +16,14 @@ public final class ${simpleName}Factory
 
     /**
      * Creates a new {@code ${simpleName} for the given XML <var>node</var>.
+     * <p>
+     * If XML parsing or field conversion fails, attaches a suppressed exception describing the
+     * field and XPath.
      *
      * @param node the XML node, never missing
      *
      * @return the new {@code ${simpleName}, never missing
+     * @throws java.lang.Exception if XML parsing or field conversion fails
      */
     public static ${simpleName} of(@javax.annotation.Nonnull final org.w3c.dom.Node node) throws java.lang.Exception {
         return new ${simpleName}Factory(node);
@@ -23,11 +33,13 @@ public final class ${simpleName}Factory
 <#list methods as method>
         try {
             final String $value = hm.binkley.xml.XMLFuzzyProcessor.evaluate(node, "${method.xpath}");
-    <#if method.nullable>
             if ("".equals($value))
+    <#if method.nullable>
                 this.${method.simpleName} = null;
-            else
+    <#else>
+                throw new java.lang.NullPointerException();
     </#if>
+            else
     <#if "java.lang.String" == method.returnType>
                 this.${method.simpleName} = $value;
     <#else>
@@ -35,7 +47,6 @@ public final class ${simpleName}Factory
     </#if>
         } catch (final java.lang.Exception $e) {
             $e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s", "${simpleName}::${method.simpleName}", "${method.xpath}")));
-            <#--$e.addSuppressed(new java.lang.Exception(java.lang.String.format("%s: %s: %s", "${simpleName}::${method.simpleName}", "${method.xpath}", node.getTextContent())));-->
             throw $e;
         }
 </#list>

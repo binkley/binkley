@@ -58,7 +58,7 @@ public interface WasHe {
     @XMLFuzzy.Field("//wasHe/nullOk/text()")
     String nullOk();
 
-    @XMLFuzzy.Field("//wasHe/throwsAnException/text()")
     @Nonnull
+    @XMLFuzzy.Field("//wasHe/throwsAnException/text()")
     URI throwsAnException();
 }
