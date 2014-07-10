@@ -38,24 +38,24 @@ import java.time.Instant;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-@Fuzzy
+@XMLFuzzy
 public interface WasHe {
-    @Fuzzy.Field("//wasHe/needsNoConversion/text()")
+    @XMLFuzzy.Field("//wasHe/needsNoConversion/text()")
     String needsNoConversion();
 
-    @Fuzzy.Field("//wasHe/isAPrimitive/text()")
+    @XMLFuzzy.Field("//wasHe/isAPrimitive/text()")
     int isAPrimitive();
 
-    @Fuzzy.Field("//wasHe/usesParse/text()")
+    @XMLFuzzy.Field("//wasHe/usesParse/text()")
     Instant usesParse();
 
-    @Fuzzy.Field("//wasHe/usesConstructor/text()")
+    @XMLFuzzy.Field("//wasHe/usesConstructor/text()")
     BigDecimal usesConstructor();
 
-    @Fuzzy.Field("//wasHe/nullOk/text()")
+    @XMLFuzzy.Field("//wasHe/nullOk/text()")
     String nullOk();
 
-    @Fuzzy.Field("//wasHe/throwsAnException/text()")
+    @XMLFuzzy.Field("//wasHe/throwsAnException/text()")
     @Nonnull
     URI throwsAnException();
 }

@@ -29,7 +29,7 @@ package hm.binkley.xml;
 
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
-import hm.binkley.xml.Fuzzy.Field;
+import hm.binkley.xml.XMLFuzzy.Field;
 import org.intellij.lang.annotations.Language;
 import org.kohsuke.MetaInfServices;
 import org.w3c.dom.Node;
@@ -78,10 +78,10 @@ import static javax.tools.StandardLocation.CLASS_PATH;
  * @todo How to map evaluate parameters onto xpath resolver map?
  */
 @MetaInfServices(Processor.class)
-@SupportedAnnotationTypes({"hm.binkley.xml.Fuzzy", "hm.binkley.xml.Fuzzy.Field"})
+@SupportedAnnotationTypes({"hm.binkley.xml.XMLFuzzy", "hm.binkley.xml.XMLFuzzy.Field"})
 @SupportedSourceVersion(RELEASE_8)
 @NotThreadSafe
-public class FuzzyProcessor
+public class XMLFuzzyProcessor
         extends AbstractProcessor {
     private static final XPathFactory xpathFactory = XPathFactory.newInstance();
     private static final Map<String, XPathExpression> expressions = new HashMap<>();
@@ -136,7 +136,7 @@ public class FuzzyProcessor
             return false;
         }
 
-        for (final Element element : roundEnv.getElementsAnnotatedWith(Fuzzy.class)) {
+        for (final Element element : roundEnv.getElementsAnnotatedWith(XMLFuzzy.class)) {
             try {
                 final PackageElement packaj = processingEnv.getElementUtils().getPackageOf(element);
                 final Name simpleName = element.getSimpleName();

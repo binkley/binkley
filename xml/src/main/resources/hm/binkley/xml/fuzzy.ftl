@@ -13,7 +13,7 @@ public final class ${simpleName}Factory
     private ${simpleName}Factory(final org.w3c.dom.Node node) throws java.lang.Exception {
 <#list methods as method>
         try {
-            final String $value = hm.binkley.xml.FuzzyProcessor.evaluate(node, "${method.xpath}");
+            final String $value = hm.binkley.xml.XMLFuzzyProcessor.evaluate(node, "${method.xpath}");
 <#if method.nullable>
             if ("".equals($value))
                 this.${method.simpleName} = null;

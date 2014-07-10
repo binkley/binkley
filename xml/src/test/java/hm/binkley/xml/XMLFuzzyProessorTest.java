@@ -1,4 +1,4 @@
-package hm.binkley.xml;/*
+/*
  * This is free and unencumbered software released into the public domain.
  *
  * Anyone is free to copy, modify, publish, use, compile, sell, or
@@ -25,35 +25,49 @@ package hm.binkley.xml;/*
  * For more information, please refer to <http://unlicense.org/>.
  */
 
+package hm.binkley.xml;
+
 import org.intellij.lang.annotations.Language;
+import org.junit.Before;
+import org.junit.Test;
+import org.xml.sax.InputSource;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 /**
- * {@code Fuzzy} <b>needs documentation</b>.
+ * {@code FuzzyTest} tests {@link XMLFuzzyProcessor}
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
- * @see <a href="http://xml.org/">XMLBeam</a>
- * @see <a href="http://en.wikipedia.org/wiki/Little_Fuzzy"><cite>Little Fuzzy</cite></a>
  */
-@Documented
-@Inherited
-@Retention(SOURCE)
-@Target(TYPE)
-public @interface Fuzzy {
-    @Documented
-    @Inherited
-    @Retention(SOURCE)
-    @Target(METHOD)
-    @interface Field {
-        @Language("XPath") String value();
+public class XMLFuzzyProessorTest {
+    @Language("XML")
+    public static final String WAS_HE
+            = "<wasHe><needsNoConversion>abc</needsNoConversion><isAPrimitive>3</isAPrimitive><usesParse>1970-01-01T00:00:00Z</usesParse><usesConstructor>1.234</usesConstructor><throwsAnException>not:a-uri</throwsAnException></wasHe>";
+    private WasHe wasHe;
+
+    @Before
+    public void setUp()
+            throws Exception {
+        final InputSource source = new InputSource(new StringReader(WAS_HE));
+        source.setEncoding("UTF-8");
+        wasHe = WasHeFactory
+                .of(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(source));
+    }
+
+    @Test
+    public void shouldHandleNeedsNoConversion() {
+        assertThat(wasHe.needsNoConversion(), is(equalTo("abc")));
+    }
+
+    @Test
+    public void shouldHandleNullOk() {
+        assertThat(wasHe.nullOk(), is(nullValue()));
     }
 }
