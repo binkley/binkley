@@ -1,8 +1,8 @@
-package hm.binkley.xml;
+package hm.binkley.xml.reflect;
 
 import hm.binkley.util.Converter;
-import hm.binkley.xml.XMLFuzzy.BadXPath;
-import hm.binkley.xml.XMLFuzzy.MissingAnnotation;
+import hm.binkley.xml.reflect.XMLFuzzy.BadXPath;
+import hm.binkley.xml.reflect.XMLFuzzy.MissingAnnotation;
 import org.intellij.lang.annotations.Language;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 
-import static hm.binkley.xml.XMLFuzzyTest.Top.XML;
+import static hm.binkley.xml.reflect.XMLFuzzyTest.Top.XML;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;

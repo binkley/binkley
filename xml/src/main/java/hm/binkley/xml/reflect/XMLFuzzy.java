@@ -1,4 +1,4 @@
-package hm.binkley.xml;
+package hm.binkley.xml.reflect;
 
 import hm.binkley.util.Converter;
 import org.w3c.dom.Node;
