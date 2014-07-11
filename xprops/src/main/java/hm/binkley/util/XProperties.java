@@ -32,11 +32,13 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.lang.Thread.currentThread;
+import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
 
 /**
@@ -279,16 +281,12 @@ public class XProperties
             extends StrLookup {
         @Override
         public String lookup(final String key) {
-            final String value = getProperty(key);
-            if (null != value)
-                return value;
-            final String sysprop = System.getProperty(key);
-            if (null != sysprop)
-                return sysprop;
-            final String envvar = System.getenv(key);
-            if (null != envvar)
-                return envvar;
-            throw new MissingPropertyException(key);
+            return asList((Function<String, String>) XProperties.this::getProperty,
+                    System::getProperty, System::getenv).stream().
+                    map(f -> f.apply(key)).
+                    filter(v -> null != v).
+                    findFirst().
+                    orElseThrow(() -> new MissingPropertyException(key));
         }
     }
 

@@ -3,6 +3,8 @@ package hm.binkley.util;
 import hm.binkley.util.XProperties.FailedConversionException;
 import hm.binkley.util.XProperties.MissingPropertyException;
 import hm.binkley.util.XProperties.RecursiveIncludeException;
+import mockit.Mock;
+import mockit.MockUp;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -124,6 +126,32 @@ public final class XPropertiesTest {
     @Test
     public void shouldReplaceGetProperty() {
         xprops.setProperty("foo", "found");
+        xprops.setProperty("bar", "${foo}");
+
+        assertThat(xprops.getProperty("bar"), is(equalTo("found")));
+    }
+
+    @Test
+    public void shouldReplaceGetPropertyFromSystemProperties() {
+        try {
+            System.setProperty("foo", "found");
+            xprops.setProperty("bar", "${foo}");
+
+            assertThat(xprops.getProperty("bar"), is(equalTo("found")));
+        } finally {
+            System.clearProperty("foo");
+        }
+    }
+
+    @Test
+    public void shouldReplaceGetPropertyFromEnvironment() {
+        new MockUp<System>() {
+            @Mock(invocations = 1)
+            public String getenv(final String key) {
+                return "found";
+            }
+        };
+
         xprops.setProperty("bar", "${foo}");
 
         assertThat(xprops.getProperty("bar"), is(equalTo("found")));
