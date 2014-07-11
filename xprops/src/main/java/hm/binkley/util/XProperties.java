@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -180,7 +181,7 @@ public class XProperties
     @Override
     public synchronized void load(final InputStream inStream)
             throws IOException {
-        load(new InputStreamReader(inStream));
+        load(new InputStreamReader(inStream, Charset.forName("UTF-8")));
     }
 
     /**
