@@ -28,15 +28,10 @@ import java.lang.reflect.Method;
  */
 abstract class AbstractMethodTypeListener
         implements TypeListener {
-
-    /**
-     * The {@code java} package constants.
-     */
+    /** The {@code java} package constants. */
     private static final String JAVA_PACKAGE = "java";
 
-    /**
-     * The lifecycle annotation to search on methods.
-     */
+    /** The lifecycle annotation to search on methods. */
     private final Class<? extends Annotation> annotationType;
 
     /**
@@ -48,9 +43,6 @@ abstract class AbstractMethodTypeListener
         this.annotationType = annotationType;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public final <I> void hear(final TypeLiteral<I> type, final TypeEncounter<I> encounter) {
         hear(type.getRawType(), encounter);
     }
@@ -62,26 +54,22 @@ abstract class AbstractMethodTypeListener
      * @param encounter the injection context.
      */
     private <I> void hear(final Class<? super I> type, final TypeEncounter<I> encounter) {
-        if (null == type) {
+        if (null == type)
             return;
-        }
         // JDK proxies of public interfaces have no package
         final Package packaj = type.getPackage();
-        if (null == packaj || packaj.getName().startsWith(JAVA_PACKAGE)) {
+        if (null == packaj || packaj.getName().startsWith(JAVA_PACKAGE))
             return;
-        }
 
-        for (final Method method : type.getDeclaredMethods()) {
+        for (final Method method : type.getDeclaredMethods())
             if (method.isAnnotationPresent(annotationType)) {
-                if (0 != method.getParameterTypes().length) {
+                if (0 != method.getParameterTypes().length)
                     encounter.addError(
                             "Annotated methods with @%s must not accept any argument, found %s",
                             annotationType.getName(), method);
-                }
 
                 hear(method, encounter);
             }
-        }
 
         hear(type.getSuperclass(), encounter);
     }
@@ -103,5 +91,4 @@ abstract class AbstractMethodTypeListener
      * @param encounter the injection context.
      */
     protected abstract <I> void hear(Method method, TypeEncounter<I> encounter);
-
 }

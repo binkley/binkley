@@ -32,7 +32,6 @@ import static java.lang.String.format;
  */
 public final class AfterInjectionModule
         extends AbstractLifeCycleModule {
-
     /**
      * Creates a new module which register methods annotated with {@link AfterInjection} on methods
      * in any type.
@@ -53,13 +52,9 @@ public final class AfterInjectionModule
         super(afterInjectionAnnotationType, typeMatcher);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void configure() {
         bindListener(getTypeMatcher(), new AbstractMethodTypeListener(getAnnotationType()) {
-
             @Override
             protected <I> void hear(final Method method, final TypeEncounter<I> encounter) {
                 encounter.register((InjectionListener<I>) injectee -> {
@@ -70,9 +65,8 @@ public final class AfterInjectionModule
                         throw new ProvisionException(format("Method @%s %s requires arguments",
                                 getAnnotationType().getName(), method), e);
                     } catch (final IllegalAccessException e) {
-                        throw new ProvisionException(
-                                format("Impossible to access to @%s %s on %s",
-                                        getAnnotationType().getName(), method, injectee), e);
+                        throw new ProvisionException(format("Impossible to access to @%s %s on %s",
+                                getAnnotationType().getName(), method, injectee), e);
                     } catch (final InvocationTargetException e) {
                         throw new ProvisionException(
                                 format("An error occurred while invoking @%s %s on %s",
@@ -81,8 +75,6 @@ public final class AfterInjectionModule
                     }
                 });
             }
-
         });
     }
-
 }

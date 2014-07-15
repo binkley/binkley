@@ -27,10 +27,7 @@ import java.util.List;
  * {@code Dispose}.
  */
 public final class Disposer {
-
-    /**
-     * List of elements have to be disposed.
-     */
+    /** List of elements have to be disposed. */
     private final List<Disposable> disposables = new LinkedList<>();
 
     /**
@@ -67,22 +64,14 @@ public final class Disposer {
         }
     }
 
-    /**
-     * NOOP {@code DisposeHandler} implementation.
-     */
+    /** NOOP {@code DisposeHandler} implementation. */
     private static final class NoOpDisposeHandler
             implements DisposeHandler {
-
-        /**
-         * {@inheritDoc}
-         */
-        public <I, E extends Throwable> void onError(@Nonnull final I injectee, @Nonnull final E error) {
+        public <I, E extends Throwable> void onError(@Nonnull final I injectee,
+                @Nonnull final E error) {
             // do nothing
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public <I> void onSuccess(@Nonnull final I injectee) {
             // do nothing
         }
@@ -94,15 +83,10 @@ public final class Disposer {
      * resources.
      */
     private static final class Disposable {
-
-        /**
-         * The method to be invoked to release resources.
-         */
+        /** The method to be invoked to release resources. */
         private final Method disposeMethod;
 
-        /**
-         * The target injectee has to release the resources.
-         */
+        /** The target injectee has to release the resources. */
         private final Object injectee;
 
         /**

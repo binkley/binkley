@@ -24,20 +24,13 @@ import java.lang.annotation.Annotation;
 import static com.google.inject.internal.util.$Preconditions.checkArgument;
 import static com.google.inject.matcher.Matchers.any;
 
-/**
- * Abstract implementation of a module that requires an annotation type and a type matcher.
- */
+/** Abstract implementation of a module that requires an annotation type and a type matcher. */
 abstract class AbstractLifeCycleModule
         extends AbstractModule {
-
-    /**
-     * The annotation type the scanner will look for in the types methods.
-     */
+    /** The annotation type the scanner will look for in the types methods. */
     private final Class<? extends Annotation> annotationType;
 
-    /**
-     * The type matcher to filter classes where looking for lifecycle annotations.
-     */
+    /** The type matcher to filter classes where looking for lifecycle annotations. */
     private final Matcher<Object> typeMatcher;
 
     /**
@@ -81,5 +74,4 @@ abstract class AbstractLifeCycleModule
     protected final Matcher<Object> getTypeMatcher() {
         return typeMatcher;
     }
-
 }

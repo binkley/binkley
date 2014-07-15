@@ -18,9 +18,7 @@ package org.nnsoft.guice.lifegycle;
 
 import javax.annotation.Nonnull;
 
-/**
- * A {@link DisposeHandler} instance is used to track dispose progresses.
- */
+/** A {@link DisposeHandler} instance is used to track dispose progress. */
 public interface DisposeHandler {
     /**
      * Tracks the input injectee successfully released the resources.
@@ -36,5 +34,4 @@ public interface DisposeHandler {
      * @param error the exception occurred
      */
     <I, E extends Throwable> void onError(@Nonnull final I injectee, @Nonnull final E error);
-
 }

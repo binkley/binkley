@@ -17,6 +17,7 @@ package org.nnsoft.guice.lifegycle;
  */
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -28,8 +29,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * dependency injection is done to perform any initialization.
  */
 @Documented
+@Inherited
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface AfterInjection {
-
 }
