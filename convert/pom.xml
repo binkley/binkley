@@ -9,40 +9,30 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>hm.binkley</groupId>
         <artifactId>binkley-blog</artifactId>
         <version>0.3-SNAPSHOT</version>
     </parent>
 
-    <artifactId>binkley-xprops</artifactId>
+    <artifactId>binkley-convert</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>hm.binkley</groupId>
-            <artifactId>binkley-convert</artifactId>
+            <artifactId>binkley-util</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
         </dependency>
+        <!-- Blame Spring -->
         <dependency>
-            <!-- Required by static initializtion of Spring core classes -->
             <groupId>hm.binkley</groupId>
             <artifactId>binkley-logging</artifactId>
             <scope>test</scope>
