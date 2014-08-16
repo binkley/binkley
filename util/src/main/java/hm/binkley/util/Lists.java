@@ -55,17 +55,17 @@ public final class Lists {
         final int div = size / n;
         final int mod = size % n;
 
-        int x = 0;
+        int start = 0;
         final List<List<T>> buckets = new ArrayList<>(n);
         for (int i = 0; i < mod; ++i) {
-            final int y = x + div + 1;
-            buckets.add(list.subList(x, y));
-            x = y;
+            final int end = start + div + 1;
+            buckets.add(list.subList(start, end));
+            start = end;
         }
         for (int i = mod; i < n; ++i) {
-            final int y = x + div;
-            buckets.add(list.subList(x, y));
-            x = y;
+            final int end = start + div;
+            buckets.add(list.subList(start, end));
+            start = end;
         }
         return buckets;
     }
