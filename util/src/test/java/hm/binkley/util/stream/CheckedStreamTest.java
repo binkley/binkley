@@ -34,13 +34,17 @@ import org.junit.rules.ExpectedException;
 import java.nio.file.AccessDeniedException;
 import java.security.AccessControlException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.stream.Stream;
 
 import static hm.binkley.util.function.ThrowingBinaryOperator.maxBy;
 import static hm.binkley.util.stream.CheckedStream.checked;
 import static java.lang.System.out;
+import static java.lang.Thread.currentThread;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 /**
  * {@code CheckedStreamTest} tests {@link CheckedStream}.
@@ -50,6 +54,27 @@ import static org.hamcrest.Matchers.sameInstance;
 public class CheckedStreamTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void shouldRunInThisThread()
+            throws InterruptedException {
+        final Thread self = currentThread();
+
+        checked(Stream.of(currentThread())).
+                forEach(t -> assertThat(t, is(sameInstance(self))));
+    }
+
+    @Test
+    public void shouldRunInPoolThread()
+            throws InterruptedException {
+        final ForkJoinPool threads = new ForkJoinPool(2, pool -> new ForkJoinWorkerThread(pool) {{
+            setName("Foo!");
+        }}, null, true);
+
+        checked(Stream.of(1), threads).
+                map(i -> currentThread()).
+                forEach(t -> assertThat(t.getName(), is(equalTo("Foo!"))));
+    }
 
     @Test
     public void shouldThrowCheckedWhenSequential()
@@ -130,7 +155,8 @@ public class CheckedStreamTest {
                 filter(i -> {
                     throw new RuntimeException("Foo!", innerCause);
                 }).
-                reduce(0, maxBy(Integer::compare));
+                // TODO: Reduce here throws Exception, not E
+                        reduce(0, maxBy(Integer::compare));
     }
 
     @Test
