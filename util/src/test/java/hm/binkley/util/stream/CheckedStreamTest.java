@@ -60,7 +60,8 @@ public class CheckedStreamTest {
             throws InterruptedException {
         final Thread self = currentThread();
 
-        checked(Stream.of(currentThread())).
+        checked(Stream.of(1)).
+                map(i -> currentThread()).
                 forEach(t -> assertThat(t, is(sameInstance(self))));
     }
 
