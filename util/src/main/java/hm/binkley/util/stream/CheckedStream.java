@@ -21,6 +21,7 @@ import java.util.Spliterator;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -765,7 +766,7 @@ public abstract class CheckedStream<T>
                     return null;
                 }).get();
             } catch (final ExecutionException e) {
-                throw (E) e.getCause();
+                throw ParallelCheckedStream.<E>handleForkJoinPool(e);
             }
         }
 
@@ -776,7 +777,7 @@ public abstract class CheckedStream<T>
             try {
                 return threads.submit(supplier::get).get();
             } catch (final ExecutionException e) {
-                throw (E) e.getCause();
+                throw ParallelCheckedStream.<E>handleForkJoinPool(e);
             }
         }
 
@@ -786,7 +787,7 @@ public abstract class CheckedStream<T>
             try {
                 return threads.submit(supplier::getAsLong).get();
             } catch (final ExecutionException e) {
-                throw (E) e.getCause();
+                throw ParallelCheckedStream.<E>handleForkJoinPool(e);
             }
         }
 
@@ -797,8 +798,23 @@ public abstract class CheckedStream<T>
             try {
                 return threads.submit(supplier::getAsBoolean).get();
             } catch (final ExecutionException e) {
-                throw (E) e.getCause();
+                throw ParallelCheckedStream.<E>handleForkJoinPool(e);
             }
+        }
+
+        /**
+         * Tricky, guts of FJP wrap our checked in a runtime, wraps tha in an execution, but user
+         * runtime wraps nothing - check stacktrace for thrown by ForkJoinTask
+         */
+        private static <E extends Exception> E handleForkJoinPool(final ExecutionException e) {
+            final Throwable x = e.getCause();
+            if (RuntimeException.class != x.getClass())
+                return (E) x;
+            final Throwable y = x.getCause();
+            if (null == y || !x.getStackTrace()[0].getClassName()
+                    .startsWith(ForkJoinTask.class.getName()))
+                throw (RuntimeException) x;
+            return (E) y;
         }
     }
 }
