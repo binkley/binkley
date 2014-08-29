@@ -71,7 +71,6 @@ public abstract class CheckedStream<T>
     private static final String javaName = "java.util.";
     private static final boolean debug = Boolean.getBoolean(className + ".debug");
     private final Stream<T> delegate;
-    private final StreamException thrown;
 
     /**
      * Creates a new sequential {@code CheckedStream} wrapping the given <var>delegate</var>
@@ -84,7 +83,7 @@ public abstract class CheckedStream<T>
      */
     @Nonnull
     public static <T> CheckedStream<T> checked(@Nonnull final Stream<T> delegate) {
-        return new SequentialCheckedStream<>(delegate, new StreamException());
+        return new SequentialCheckedStream<>(delegate);
     }
 
     /**
@@ -100,7 +99,7 @@ public abstract class CheckedStream<T>
     @Nonnull
     public static <T> CheckedStream<T> checked(@Nonnull final Stream<T> delegate,
             @Nonnull final ForkJoinPool threads) {
-        return new ParallelCheckedStream<>(delegate, new StreamException(), threads);
+        return new ParallelCheckedStream<>(delegate, threads);
     }
 
     /**
@@ -108,26 +107,13 @@ public abstract class CheckedStream<T>
      * <var>thrown</var> exception holder.
      *
      * @param delegate the delegated stream, never missing
-     * @param thrown the exception holder, never missing
      */
-    protected CheckedStream(@Nonnull final Stream<T> delegate,
-            @Nonnull final StreamException thrown) {
+    protected CheckedStream(@Nonnull final Stream<T> delegate) {
         this.delegate = delegate;
-        this.thrown = thrown;
     }
 
     @Nonnull
-    protected abstract <U> CheckedStream<U> next(@Nonnull final Stream<U> delegate,
-            @Nonnull final StreamException thrown);
-
-    @Nonnull
-    protected abstract CheckedStream<T> sequential(@Nonnull final StreamException thrown)
-            throws Exception;
-
-    @Nonnull
-    protected abstract CheckedStream<T> parallel(@Nonnull final StreamException thrown,
-            @Nonnull final ForkJoinPool threads)
-            throws Exception;
+    protected abstract <U> CheckedStream<U> next(@Nonnull final Stream<U> delegate);
 
     protected abstract <E extends Exception> void terminateVoid(final ThrowingRunnable<E> action)
             throws E, InterruptedException;
@@ -172,17 +158,13 @@ public abstract class CheckedStream<T>
 
     /** @see Stream#sequential() */
     @Nonnull
-    public final CheckedStream<T> sequential()
-            throws Exception {
-        return sequential(thrown);
-    }
+    public abstract CheckedStream<T> sequential()
+            throws Exception;
 
     /** @see Stream#parallel() */
     @Nonnull
-    public final CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads)
-            throws Exception {
-        return parallel(thrown, threads);
-    }
+    public abstract CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads)
+            throws Exception;
 
     /** @see Stream#unordered() */
     @Nonnull
@@ -194,7 +176,7 @@ public abstract class CheckedStream<T>
     /** @see Stream#onClose(Runnable) */
     @Nonnull
     public final CheckedStream<T> onClose(@Nonnull final ThrowingRunnable<?> closeHandler) {
-        return next(delegate.onClose(asRunnable(closeHandler)), thrown);
+        return next(delegate.onClose(asRunnable(closeHandler)));
     }
 
     /** @see Stream#filter(Predicate) */
@@ -534,14 +516,14 @@ public abstract class CheckedStream<T>
         try {
             return frame.get();
         } catch (final CancellationException e) {
-            throw thrown.defer(e);
+            throw StreamException.defer(e);
         } catch (final RuntimeException e) {
             throw e;
         } catch (final InterruptedException e) {
             currentThread().interrupt();
-            throw thrown.defer(e);
+            throw StreamException.defer(e);
         } catch (final Exception e) {
-            throw thrown.defer(e);
+            throw StreamException.defer(e);
         }
     }
 
@@ -549,14 +531,14 @@ public abstract class CheckedStream<T>
         try {
             return frame.getAsBoolean();
         } catch (final CancellationException e) {
-            throw thrown.defer(e);
+            throw StreamException.defer(e);
         } catch (final RuntimeException e) {
             throw e;
         } catch (final InterruptedException e) {
             currentThread().interrupt();
-            throw thrown.defer(e);
+            throw StreamException.defer(e);
         } catch (final Exception e) {
-            throw thrown.defer(e);
+            throw StreamException.defer(e);
         }
     }
 
@@ -564,14 +546,14 @@ public abstract class CheckedStream<T>
         try {
             frame.run();
         } catch (final CancellationException e) {
-            throw thrown.defer(e);
+            throw StreamException.defer(e);
         } catch (final RuntimeException e) {
             throw e;
         } catch (final InterruptedException e) {
             currentThread().interrupt();
-            throw thrown.defer(e);
+            throw StreamException.defer(e);
         } catch (final Exception e) {
-            throw thrown.defer(e);
+            throw StreamException.defer(e);
         }
     }
 
@@ -579,7 +561,7 @@ public abstract class CheckedStream<T>
             final Supplier<Stream<R>> frame)
             throws E, InterruptedException {
         try {
-            return next(frame.get(), thrown);
+            return next(frame.get());
         } catch (final StreamException thrown) {
             throw thrown.<E>cast();
         }
@@ -623,25 +605,30 @@ public abstract class CheckedStream<T>
 
     protected static final class StreamException
             extends RuntimeException {
-        public StreamException defer(final Exception e) {
-            addSuppressed(e); // TODO: Race condition - is suppressed concurrent?
-            return this;
+        public static StreamException defer(final Exception e) {
+            return new StreamException(e);
+        }
+
+        public StreamException(final Exception e) {
+            super(e);
         }
 
         @SuppressWarnings("unchecked")
         public <E extends Exception> E cast()
                 throws InterruptedException {
+            final Throwable cause = getCause();
             final Throwable[] suppressed = getSuppressed();
-            final Throwable x = suppressed[0];
-            for (int i = 1; i < suppressed.length; ++i)
-                x.addSuppressed(suppressed[i]);
-            if (x instanceof CancellationException)
-                throw scrub((CancellationException) x);
-            if (x instanceof InterruptedException) {
+            for (final Throwable x : suppressed)
+                cause.addSuppressed(x);
+
+            if (cause instanceof CancellationException)
+                throw scrub((CancellationException) cause);
+            if (cause instanceof InterruptedException) {
                 currentThread().interrupt();
-                throw scrub((InterruptedException) x);
+                throw scrub((InterruptedException) cause);
             }
-            return scrub((E) x);
+
+            return scrub((E) cause);
         }
 
         /** When not debugging checked stream, removes framework/glue stack frames. */
@@ -671,31 +658,14 @@ public abstract class CheckedStream<T>
 
     private static final class SequentialCheckedStream<T>
             extends CheckedStream<T> {
-        private SequentialCheckedStream(@Nonnull final Stream<T> delegate,
-                @Nonnull final StreamException thrown) {
-            super(delegate, thrown);
+        private SequentialCheckedStream(@Nonnull final Stream<T> delegate) {
+            super(delegate);
         }
 
         @Nonnull
         @Override
-        protected <U> CheckedStream<U> next(@Nonnull final Stream<U> delegate,
-                @Nonnull final StreamException thrown) {
-            return new SequentialCheckedStream<>(delegate, thrown);
-        }
-
-        @Nonnull
-        @Override
-        protected CheckedStream<T> sequential(@Nonnull final StreamException thrown)
-                throws Exception {
-            return this;
-        }
-
-        @Nonnull
-        @Override
-        protected CheckedStream<T> parallel(@Nonnull final StreamException thrown,
-                @Nonnull final ForkJoinPool threads)
-                throws Exception {
-            return new ParallelCheckedStream<>(immediate().parallel(), thrown, threads);
+        protected <U> CheckedStream<U> next(@Nonnull final Stream<U> delegate) {
+            return new SequentialCheckedStream<>(delegate);
         }
 
         @Override
@@ -723,39 +693,35 @@ public abstract class CheckedStream<T>
                 throws E, InterruptedException {
             return supplier.getAsBoolean();
         }
+
+        @Nonnull
+        @Override
+        public CheckedStream<T> sequential()
+                throws Exception {
+            return this;
+        }
+
+        @Nonnull
+        @Override
+        public CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads)
+                throws Exception {
+            return new ParallelCheckedStream<>(immediate().parallel(), threads);
+        }
     }
 
     private static final class ParallelCheckedStream<T>
             extends CheckedStream<T> {
         private final ForkJoinPool threads;
 
-        private ParallelCheckedStream(@Nonnull final Stream<T> delegate,
-                @Nonnull final StreamException thrown, final ForkJoinPool threads) {
-            super(delegate, thrown);
+        private ParallelCheckedStream(@Nonnull final Stream<T> delegate, final ForkJoinPool threads) {
+            super(delegate);
             this.threads = threads;
         }
 
         @Nonnull
         @Override
-        protected <U> CheckedStream<U> next(@Nonnull final Stream<U> delegate,
-                @Nonnull final StreamException thrown) {
-            return new ParallelCheckedStream<>(delegate, thrown, threads);
-        }
-
-        @Nonnull
-        @Override
-        protected CheckedStream<T> sequential(@Nonnull final StreamException thrown)
-                throws Exception {
-            return new SequentialCheckedStream<>(immediate().sequential(), thrown);
-        }
-
-        @Nonnull
-        @Override
-        protected CheckedStream<T> parallel(@Nonnull final StreamException thrown,
-                @Nonnull final ForkJoinPool threads)
-                throws Exception {
-            return this.threads.equals(threads) ? this
-                    : new ParallelCheckedStream<>(immediate().parallel(), thrown, threads);
+        protected <U> CheckedStream<U> next(@Nonnull final Stream<U> delegate) {
+            return new ParallelCheckedStream<>(delegate, threads);
         }
 
         @Override
@@ -801,6 +767,21 @@ public abstract class CheckedStream<T>
             } catch (final ExecutionException e) {
                 throw ParallelCheckedStream.<E>handleForkJoinPool(e);
             }
+        }
+
+        @Nonnull
+        @Override
+        public CheckedStream<T> sequential()
+                throws Exception {
+            return new SequentialCheckedStream<>(immediate().sequential());
+        }
+
+        @Nonnull
+        @Override
+        public CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads)
+                throws Exception {
+            return this.threads.equals(threads) ? this
+                    : new ParallelCheckedStream<>(immediate().parallel(), threads);
         }
 
         /**
