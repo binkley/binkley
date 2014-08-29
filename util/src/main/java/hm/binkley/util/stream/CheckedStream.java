@@ -62,7 +62,7 @@ import static java.util.stream.Collectors.toList;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Optimize non-throwing, non-terminal calls: they don't need wrapping
  */
-@SuppressWarnings({"UnusedDeclaration", "JavaDoc"})
+@SuppressWarnings("UnusedDeclaration")
 public abstract class CheckedStream<T>
         implements AutoCloseable {
     private static final String className = CheckedStream.class.getName();
@@ -473,87 +473,87 @@ public abstract class CheckedStream<T>
         return delegate.collect(toList()).stream();
     }
 
-    private <E extends Exception> Predicate<T> asPredicate(
-            final ThrowingPredicate<? super T, E> predicate) {
+    private static <U, E extends Exception> Predicate<U> asPredicate(
+            final ThrowingPredicate<? super U, E> predicate) {
         return t -> defer(() -> predicate.test(t));
     }
 
-    private <R, E extends Exception> Function<T, R> asFunction(
-            final ThrowingFunction<? super T, ? extends R, E> mapper) {
+    private static <U, R, E extends Exception> Function<U, R> asFunction(
+            final ThrowingFunction<? super U, ? extends R, E> mapper) {
         return t -> defer(() -> mapper.apply(t));
     }
 
-    private <R, U, V, E extends Exception> BiFunction<U, V, R> asBiFunction(
+    private static <R, U, V, E extends Exception> BiFunction<U, V, R> asBiFunction(
             final ThrowingBiFunction<? super U, ? super V, ? extends R, E> mapper) {
         return (u, v) -> defer(() -> mapper.apply(u, v));
     }
 
-    private <U, E extends Exception> BinaryOperator<U> asBinaryOperator(
+    private static <U, E extends Exception> BinaryOperator<U> asBinaryOperator(
             final ThrowingBinaryOperator<U, E> mapper) {
         return (u, v) -> defer(() -> mapper.apply(u, v));
     }
 
-    private <E extends Exception> Consumer<T> asConsumer(
-            final ThrowingConsumer<? super T, E> action) {
-        return t -> defer(() -> action.accept(t));
+    private static <U, E extends Exception> Consumer<U> asConsumer(
+            final ThrowingConsumer<? super U, E> action) {
+        return u -> defer(() -> action.accept(u));
     }
 
-    private <R, E extends Exception> Supplier<R> asSupplier(
+    private static <R, E extends Exception> Supplier<R> asSupplier(
             final ThrowingSupplier<? extends R, E> supplier) {
         return () -> defer(supplier);
     }
 
-    private <E extends Exception> BooleanSupplier asBooleanSupplier(
+    private static <E extends Exception> BooleanSupplier asBooleanSupplier(
             final ThrowingBooleanSupplier<E> supplier) {
         return () -> defer(supplier);
     }
 
-    private <E extends Exception> Runnable asRunnable(final ThrowingRunnable<E> runnable) {
+    private static <E extends Exception> Runnable asRunnable(final ThrowingRunnable<E> runnable) {
         return () -> defer(runnable);
     }
 
-    private <R, E extends Exception> R defer(final ThrowingSupplier<? extends R, E> frame) {
+    private static <R, E extends Exception> R defer(final ThrowingSupplier<? extends R, E> frame) {
         try {
             return frame.get();
         } catch (final CancellationException e) {
-            throw StreamException.defer(e);
+            throw new StreamException(e);
         } catch (final RuntimeException e) {
             throw e;
         } catch (final InterruptedException e) {
             currentThread().interrupt();
-            throw StreamException.defer(e);
+            throw new StreamException(e);
         } catch (final Exception e) {
-            throw StreamException.defer(e);
+            throw new StreamException(e);
         }
     }
 
-    private <E extends Exception> boolean defer(final ThrowingBooleanSupplier<E> frame) {
+    private static <E extends Exception> boolean defer(final ThrowingBooleanSupplier<E> frame) {
         try {
             return frame.getAsBoolean();
         } catch (final CancellationException e) {
-            throw StreamException.defer(e);
+            throw new StreamException(e);
         } catch (final RuntimeException e) {
             throw e;
         } catch (final InterruptedException e) {
             currentThread().interrupt();
-            throw StreamException.defer(e);
+            throw new StreamException(e);
         } catch (final Exception e) {
-            throw StreamException.defer(e);
+            throw new StreamException(e);
         }
     }
 
-    private <E extends Exception> void defer(final ThrowingRunnable<E> frame) {
+    private static <E extends Exception> void defer(final ThrowingRunnable<E> frame) {
         try {
             frame.run();
         } catch (final CancellationException e) {
-            throw StreamException.defer(e);
+            throw new StreamException(e);
         } catch (final RuntimeException e) {
             throw e;
         } catch (final InterruptedException e) {
             currentThread().interrupt();
-            throw StreamException.defer(e);
+            throw new StreamException(e);
         } catch (final Exception e) {
-            throw StreamException.defer(e);
+            throw new StreamException(e);
         }
     }
 
@@ -605,10 +605,6 @@ public abstract class CheckedStream<T>
 
     protected static final class StreamException
             extends RuntimeException {
-        public static StreamException defer(final Exception e) {
-            return new StreamException(e);
-        }
-
         public StreamException(final Exception e) {
             super(e);
         }
