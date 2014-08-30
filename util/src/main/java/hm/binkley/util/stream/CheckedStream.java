@@ -486,24 +486,24 @@ public abstract class CheckedStream<T>
     public final <E extends Exception> boolean anyMatch(
             @Nonnull final ThrowingPredicate<? super T, E> predicate)
             throws E, InterruptedException {
-        return evaluateBoolean(
-                () -> delegate.anyMatch(predicate.asPredicate(StreamException::new)));
+        return terminateBoolean(() -> evaluateBoolean(
+                () -> delegate.anyMatch(predicate.asPredicate(StreamException::new))));
     }
 
     /** @see Stream#allMatch(Predicate) */
     public final <E extends Exception> boolean allMatch(
             @Nonnull final ThrowingPredicate<? super T, E> predicate)
             throws E, InterruptedException {
-        return evaluateBoolean(
-                () -> delegate.allMatch(predicate.asPredicate(StreamException::new)));
+        return terminateBoolean(() -> evaluateBoolean(
+                () -> delegate.allMatch(predicate.asPredicate(StreamException::new))));
     }
 
     /** @see Stream#noneMatch(Predicate) */
     public final <E extends Exception> boolean noneMatch(
             @Nonnull final ThrowingPredicate<? super T, E> predicate)
             throws E, InterruptedException {
-        return evaluateBoolean(
-                () -> delegate.noneMatch(predicate.asPredicate(StreamException::new)));
+        return terminateBoolean(() -> evaluateBoolean(
+                () -> delegate.noneMatch(predicate.asPredicate(StreamException::new))));
     }
 
     /** @see Stream#findFirst() */

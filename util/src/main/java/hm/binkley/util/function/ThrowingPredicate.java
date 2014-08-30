@@ -38,7 +38,7 @@ public interface ThrowingPredicate<T, E extends Exception> {
 
     /** @see Predicate#isEqual(Object) */
     @Nonnull
-    static <T, E extends Exception> ThrowingPredicate<T, RuntimeException> isEqual(
+    static <T> ThrowingPredicate<T, RuntimeException> isEqual(
             final Object targetRef) {
         return null == targetRef ? Objects::isNull : targetRef::equals;
     }
