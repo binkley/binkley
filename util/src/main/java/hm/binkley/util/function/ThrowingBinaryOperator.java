@@ -19,13 +19,17 @@ public interface ThrowingBinaryOperator<T, E extends Exception>
     @Nonnull
     static <T, E extends Exception> ThrowingBinaryOperator<T, E> minBy(
             @Nonnull final Comparator<? super T> comparator) {
-        return (a, b) -> comparator.compare(a, b) <= 0 ? a : b;
+        return (a, b) -> 0 >= comparator.compare(a, b) ? a : b;
     }
 
     /** @see BinaryOperator#maxBy(Comparator) */
     @Nonnull
     static <T, E extends Exception> ThrowingBinaryOperator<T, E> maxBy(
             @Nonnull final Comparator<? super T> comparator) {
-        return (a, b) -> comparator.compare(a, b) >= 0 ? a : b;
+        return (a, b) -> 0 <= comparator.compare(a, b) ? a : b;
+    }
+
+    default <D extends RuntimeException> BinaryOperator<T> asBinaryOperator(final Defer<D> defer) {
+        return (u, v) -> defer.as(() -> apply(u, v));
     }
 }

@@ -26,4 +26,8 @@ public interface ThrowingBiConsumer<T, U, E extends Exception> {
             after.accept(l, r);
         };
     }
+
+    default <D extends RuntimeException> BiConsumer<T, U> asBiConsumer(final Defer<D> defer) {
+        return (t, u) -> defer.as(() -> accept(t, u));
+    }
 }

@@ -25,4 +25,8 @@ public interface ThrowingBiFunction<T, U, R, E extends Exception> {
             throws E, InterruptedException {
         return (T t, U u) -> after.apply(apply(t, u));
     }
+
+    default <D extends RuntimeException> BiFunction<T, U, R> asBiFunction(final Defer<D> defer) {
+        return (u, v) -> defer.as(() -> apply(u, v));
+    }
 }

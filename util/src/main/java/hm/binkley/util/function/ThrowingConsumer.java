@@ -25,4 +25,8 @@ public interface ThrowingConsumer<T, E extends Exception> {
             after.accept(t);
         };
     }
+
+    default <D extends RuntimeException> Consumer<T> asConsumer(final Defer<D> defer) {
+        return t -> defer.as(() -> accept(t));
+    }
 }

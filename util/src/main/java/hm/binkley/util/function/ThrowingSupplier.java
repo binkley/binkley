@@ -15,4 +15,8 @@ public interface ThrowingSupplier<T, E extends Exception> {
     /** @see Supplier#get() */
     T get()
             throws E, InterruptedException;
+
+    default <D extends RuntimeException> Supplier<T> asSupplier(final Defer<D> defer) {
+        return () -> defer.as(this);
+    }
 }
