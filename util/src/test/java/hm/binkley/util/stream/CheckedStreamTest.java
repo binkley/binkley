@@ -89,6 +89,28 @@ public class CheckedStreamTest {
     }
 
     @Test
+    public void shouldChangeToParallelFromSequential()
+            throws Exception {
+        final ForkJoinPool threads = new ForkJoinPool(2, pool -> new ForkJoinWorkerThread(pool) {{
+            setName("Foo!");
+        }}, null, true);
+
+        checked(Stream.of(1)).
+                parallel(threads).
+                map(i -> currentThread()).
+                forEach(t -> assertThat(t.getName(), is(equalTo("Foo!"))));
+    }
+
+    @Test
+    public void shouldChangeToSequentialFromParallel()
+            throws Exception {
+        checked(Stream.of(1), new ForkJoinPool()).
+                sequential().
+                map(i -> currentThread()).
+                forEach(t -> assertThat(t, is(sameInstance(currentThread()))));
+    }
+
+    @Test
     public void shouldTerminateForAnyMatchWhenSequential()
             throws InterruptedException {
         assertThat(checked(Stream.of(1, 2, 3)).

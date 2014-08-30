@@ -532,12 +532,19 @@ public abstract class CheckedStream<T>
 
     // Implementation
 
-    protected final Stream<T> immediate()
+    /**
+     * Supports "immediate" operations, those which consume the current delegated stream and create
+     * a new one.  Use <var>parallel</var> to control the new stream async state.
+     *
+     * @param parallel {@code true} if the new stream should be parallel
+     */
+    protected final Stream<T> immediate(final boolean parallel)
             throws Exception {
-        // TODO: Why doesn't spliterator work like this?  Javadoc says it's terminal
-        if (false)
-            return StreamSupport.stream(spliterator(), isParallel());
-        return stream.collect(toList()).stream();
+        // Cannot use spliterator: we mix terminals mid-stream in suport of parallel/sequential, so
+        // need a fresh stream for immediate operations:
+        // return StreamSupport.stream(spliterator(), isParallel());
+        final List<T> collected = stream.collect(toList());
+        return parallel ? collected.parallelStream() : collected.stream();
     }
 
     private <R, E extends Exception> CheckedStream<R> evaluateStream(
@@ -686,7 +693,7 @@ public abstract class CheckedStream<T>
         @Override
         public CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads)
                 throws Exception {
-            return new ParallelCheckedStream<>(immediate().parallel(), threads);
+            return new ParallelCheckedStream<>(immediate(true), threads);
         }
     }
 
@@ -757,7 +764,7 @@ public abstract class CheckedStream<T>
         @Override
         public CheckedStream<T> sequential()
                 throws Exception {
-            return new SequentialCheckedStream<>(immediate().sequential());
+            return new SequentialCheckedStream<>(immediate(false));
         }
 
         @Nonnull
@@ -765,7 +772,7 @@ public abstract class CheckedStream<T>
         public CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads)
                 throws Exception {
             return this.threads.equals(threads) ? this
-                    : new ParallelCheckedStream<>(immediate().parallel(), threads);
+                    : new ParallelCheckedStream<>(immediate(true), threads);
         }
 
         /**
