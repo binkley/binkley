@@ -360,8 +360,8 @@ public abstract class CheckedStream<T>
 
     /** @see Stream#limit(long) */
     @Nonnull
-    public final <E extends Exception> CheckedStream<T> limit(final long maxSize)
-            throws E, InterruptedException {
+    public final CheckedStream<T> limit(final long maxSize)
+            throws InterruptedException {
         return evaluateStream(() -> stream.limit(maxSize));
     }
 
@@ -648,27 +648,29 @@ public abstract class CheckedStream<T>
         }
 
         @Override
-        protected <E extends Exception> void terminateVoid(final ThrowingRunnable<E> action)
+        protected <E extends Exception> void terminateVoid(
+                @Nonnull final ThrowingRunnable<E> action)
                 throws E, InterruptedException {
             action.run();
         }
 
         @Override
         protected <U, E extends Exception> U terminateConcrete(
-                final ThrowingSupplier<U, E> supplier)
+                @Nonnull final ThrowingSupplier<U, E> supplier)
                 throws E, InterruptedException {
             return supplier.get();
         }
 
         @Override
-        protected <E extends Exception> long terminateLong(final ThrowingLongSupplier<E> supplier)
+        protected <E extends Exception> long terminateLong(
+                @Nonnull final ThrowingLongSupplier<E> supplier)
                 throws E, InterruptedException {
             return supplier.getAsLong();
         }
 
         @Override
         protected <E extends Exception> boolean terminateBoolean(
-                final ThrowingBooleanSupplier<E> supplier)
+                @Nonnull final ThrowingBooleanSupplier<E> supplier)
                 throws E, InterruptedException {
             return supplier.getAsBoolean();
         }
@@ -705,7 +707,8 @@ public abstract class CheckedStream<T>
         }
 
         @Override
-        protected <E extends Exception> void terminateVoid(final ThrowingRunnable<E> action)
+        protected <E extends Exception> void terminateVoid(
+                @Nonnull final ThrowingRunnable<E> action)
                 throws E, InterruptedException {
             try {
                 threads.submit(() -> {
@@ -719,7 +722,7 @@ public abstract class CheckedStream<T>
 
         @Override
         protected <U, E extends Exception> U terminateConcrete(
-                final ThrowingSupplier<U, E> supplier)
+                @Nonnull final ThrowingSupplier<U, E> supplier)
                 throws E, InterruptedException {
             try {
                 return threads.submit(supplier::get).get();
@@ -729,7 +732,8 @@ public abstract class CheckedStream<T>
         }
 
         @Override
-        protected <E extends Exception> long terminateLong(final ThrowingLongSupplier<E> supplier)
+        protected <E extends Exception> long terminateLong(
+                @Nonnull final ThrowingLongSupplier<E> supplier)
                 throws E, InterruptedException {
             try {
                 return threads.submit(supplier::getAsLong).get();
@@ -740,7 +744,7 @@ public abstract class CheckedStream<T>
 
         @Override
         protected <E extends Exception> boolean terminateBoolean(
-                final ThrowingBooleanSupplier<E> supplier)
+                @Nonnull final ThrowingBooleanSupplier<E> supplier)
                 throws E, InterruptedException {
             try {
                 return threads.submit(supplier::getAsBoolean).get();
