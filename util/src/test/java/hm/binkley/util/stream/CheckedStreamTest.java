@@ -34,6 +34,7 @@ import org.junit.rules.ExpectedException;
 import java.nio.file.AccessDeniedException;
 import java.security.AccessControlException;
 import java.util.Iterator;
+import java.util.Spliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.stream.Stream;
@@ -60,12 +61,39 @@ public class CheckedStreamTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
-    public void shouldIterate()
+    public void shouldIterateWhenSequential()
             throws InterruptedException {
         final Iterator<Integer> it = checked(Stream.of(1)).iterator();
         assertThat(it.hasNext(), is(true));
         assertThat(it.next(), is(equalTo(1)));
         assertThat(it.hasNext(), is(false));
+    }
+
+    @Test
+    public void shouldSpliterateWhenSequential()
+            throws InterruptedException {
+        final Spliterator<Integer> split = checked(Stream.of(1)).spliterator();
+        final int[] box = new int[1];
+        assertThat(split.tryAdvance(i -> box[0] = i), is(true));
+        assertThat(box[0], is(equalTo(1)));
+    }
+
+    @Test
+    public void shouldIterateWhenParallel()
+            throws InterruptedException {
+        final Iterator<Integer> it = checked(Stream.of(1), new ForkJoinPool()).iterator();
+        assertThat(it.hasNext(), is(true));
+        assertThat(it.next(), is(equalTo(1)));
+        assertThat(it.hasNext(), is(false));
+    }
+
+    @Test
+    public void shouldSpliterateWhenParallel()
+            throws InterruptedException {
+        final Spliterator<Integer> split = checked(Stream.of(1), new ForkJoinPool()).spliterator();
+        final int[] box = new int[1];
+        assertThat(split.tryAdvance(i -> box[0] = i), is(true));
+        assertThat(box[0], is(equalTo(1)));
     }
 
     @Test
