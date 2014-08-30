@@ -42,8 +42,11 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static hm.binkley.util.function.ThrowingFunction.identity;
+import static hm.binkley.util.function.ThrowingPredicate.isEqual;
 import static java.lang.Thread.currentThread;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
 
 /**
  * {@code CheckedStream} is a <em>throwing</em> {@link Stream} look-a-like with control over {@link
@@ -787,5 +790,24 @@ public abstract class CheckedStream<T>
             // Actual user exception
             return (E) x;
         }
+    }
+
+    /** Check that every construct compiles. */
+    private static void compile()
+            throws InterruptedException {
+        checked(Stream.of(1, 2, 3)).
+                distinct().
+                filter(isEqual(1)).
+                flatMap(i -> range(i, i).boxed()).
+                limit(1).
+                map(identity()).
+                onClose(() -> {
+                }).
+                peek(i -> {
+                }).
+                skip(0).
+                sorted().
+                unordered().
+                toArray();
     }
 }

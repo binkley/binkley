@@ -52,6 +52,8 @@ import static org.junit.Assert.assertThat;
  * {@code CheckedStreamTest} tests {@link CheckedStream}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ *
+ * @todo javac 8u20 says RuntimeExceptions casts needed, IntelliJ says not
  */
 public class CheckedStreamTest {
     @Rule
@@ -90,42 +92,42 @@ public class CheckedStreamTest {
     public void shouldTerminateForAnyMatchWhenSequential()
             throws InterruptedException {
         assertThat(checked(Stream.of(1, 2, 3)).
-                anyMatch(isEqual(1)), is(true));
+                <RuntimeException>anyMatch(isEqual(1)), is(true));
     }
 
     @Test
     public void shouldTerminateForAllMatchWhenSequential()
             throws InterruptedException {
         assertThat(checked(Stream.of(1, 2, 3)).
-                anyMatch(i -> true), is(true));
+                <RuntimeException>anyMatch(i -> true), is(true));
     }
 
     @Test
     public void shouldTerminateForNoneMatchWhenSequential()
             throws InterruptedException {
         assertThat(checked(Stream.of(1, 2, 3)).
-                noneMatch(i -> true), is(true));
+                <RuntimeException>noneMatch(i -> false), is(true));
     }
 
     @Test
     public void shouldTerminateForAnyMatchWhenParallel()
             throws InterruptedException {
         assertThat(checked(Stream.of(1, 2, 3), new ForkJoinPool()).
-                anyMatch(isEqual(1)), is(true));
+                <RuntimeException>anyMatch(isEqual(1)), is(true));
     }
 
     @Test
     public void shouldTerminateForAllMatchWhenParallel()
             throws InterruptedException {
         assertThat(checked(Stream.of(1, 2, 3), new ForkJoinPool()).
-                anyMatch(i -> true), is(true));
+                <RuntimeException>anyMatch(i -> true), is(true));
     }
 
     @Test
     public void shouldTerminateForNoneMatchWhenParallel()
             throws InterruptedException {
         assertThat(checked(Stream.of(1, 2, 3), new ForkJoinPool()).
-                noneMatch(i -> true), is(true));
+                <RuntimeException>noneMatch(i -> false), is(true));
     }
 
     @Test
