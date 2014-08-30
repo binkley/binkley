@@ -46,18 +46,77 @@ import static java.lang.Thread.currentThread;
 import static java.util.stream.Collectors.toList;
 
 /**
- * {@code CheckedStream} is a <em>throwing</em> {@link Stream} look-a-like.  It cannot be a {@code
- * Stream} as it takes throwing versions of suppliers, functions and consumers. Otherwise it is a
- * faithful reproduction.
+ * {@code CheckedStream} is a <em>throwing</em> {@link Stream} look-a-like with control over {@link
+ * #parallel(ForkJoinPool) thread pool}.  It cannot be a {@code Stream} as it takes throwing
+ * versions of suppliers, functions and consumers. Otherwise it is a faithful reproduction.
  * <p>
+ * Write this: <pre>
+ * long beanCount() throws SomeException, OtherException {
+ *     checked(Stream.of(1, 2, 3)).
+ *         map(this::someThrowingFunction).
+ *         peek(That::oldBean).
+ *         count();
+ * }
+ * </pre> not this: <pre>
+ * long beanCount() throws SomeException, OtherException {
+ *     try {
+ *         Stream.of(1, 2, 3).
+ *             map(i -> {
+ *                 try {
+ *                     someThrowingFunction(i);
+ *                 } catch (final SomeException e) {
+ *                     throw new RuntimeException(e);
+ *                 }
+ *             }).
+ *             peek(i -> {
+ *                 try {
+ *                     That.oldBean(i);
+ *                 } catch (final OtherException e) {
+ *                     throw new RuntimeException(e);
+ *                 }
+ *             }).
+ *             count();
+ *     } catch (final RuntimeException e) {
+ *         final Throwable x = e.getCause();
+ *         if (x instanceof SomeException)
+ *             throw (SomeException) x;
+ *         if (x instanceof OtherException)
+ *             throw (OtherException) x;
+ *         throw e;
+ *     }
+ * }
+ * </pre>
  * "Intentional" exceptions (checked exceptions plus {@code CancellationException}) have "scrubbed"
- * stacktraces: frames from this class or from the {@code mbl.labs.util.function} and {@code
- * java.util} packages are removed before the intentional exception is rethrown to calling code.
- * Scrubbed stacktraces are much easier to understand, the framework and glue code having been
- * removed.
+ * stacktraces: frames from framework/glue packages are removed before the intentional exception is
+ * rethrown to calling code. Scrubbed stacktraces are much easier to understand, the framework and
+ * glue code having been removed.
  * <p>
- * To see the unscrubbed stacktrace, set the system property "mbl.labs.util.stream.CheckedStream.debug"
+ * To see the unscrubbed stacktrace, set the system property "hm.binkley.util.stream.CheckedStream.debug"
  * to "true".
+ * <p>
+ * Controlling the thread pool used by {@code Stream} is a challenge.  Deep in the implementation,
+ * it checks if being run in a {@link ForkJoinTask}, and uses that thread if so, otherwise using the
+ * {@link ForkJoinPool#commonPool() common pool}.  So with {@code CheckedStream} write this:
+ * <pre>
+ *     checked(stream, new ForkJoinPool()).
+ *         map(currentThread()).
+ *         forEach(System.out::println);
+ * </pre> not this: <pre>
+ *     try {
+ *         new ForkJoinPool().submit(() -> stream.
+ *                 map(currentThread()).
+ *                 forEach(System.out::println)).
+ *             get();
+ *     } catch (final ExecutionException e) {
+ *         final Throwable x = e.getCause();
+ *         if (x instanceof Error)
+ *             throw (Error) x;
+ *         if (x instanceof RuntimeException)
+ *             // Much tricker when stream functions throw runtime
+ *             throw (RuntimeException) x;
+ *         throw new Error(e); // We have no checked exceptions in this example
+ *     }
+ * </pre>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Optimize non-throwing, non-terminal calls: they don't need wrapping
@@ -147,8 +206,8 @@ public abstract class CheckedStream<T>
     @Nonnull
     public final <E extends Exception> Spliterator<T> spliterator()
             throws E, InterruptedException {
-        return this.<Spliterator<T>, E>terminateConcrete(
-                () -> evaluateObject(delegate::spliterator));
+        return this
+                .<Spliterator<T>, E>terminateConcrete(() -> evaluateObject(delegate::spliterator));
     }
 
     /** @see Stream#isParallel() */
@@ -200,7 +259,8 @@ public abstract class CheckedStream<T>
      * @see Stream#mapToInt(ToIntFunction)
      */
     @Nonnull
-    public final <E extends Exception> IntStream mapToInt(@Nonnull final ToIntFunction<? super T> mapper)
+    public final <E extends Exception> IntStream mapToInt(
+            @Nonnull final ToIntFunction<? super T> mapper)
             throws E, InterruptedException {
         return evaluateObject(() -> delegate.mapToInt(mapper));
     }
@@ -338,8 +398,8 @@ public abstract class CheckedStream<T>
     @Nonnull
     public final <A, E extends Exception> A[] toArray(@Nonnull final IntFunction<A[]> generator)
             throws E, InterruptedException {
-        return this.<A[], E>terminateConcrete(
-                () -> evaluateObject(() -> delegate.toArray(generator)));
+        return this
+                .<A[], E>terminateConcrete(() -> evaluateObject(() -> delegate.toArray(generator)));
     }
 
     /**
@@ -397,7 +457,8 @@ public abstract class CheckedStream<T>
 
     /** @see Stream#min(Comparator) */
     @Nonnull
-    public final <E extends Exception> Optional<T> min(@Nonnull final Comparator<? super T> comparator)
+    public final <E extends Exception> Optional<T> min(
+            @Nonnull final Comparator<? super T> comparator)
             throws E, InterruptedException {
         return this.<Optional<T>, E>terminateConcrete(
                 () -> evaluateObject(() -> delegate.min(comparator)));
@@ -405,7 +466,8 @@ public abstract class CheckedStream<T>
 
     /** @see Stream#max(Comparator) */
     @Nonnull
-    public final <E extends Exception> Optional<T> max(@Nonnull final Comparator<? super T> comparator)
+    public final <E extends Exception> Optional<T> max(
+            @Nonnull final Comparator<? super T> comparator)
             throws E, InterruptedException {
         return this.<Optional<T>, E>terminateConcrete(
                 () -> evaluateObject(() -> delegate.max(comparator)));
@@ -455,8 +517,7 @@ public abstract class CheckedStream<T>
     /**
      * Closes the delegated stream.
      *
-     * @throws Exception if any registered {@link #onClose(ThrowingRunnable)
-     * close handlers} throw
+     * @throws Exception if any registered {@link #onClose(ThrowingRunnable) close handlers} throw
      */
     @Override
     public final void close()
@@ -469,7 +530,8 @@ public abstract class CheckedStream<T>
     protected final Stream<T> immediate()
             throws Exception {
         // TODO: Why doesn't spliterator work like this?  Javadoc says it's terminal
-        if (false) return StreamSupport.stream(spliterator(), isParallel());
+        if (false)
+            return StreamSupport.stream(spliterator(), isParallel());
         return delegate.collect(toList()).stream();
     }
 
@@ -709,7 +771,8 @@ public abstract class CheckedStream<T>
             extends CheckedStream<T> {
         private final ForkJoinPool threads;
 
-        private ParallelCheckedStream(@Nonnull final Stream<T> delegate, final ForkJoinPool threads) {
+        private ParallelCheckedStream(@Nonnull final Stream<T> delegate,
+                final ForkJoinPool threads) {
             super(delegate);
             this.threads = threads;
         }
