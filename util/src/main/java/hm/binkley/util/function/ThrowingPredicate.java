@@ -43,6 +43,7 @@ public interface ThrowingPredicate<T, E extends Exception> {
         return null == targetRef ? Objects::isNull : targetRef::equals;
     }
 
+    /** Creates a facade {@code Predicate} wrapping this throwing one. */
     default <D extends RuntimeException> Predicate<T> asPredicate(
             final Defer<D> defer) {
         return t -> defer.as(() -> test(t));

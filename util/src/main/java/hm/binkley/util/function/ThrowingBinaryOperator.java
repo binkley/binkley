@@ -29,6 +29,7 @@ public interface ThrowingBinaryOperator<T, E extends Exception>
         return (a, b) -> 0 <= comparator.compare(a, b) ? a : b;
     }
 
+    /** Creates a facade {@code BinaryOperator} wrapping this throwing one. */
     default <D extends RuntimeException> BinaryOperator<T> asBinaryOperator(final Defer<D> defer) {
         return (u, v) -> defer.as(() -> apply(u, v));
     }

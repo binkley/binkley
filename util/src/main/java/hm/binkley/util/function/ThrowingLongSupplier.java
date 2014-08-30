@@ -16,6 +16,7 @@ public interface ThrowingLongSupplier<E extends Exception> {
     long getAsLong()
             throws E, InterruptedException;
 
+    /** Creates a facade {@code LongSupplier} wrapping this throwing one. */
     default <D extends RuntimeException> LongSupplier asLongSupplier(final Defer<D> defer) {
         return () -> defer.as(this);
     }

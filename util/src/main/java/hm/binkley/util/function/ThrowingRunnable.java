@@ -13,6 +13,7 @@ public interface ThrowingRunnable<E extends Exception> {
     void run()
             throws E, InterruptedException;
 
+    /** Creates a facade {@code Runnable} wrapping this throwing one. */
     default <D extends RuntimeException> Runnable asRunnable(final Defer<D> defer) {
         return () -> defer.as(this);
     }

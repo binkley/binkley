@@ -27,6 +27,7 @@ public interface ThrowingBiConsumer<T, U, E extends Exception> {
         };
     }
 
+    /** Creates a facade {@code BiConsumer} wrapping this throwing one. */
     default <D extends RuntimeException> BiConsumer<T, U> asBiConsumer(final Defer<D> defer) {
         return (t, u) -> defer.as(() -> accept(t, u));
     }
