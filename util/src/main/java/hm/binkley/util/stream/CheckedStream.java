@@ -132,90 +132,89 @@ public abstract class CheckedStream<T>
     private static final String funcName = ThrowingFunction.class.getPackage().getName();
     private static final String javaName = "java.util.";
     private static final boolean debug = Boolean.getBoolean(className + ".debug");
-    private final Stream<T> delegate;
+    private final Stream<T> stream;
 
     /**
-     * Creates a new sequential {@code CheckedStream} wrapping the given <var>delegate</var>
-     * stream.
+     * Creates a new sequential {@code CheckedStream} wrapping the given <var>stream</var> stream.
      *
-     * @param delegate the delegated stream, never missing
+     * @param stream the delegated stream, never missing
      * @param <T> the stream element type
      *
      * @return the new checked stream, never missing
      */
     @Nonnull
-    public static <T> CheckedStream<T> checked(@Nonnull final Stream<T> delegate) {
-        return new SequentialCheckedStream<>(delegate);
+    public static <T> CheckedStream<T> checked(@Nonnull final Stream<T> stream) {
+        return new SequentialCheckedStream<>(stream);
     }
 
     /**
-     * Creates a new parallel {@code CheckedStream} wrapping the given <var>delegate</var> stream
-     * and executing on <var>threads</var>.
+     * Creates a new parallel {@code CheckedStream} wrapping the given <var>stream</var> stream and
+     * executing on <var>threads</var>.
      *
-     * @param delegate the delegated stream, never missing
+     * @param stream the delegated stream, never missing
      * @param threads the fork-join thread pool, never missing
      * @param <T> the stream element type
      *
      * @return the new checked stream, never missing
      */
     @Nonnull
-    public static <T> CheckedStream<T> checked(@Nonnull final Stream<T> delegate,
+    public static <T> CheckedStream<T> checked(@Nonnull final Stream<T> stream,
             @Nonnull final ForkJoinPool threads) {
-        return new ParallelCheckedStream<>(delegate, threads);
+        return new ParallelCheckedStream<>(stream, threads);
     }
 
     /**
      * Constructs a new {@code CheckedStream} for the given <var>delegate</var> stream and
      * <var>thrown</var> exception holder.
      *
-     * @param delegate the delegated stream, never missing
+     * @param stream the delegated stream, never missing
      */
-    protected CheckedStream(@Nonnull final Stream<T> delegate) {
-        this.delegate = delegate;
+    protected CheckedStream(@Nonnull final Stream<T> stream) {
+        this.stream = stream;
     }
 
     @Nonnull
-    protected abstract <U> CheckedStream<U> next(@Nonnull final Stream<U> delegate);
+    protected abstract <U> CheckedStream<U> next(@Nonnull final Stream<U> stream);
 
-    protected abstract <E extends Exception> void terminateVoid(final ThrowingRunnable<E> action)
+    protected abstract <E extends Exception> void terminateVoid(
+            @Nonnull final ThrowingRunnable<E> action)
             throws E, InterruptedException;
 
     protected abstract <U, E extends Exception> U terminateConcrete(
-            final ThrowingSupplier<U, E> supplier)
+            @Nonnull final ThrowingSupplier<U, E> supplier)
             throws E, InterruptedException;
 
     protected abstract <E extends Exception> long terminateLong(
-            final ThrowingLongSupplier<E> supplier)
+            @Nonnull final ThrowingLongSupplier<E> supplier)
             throws E, InterruptedException;
 
     protected abstract <E extends Exception> boolean terminateBoolean(
-            final ThrowingBooleanSupplier<E> supplier)
+            @Nonnull final ThrowingBooleanSupplier<E> supplier)
             throws E, InterruptedException;
 
     /** Gets the delegated stream. */
     @Nonnull
     public final Stream<T> asStream() {
-        return delegate;
+        return stream;
     }
 
     /** @see Stream#iterator() */
     @Nonnull
     public final <E extends Exception> Iterator<T> iterator()
             throws E, InterruptedException {
-        return this.<Iterator<T>, E>terminateConcrete(() -> evaluateObject(delegate::iterator));
+        return this.<Iterator<T>, E>terminateConcrete(() -> evaluateObject(stream::iterator));
     }
 
     /** @see Stream#spliterator() */
     @Nonnull
     public final <E extends Exception> Spliterator<T> spliterator()
             throws E, InterruptedException {
-        return this
-                .<Spliterator<T>, E>terminateConcrete(() -> evaluateObject(delegate::spliterator));
+        return this.<Spliterator<T>, E>terminateConcrete(() -> evaluateObject(stream::spliterator));
     }
 
     /** @see Stream#isParallel() */
     public final boolean isParallel() {
-        return delegate.isParallel();
+        return stream.isParallel();
     }
 
     /** @see Stream#sequential() */
@@ -231,14 +230,14 @@ public abstract class CheckedStream<T>
     /** @see Stream#unordered() */
     @Nonnull
     public final <E extends Exception> CheckedStream<T> unordered()
-            throws E, InterruptedException {
-        return evaluateStream(delegate::unordered);
+            throws InterruptedException {
+        return evaluateStream(stream::unordered);
     }
 
     /** @see Stream#onClose(Runnable) */
     @Nonnull
     public final CheckedStream<T> onClose(@Nonnull final ThrowingRunnable<?> closeHandler) {
-        return next(delegate.onClose(closeHandler.asRunnable(StreamException::new)));
+        return next(stream.onClose(closeHandler.asRunnable(StreamException::new)));
     }
 
     /** @see Stream#filter(Predicate) */
@@ -246,7 +245,7 @@ public abstract class CheckedStream<T>
     public final <E extends Exception> CheckedStream<T> filter(
             @Nonnull final ThrowingPredicate<? super T, E> predicate)
             throws E, InterruptedException {
-        return evaluateStream(() -> delegate.filter(predicate.asPredicate(StreamException::new)));
+        return evaluateStream(() -> stream.filter(predicate.asPredicate(StreamException::new)));
     }
 
     /** @see Stream#map(Function) */
@@ -254,7 +253,7 @@ public abstract class CheckedStream<T>
     public final <R, E extends Exception> CheckedStream<R> map(
             @Nonnull final ThrowingFunction<? super T, ? extends R, E> mapper)
             throws E, InterruptedException {
-        return evaluateStream(() -> delegate.map(mapper.asFunction(StreamException::new)));
+        return evaluateStream(() -> stream.map(mapper.asFunction(StreamException::new)));
     }
 
     /**
@@ -262,10 +261,9 @@ public abstract class CheckedStream<T>
      * @see Stream#mapToInt(ToIntFunction)
      */
     @Nonnull
-    public final <E extends Exception> IntStream mapToInt(
-            @Nonnull final ToIntFunction<? super T> mapper)
-            throws E, InterruptedException {
-        return evaluateObject(() -> delegate.mapToInt(mapper));
+    public final IntStream mapToInt(@Nonnull final ToIntFunction<? super T> mapper)
+            throws InterruptedException {
+        return evaluateObject(() -> stream.mapToInt(mapper));
     }
 
     /**
@@ -273,10 +271,9 @@ public abstract class CheckedStream<T>
      * @see Stream#mapToLong(ToLongFunction)
      */
     @Nonnull
-    public final <E extends Exception> LongStream mapToLong(
-            @Nonnull final ToLongFunction<? super T> mapper)
-            throws E, InterruptedException {
-        return evaluateObject(() -> delegate.mapToLong(mapper));
+    public final LongStream mapToLong(@Nonnull final ToLongFunction<? super T> mapper)
+            throws InterruptedException {
+        return evaluateObject(() -> stream.mapToLong(mapper));
     }
 
     /**
@@ -284,10 +281,9 @@ public abstract class CheckedStream<T>
      * @see Stream#mapToDouble(ToDoubleFunction)
      */
     @Nonnull
-    public final <E extends Exception> DoubleStream mapToDouble(
-            @Nonnull final ToDoubleFunction<? super T> mapper)
-            throws E, InterruptedException {
-        return evaluateObject(() -> delegate.mapToDouble(mapper));
+    public final DoubleStream mapToDouble(@Nonnull final ToDoubleFunction<? super T> mapper)
+            throws InterruptedException {
+        return evaluateObject(() -> stream.mapToDouble(mapper));
     }
 
     /** @see Stream#flatMap(Function) */
@@ -295,7 +291,7 @@ public abstract class CheckedStream<T>
     public final <R, E extends Exception> CheckedStream<R> flatMap(@Nonnull
     final ThrowingFunction<? super T, ? extends Stream<? extends R>, E> mapper)
             throws E, InterruptedException {
-        return evaluateStream(() -> delegate.flatMap(mapper.asFunction(StreamException::new)));
+        return evaluateStream(() -> stream.flatMap(mapper.asFunction(StreamException::new)));
     }
 
     /**
@@ -303,10 +299,10 @@ public abstract class CheckedStream<T>
      * @see Stream#flatMapToInt(Function)
      */
     @Nonnull
-    public final <E extends Exception> IntStream flatMapToInt(
+    public final IntStream flatMapToInt(
             @Nonnull final Function<? super T, ? extends IntStream> mapper)
-            throws E, InterruptedException {
-        return evaluateObject(() -> delegate.flatMapToInt(mapper));
+            throws InterruptedException {
+        return evaluateObject(() -> stream.flatMapToInt(mapper));
     }
 
     /**
@@ -314,10 +310,10 @@ public abstract class CheckedStream<T>
      * @see Stream#flatMapToLong(Function)
      */
     @Nonnull
-    public final <E extends Exception> LongStream flatMapToLong(
+    public final LongStream flatMapToLong(
             @Nonnull final Function<? super T, ? extends LongStream> mapper)
-            throws E, InterruptedException {
-        return evaluateObject(() -> delegate.flatMapToLong(mapper));
+            throws InterruptedException {
+        return evaluateObject(() -> stream.flatMapToLong(mapper));
     }
 
     /**
@@ -325,33 +321,33 @@ public abstract class CheckedStream<T>
      * @see Stream#flatMapToDouble(Function)
      */
     @Nonnull
-    public final <E extends Exception> DoubleStream flatMapToDouble(
+    public final DoubleStream flatMapToDouble(
             @Nonnull final Function<? super T, ? extends DoubleStream> mapper)
-            throws E, InterruptedException {
-        return evaluateObject(() -> delegate.flatMapToDouble(mapper));
+            throws InterruptedException {
+        return evaluateObject(() -> stream.flatMapToDouble(mapper));
     }
 
     /** @see Stream#distinct() */
     @Nonnull
-    public final <E extends Exception> CheckedStream<T> distinct()
-            throws E, InterruptedException {
-        return evaluateStream(delegate::distinct);
+    public final CheckedStream<T> distinct()
+            throws InterruptedException {
+        return evaluateStream(stream::distinct);
     }
 
     /** @see Stream#sorted() */
     @Nonnull
-    public final <E extends Exception> CheckedStream<T> sorted()
-            throws E, InterruptedException {
-        return this.<CheckedStream<T>, E>terminateConcrete(() -> evaluateStream(delegate::sorted));
+    public final CheckedStream<T> sorted()
+            throws InterruptedException {
+        return this.<CheckedStream<T>, RuntimeException>terminateConcrete(
+                () -> evaluateStream(stream::sorted));
     }
 
     /** @see Stream#sorted(Comparator) */
     @Nonnull
-    public final <E extends Exception> CheckedStream<T> sorted(
-            @Nonnull final Comparator<? super T> comparator)
-            throws E, InterruptedException {
-        return this.<CheckedStream<T>, E>terminateConcrete(
-                () -> evaluateStream(() -> delegate.sorted(comparator)));
+    public final CheckedStream<T> sorted(@Nonnull final Comparator<? super T> comparator)
+            throws InterruptedException {
+        return this.<CheckedStream<T>, RuntimeException>terminateConcrete(
+                () -> evaluateStream(() -> stream.sorted(comparator)));
     }
 
     /** @see Stream#peek(Consumer) */
@@ -359,29 +355,29 @@ public abstract class CheckedStream<T>
     public final <E extends Exception> CheckedStream<T> peek(
             @Nonnull final ThrowingConsumer<? super T, E> action)
             throws E, InterruptedException {
-        return evaluateStream(() -> delegate.peek(action.asConsumer(StreamException::new)));
+        return evaluateStream(() -> stream.peek(action.asConsumer(StreamException::new)));
     }
 
     /** @see Stream#limit(long) */
     @Nonnull
     public final <E extends Exception> CheckedStream<T> limit(final long maxSize)
             throws E, InterruptedException {
-        return evaluateStream(() -> delegate.limit(maxSize));
+        return evaluateStream(() -> stream.limit(maxSize));
     }
 
     /** @see Stream#skip(long) */
     @Nonnull
-    public final <E extends Exception> CheckedStream<T> skip(final long n)
-            throws E, InterruptedException {
-        return evaluateStream(() -> delegate.skip(n));
+    public final CheckedStream<T> skip(final long n)
+            throws InterruptedException {
+        return evaluateStream(() -> stream.skip(n));
     }
 
     /** @see Stream#forEach(Consumer) */
     public final <E extends Exception> void forEach(
             @Nonnull final ThrowingConsumer<? super T, E> action)
             throws InterruptedException {
-        terminateVoid(() -> evaluateVoid(
-                () -> delegate.forEach(action.asConsumer(StreamException::new))));
+        terminateVoid(
+                () -> evaluateVoid(() -> stream.forEach(action.asConsumer(StreamException::new))));
     }
 
     /** @see Stream#forEachOrdered(Consumer) */
@@ -389,22 +385,23 @@ public abstract class CheckedStream<T>
             @Nonnull final ThrowingConsumer<? super T, E> action)
             throws E, InterruptedException {
         terminateVoid(() -> evaluateVoid(
-                () -> delegate.forEachOrdered(action.asConsumer(StreamException::new))));
+                () -> stream.forEachOrdered(action.asConsumer(StreamException::new))));
     }
 
     /** @see Stream#toArray() */
     @Nonnull
-    public final <E extends Exception> Object[] toArray()
-            throws E, InterruptedException {
-        return this.<Object[], E>terminateConcrete(() -> evaluateObject(delegate::toArray));
+    public final Object[] toArray()
+            throws InterruptedException {
+        return this.<Object[], RuntimeException>terminateConcrete(
+                () -> evaluateObject(stream::toArray));
     }
 
     /** @see Stream#toArray(IntFunction) */
     @Nonnull
-    public final <A, E extends Exception> A[] toArray(@Nonnull final IntFunction<A[]> generator)
-            throws E, InterruptedException {
-        return this
-                .<A[], E>terminateConcrete(() -> evaluateObject(() -> delegate.toArray(generator)));
+    public final <A> A[] toArray(@Nonnull final IntFunction<A[]> generator)
+            throws InterruptedException {
+        return this.<A[], RuntimeException>terminateConcrete(
+                () -> evaluateObject(() -> stream.toArray(generator)));
     }
 
     /**
@@ -413,8 +410,8 @@ public abstract class CheckedStream<T>
     public final <E extends Exception> T reduce(@Nonnull final T identity,
             @Nonnull final ThrowingBinaryOperator<T, E> accumulator)
             throws E, InterruptedException {
-        return this.<T, E>terminateConcrete(() -> evaluateObject(() -> delegate
-                .reduce(identity, accumulator.asBinaryOperator(StreamException::new))));
+        return this.<T, E>terminateConcrete(() -> evaluateObject(
+                () -> stream.reduce(identity, accumulator.asBinaryOperator(StreamException::new))));
     }
 
     /** @see Stream#reduce(BinaryOperator) */
@@ -423,7 +420,7 @@ public abstract class CheckedStream<T>
             @Nonnull final ThrowingBinaryOperator<T, E> accumulator)
             throws E, InterruptedException {
         return this.<Optional<T>, E>terminateConcrete(() -> evaluateObject(
-                () -> delegate.reduce(accumulator.asBinaryOperator(StreamException::new))));
+                () -> stream.reduce(accumulator.asBinaryOperator(StreamException::new))));
     }
 
     /** @see Stream#reduce(Object, BinaryOperator) */
@@ -431,7 +428,7 @@ public abstract class CheckedStream<T>
             @Nonnull final ThrowingBiFunction<U, ? super T, U, E> accumulator,
             @Nonnull final ThrowingBinaryOperator<U, E> combiner)
             throws E, InterruptedException {
-        return this.<U, E>terminateConcrete(() -> evaluateObject(() -> delegate
+        return this.<U, E>terminateConcrete(() -> evaluateObject(() -> stream
                 .reduce(identity, accumulator.asBiFunction(StreamException::new),
                         combiner.asBinaryOperator(StreamException::new))));
     }
@@ -446,7 +443,7 @@ public abstract class CheckedStream<T>
             @Nonnull final BiConsumer<R, R> combiner)
             throws E, InterruptedException {
         return this.<R, E>terminateConcrete(
-                () -> evaluateObject(() -> delegate.collect(supplier, accumulator, combiner)));
+                () -> evaluateObject(() -> stream.collect(supplier, accumulator, combiner)));
     }
 
     /**
@@ -457,32 +454,29 @@ public abstract class CheckedStream<T>
     public final <R, A, E extends Exception> R collect(
             @Nonnull final Collector<? super T, A, R> collector)
             throws E, InterruptedException {
-        return this
-                .<R, E>terminateConcrete(() -> evaluateObject(() -> delegate.collect(collector)));
+        return this.<R, E>terminateConcrete(() -> evaluateObject(() -> stream.collect(collector)));
     }
 
     /** @see Stream#min(Comparator) */
     @Nonnull
-    public final <E extends Exception> Optional<T> min(
-            @Nonnull final Comparator<? super T> comparator)
-            throws E, InterruptedException {
-        return this.<Optional<T>, E>terminateConcrete(
-                () -> evaluateObject(() -> delegate.min(comparator)));
+    public final Optional<T> min(@Nonnull final Comparator<? super T> comparator)
+            throws InterruptedException {
+        return this.<Optional<T>, RuntimeException>terminateConcrete(
+                () -> evaluateObject(() -> stream.min(comparator)));
     }
 
     /** @see Stream#max(Comparator) */
     @Nonnull
-    public final <E extends Exception> Optional<T> max(
-            @Nonnull final Comparator<? super T> comparator)
-            throws E, InterruptedException {
-        return this.<Optional<T>, E>terminateConcrete(
-                () -> evaluateObject(() -> delegate.max(comparator)));
+    public final Optional<T> max(@Nonnull final Comparator<? super T> comparator)
+            throws InterruptedException {
+        return this.<Optional<T>, RuntimeException>terminateConcrete(
+                () -> evaluateObject(() -> stream.max(comparator)));
     }
 
     /** @see Stream#count() */
     public final long count()
             throws InterruptedException {
-        return terminateLong(() -> evaluateLong(delegate::count));
+        return terminateLong(() -> evaluateLong(stream::count));
     }
 
     /** @see Stream#anyMatch(Predicate) */
@@ -490,7 +484,7 @@ public abstract class CheckedStream<T>
             @Nonnull final ThrowingPredicate<? super T, E> predicate)
             throws E, InterruptedException {
         return terminateBoolean(() -> evaluateBoolean(
-                () -> delegate.anyMatch(predicate.asPredicate(StreamException::new))));
+                () -> stream.anyMatch(predicate.asPredicate(StreamException::new))));
     }
 
     /** @see Stream#allMatch(Predicate) */
@@ -498,7 +492,7 @@ public abstract class CheckedStream<T>
             @Nonnull final ThrowingPredicate<? super T, E> predicate)
             throws E, InterruptedException {
         return terminateBoolean(() -> evaluateBoolean(
-                () -> delegate.allMatch(predicate.asPredicate(StreamException::new))));
+                () -> stream.allMatch(predicate.asPredicate(StreamException::new))));
     }
 
     /** @see Stream#noneMatch(Predicate) */
@@ -506,21 +500,23 @@ public abstract class CheckedStream<T>
             @Nonnull final ThrowingPredicate<? super T, E> predicate)
             throws E, InterruptedException {
         return terminateBoolean(() -> evaluateBoolean(
-                () -> delegate.noneMatch(predicate.asPredicate(StreamException::new))));
+                () -> stream.noneMatch(predicate.asPredicate(StreamException::new))));
     }
 
     /** @see Stream#findFirst() */
     @Nonnull
-    public final <E extends Exception> Optional<T> findFirst()
-            throws E, InterruptedException {
-        return this.<Optional<T>, E>terminateConcrete(() -> evaluateObject(delegate::findFirst));
+    public final Optional<T> findFirst()
+            throws InterruptedException {
+        return this.<Optional<T>, RuntimeException>terminateConcrete(
+                () -> evaluateObject(stream::findFirst));
     }
 
     /** @see Stream#findAny() */
     @Nonnull
-    public final <E extends Exception> Optional<T> findAny()
-            throws E, InterruptedException {
-        return this.<Optional<T>, E>terminateConcrete(() -> evaluateObject(delegate::findAny));
+    public final Optional<T> findAny()
+            throws InterruptedException {
+        return this.<Optional<T>, RuntimeException>terminateConcrete(
+                () -> evaluateObject(stream::findAny));
     }
 
     /**
@@ -531,7 +527,7 @@ public abstract class CheckedStream<T>
     @Override
     public final void close()
             throws Exception {
-        terminateVoid(() -> evaluateVoid(delegate::close));
+        terminateVoid(() -> evaluateVoid(stream::close));
     }
 
     // Implementation
@@ -541,7 +537,7 @@ public abstract class CheckedStream<T>
         // TODO: Why doesn't spliterator work like this?  Javadoc says it's terminal
         if (false)
             return StreamSupport.stream(spliterator(), isParallel());
-        return delegate.collect(toList()).stream();
+        return stream.collect(toList()).stream();
     }
 
     private <R, E extends Exception> CheckedStream<R> evaluateStream(
@@ -647,8 +643,8 @@ public abstract class CheckedStream<T>
 
         @Nonnull
         @Override
-        protected <U> CheckedStream<U> next(@Nonnull final Stream<U> delegate) {
-            return new SequentialCheckedStream<>(delegate);
+        protected <U> CheckedStream<U> next(@Nonnull final Stream<U> stream) {
+            return new SequentialCheckedStream<>(stream);
         }
 
         @Override
@@ -704,8 +700,8 @@ public abstract class CheckedStream<T>
 
         @Nonnull
         @Override
-        protected <U> CheckedStream<U> next(@Nonnull final Stream<U> delegate) {
-            return new ParallelCheckedStream<>(delegate, threads);
+        protected <U> CheckedStream<U> next(@Nonnull final Stream<U> stream) {
+            return new ParallelCheckedStream<>(stream, threads);
         }
 
         @Override
