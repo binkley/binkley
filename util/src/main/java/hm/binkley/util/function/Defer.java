@@ -37,6 +37,7 @@ import static java.lang.Thread.currentThread;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
+ * @todo Package scope or public?
  */
 @FunctionalInterface
 public interface Defer<D extends RuntimeException>
