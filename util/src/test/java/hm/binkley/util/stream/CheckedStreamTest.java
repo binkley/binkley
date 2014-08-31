@@ -61,6 +61,14 @@ public class CheckedStreamTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
+    public void shouldCloseOnClose()
+            throws Exception {
+        final int[] box = new int[1];
+        checked(Stream.of(1)).onClose(() -> box[0] = 1).close();
+        assertThat(box[0], is(equalTo(1)));
+    }
+
+    @Test
     public void shouldIterateWhenSequential()
             throws InterruptedException {
         final Iterator<Integer> it = checked(Stream.of(1)).iterator();
