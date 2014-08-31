@@ -40,7 +40,6 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static hm.binkley.util.function.ThrowingFunction.identity;
 import static hm.binkley.util.function.ThrowingPredicate.isEqual;
@@ -122,7 +121,7 @@ import static java.util.stream.IntStream.range;
  * </pre>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Optimize non-throwing, non-terminal calls: they don't need wrapping
+ * @todo Optimize non-throwing, non-terminal calls: they don't need wrapping, but keep throws E
  */
 @SuppressWarnings("UnusedDeclaration")
 public abstract class CheckedStream<T>
@@ -202,14 +201,17 @@ public abstract class CheckedStream<T>
     @Nonnull
     public final <E extends Exception> Iterator<T> iterator()
             throws E, InterruptedException {
-        return this.<Iterator<T>, E>terminateConcrete(() -> evaluateObject(stream::iterator));
+        final ThrowingSupplier<Iterator<T>, E> terminal = () -> evaluateObject(stream::iterator);
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#spliterator() */
     @Nonnull
     public final <E extends Exception> Spliterator<T> spliterator()
             throws E, InterruptedException {
-        return this.<Spliterator<T>, E>terminateConcrete(() -> evaluateObject(stream::spliterator));
+        final ThrowingSupplier<Spliterator<T>, E> terminal = () -> evaluateObject(
+                stream::spliterator);
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#isParallel() */
@@ -338,16 +340,18 @@ public abstract class CheckedStream<T>
     @Nonnull
     public final CheckedStream<T> sorted()
             throws InterruptedException {
-        return this.<CheckedStream<T>, RuntimeException>terminateConcrete(
-                () -> evaluateStream(stream::sorted));
+        final ThrowingSupplier<CheckedStream<T>, RuntimeException> terminal = () -> evaluateStream(
+                stream::sorted);
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#sorted(Comparator) */
     @Nonnull
     public final CheckedStream<T> sorted(@Nonnull final Comparator<? super T> comparator)
             throws InterruptedException {
-        return this.<CheckedStream<T>, RuntimeException>terminateConcrete(
-                () -> evaluateStream(() -> stream.sorted(comparator)));
+        final ThrowingSupplier<CheckedStream<T>, RuntimeException> terminal = () -> evaluateStream(
+                () -> stream.sorted(comparator));
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#peek(Consumer) */
@@ -376,42 +380,45 @@ public abstract class CheckedStream<T>
     public final <E extends Exception> void forEach(
             @Nonnull final ThrowingConsumer<? super T, E> action)
             throws InterruptedException {
-        terminateVoid(
-                () -> evaluateVoid(() -> stream.forEach(action.asConsumer(StreamException::new))));
+        final ThrowingRunnable<RuntimeException> terminal = () -> evaluateVoid(
+                () -> stream.forEach(action.asConsumer(StreamException::new)));
+        terminateVoid(terminal);
     }
 
     /** @see Stream#forEachOrdered(Consumer) */
     public final <E extends Exception> void forEachOrdered(
             @Nonnull final ThrowingConsumer<? super T, E> action)
             throws E, InterruptedException {
-        terminateVoid(() -> evaluateVoid(
-                () -> stream.forEachOrdered(action.asConsumer(StreamException::new))));
+        final ThrowingRunnable<RuntimeException> terminal = () -> evaluateVoid(
+                () -> stream.forEachOrdered(action.asConsumer(StreamException::new)));
+        terminateVoid(terminal);
     }
 
     /** @see Stream#toArray() */
     @Nonnull
     public final Object[] toArray()
             throws InterruptedException {
-        return this.<Object[], RuntimeException>terminateConcrete(
-                () -> evaluateObject(stream::toArray));
+        final ThrowingSupplier<Object[], RuntimeException> terminal = () -> evaluateObject(
+                stream::toArray);
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#toArray(IntFunction) */
     @Nonnull
     public final <A> A[] toArray(@Nonnull final IntFunction<A[]> generator)
             throws InterruptedException {
-        return this.<A[], RuntimeException>terminateConcrete(
-                () -> evaluateObject(() -> stream.toArray(generator)));
+        final ThrowingSupplier<A[], RuntimeException> terminal = () -> evaluateObject(
+                () -> stream.toArray(generator));
+        return terminateConcrete(terminal);
     }
 
-    /**
-     * @see Stream#reduce(Object, BiFunction, BinaryOperator)
-     */
+    /** @see Stream#reduce(Object, BiFunction, BinaryOperator) */
     public final <E extends Exception> T reduce(@Nonnull final T identity,
             @Nonnull final ThrowingBinaryOperator<T, E> accumulator)
             throws E, InterruptedException {
-        return this.<T, E>terminateConcrete(() -> evaluateObject(
-                () -> stream.reduce(identity, accumulator.asBinaryOperator(StreamException::new))));
+        final ThrowingSupplier<T, E> terminal = () -> evaluateObject(
+                () -> stream.reduce(identity, accumulator.asBinaryOperator(StreamException::new)));
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#reduce(BinaryOperator) */
@@ -419,8 +426,9 @@ public abstract class CheckedStream<T>
     public final <E extends Exception> Optional<T> reduce(
             @Nonnull final ThrowingBinaryOperator<T, E> accumulator)
             throws E, InterruptedException {
-        return this.<Optional<T>, E>terminateConcrete(() -> evaluateObject(
-                () -> stream.reduce(accumulator.asBinaryOperator(StreamException::new))));
+        final ThrowingSupplier<Optional<T>, E> terminal = () -> evaluateObject(
+                () -> stream.reduce(accumulator.asBinaryOperator(StreamException::new)));
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#reduce(Object, BinaryOperator) */
@@ -428,9 +436,10 @@ public abstract class CheckedStream<T>
             @Nonnull final ThrowingBiFunction<U, ? super T, U, E> accumulator,
             @Nonnull final ThrowingBinaryOperator<U, E> combiner)
             throws E, InterruptedException {
-        return this.<U, E>terminateConcrete(() -> evaluateObject(() -> stream
+        final ThrowingSupplier<U, E> terminal = () -> evaluateObject(() -> stream
                 .reduce(identity, accumulator.asBiFunction(StreamException::new),
-                        combiner.asBinaryOperator(StreamException::new))));
+                        combiner.asBinaryOperator(StreamException::new)));
+        return terminateConcrete(terminal);
     }
 
     /**
@@ -442,8 +451,9 @@ public abstract class CheckedStream<T>
             @Nonnull final BiConsumer<R, ? super T> accumulator,
             @Nonnull final BiConsumer<R, R> combiner)
             throws E, InterruptedException {
-        return this.<R, E>terminateConcrete(
-                () -> evaluateObject(() -> stream.collect(supplier, accumulator, combiner)));
+        final ThrowingSupplier<R, E> terminal = () -> evaluateObject(
+                () -> stream.collect(supplier, accumulator, combiner));
+        return terminateConcrete(terminal);
     }
 
     /**
@@ -454,23 +464,27 @@ public abstract class CheckedStream<T>
     public final <R, A, E extends Exception> R collect(
             @Nonnull final Collector<? super T, A, R> collector)
             throws E, InterruptedException {
-        return this.<R, E>terminateConcrete(() -> evaluateObject(() -> stream.collect(collector)));
+        final ThrowingSupplier<R, E> terminal = () -> evaluateObject(
+                () -> stream.collect(collector));
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#min(Comparator) */
     @Nonnull
     public final Optional<T> min(@Nonnull final Comparator<? super T> comparator)
             throws InterruptedException {
-        return this.<Optional<T>, RuntimeException>terminateConcrete(
-                () -> evaluateObject(() -> stream.min(comparator)));
+        final ThrowingSupplier<Optional<T>, RuntimeException> terminal = () -> evaluateObject(
+                () -> stream.min(comparator));
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#max(Comparator) */
     @Nonnull
     public final Optional<T> max(@Nonnull final Comparator<? super T> comparator)
             throws InterruptedException {
-        return this.<Optional<T>, RuntimeException>terminateConcrete(
-                () -> evaluateObject(() -> stream.max(comparator)));
+        final ThrowingSupplier<Optional<T>, RuntimeException> terminal = () -> evaluateObject(
+                () -> stream.max(comparator));
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#count() */
@@ -483,40 +497,45 @@ public abstract class CheckedStream<T>
     public final <E extends Exception> boolean anyMatch(
             @Nonnull final ThrowingPredicate<? super T, E> predicate)
             throws E, InterruptedException {
-        return terminateBoolean(() -> evaluateBoolean(
-                () -> stream.anyMatch(predicate.asPredicate(StreamException::new))));
+        final ThrowingBooleanSupplier<RuntimeException> terminal = () -> evaluateBoolean(
+                () -> stream.anyMatch(predicate.asPredicate(StreamException::new)));
+        return terminateBoolean(terminal);
     }
 
     /** @see Stream#allMatch(Predicate) */
     public final <E extends Exception> boolean allMatch(
             @Nonnull final ThrowingPredicate<? super T, E> predicate)
             throws E, InterruptedException {
-        return terminateBoolean(() -> evaluateBoolean(
-                () -> stream.allMatch(predicate.asPredicate(StreamException::new))));
+        final ThrowingBooleanSupplier<RuntimeException> terminal = () -> evaluateBoolean(
+                () -> stream.allMatch(predicate.asPredicate(StreamException::new)));
+        return terminateBoolean(terminal);
     }
 
     /** @see Stream#noneMatch(Predicate) */
     public final <E extends Exception> boolean noneMatch(
             @Nonnull final ThrowingPredicate<? super T, E> predicate)
             throws E, InterruptedException {
-        return terminateBoolean(() -> evaluateBoolean(
-                () -> stream.noneMatch(predicate.asPredicate(StreamException::new))));
+        final ThrowingBooleanSupplier<RuntimeException> terminal = () -> evaluateBoolean(
+                () -> stream.noneMatch(predicate.asPredicate(StreamException::new)));
+        return terminateBoolean(terminal);
     }
 
     /** @see Stream#findFirst() */
     @Nonnull
     public final Optional<T> findFirst()
             throws InterruptedException {
-        return this.<Optional<T>, RuntimeException>terminateConcrete(
-                () -> evaluateObject(stream::findFirst));
+        final ThrowingSupplier<Optional<T>, RuntimeException> terminal = () -> evaluateObject(
+                stream::findFirst);
+        return terminateConcrete(terminal);
     }
 
     /** @see Stream#findAny() */
     @Nonnull
     public final Optional<T> findAny()
             throws InterruptedException {
-        return this.<Optional<T>, RuntimeException>terminateConcrete(
-                () -> evaluateObject(stream::findAny));
+        final ThrowingSupplier<Optional<T>, RuntimeException> terminal = () -> evaluateObject(
+                stream::findAny);
+        return terminateConcrete(terminal);
     }
 
     /**
