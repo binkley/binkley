@@ -1,5 +1,6 @@
 package hm.binkley.util.stream;
 
+import hm.binkley.util.function.ThrowingBiConsumer;
 import hm.binkley.util.function.ThrowingBiFunction;
 import hm.binkley.util.function.ThrowingBinaryOperator;
 import hm.binkley.util.function.ThrowingBooleanSupplier;
@@ -9,9 +10,13 @@ import hm.binkley.util.function.ThrowingLongSupplier;
 import hm.binkley.util.function.ThrowingPredicate;
 import hm.binkley.util.function.ThrowingRunnable;
 import hm.binkley.util.function.ThrowingSupplier;
+import sun.misc.Unsafe;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.rmi.AccessException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -88,6 +93,13 @@ import static java.util.stream.IntStream.range;
  *     }
  * }
  * </pre>
+ * Methods declare exceptions based on compile-time signature of arguments, e.g., {@code
+ * CheckedSupplier} throwing, say, {@code SomeCheckedException}, not based on runtime behavior.
+ * Immediate and terminal methods actually throw exceptions, but do not declare them.  Java does not
+ * provide union types for declaring Exceptions as it does for {@code catch} blocks.  The
+ * alternative is for immediate and terminal methods to declare {@code throws Exception} which
+ * defeats the purpose of fine-grained exceptions.
+ * <p>
  * "Intentional" exceptions (checked exceptions plus {@code CancellationException}) have "scrubbed"
  * stacktraces: frames from framework/glue packages are removed before the intentional exception is
  * rethrown to calling code. Scrubbed stacktraces are much easier to understand, the framework and
@@ -131,6 +143,19 @@ public abstract class CheckedStream<T>
     private static final String funcName = ThrowingFunction.class.getPackage().getName();
     private static final String javaName = "java.util.";
     private static final boolean debug = Boolean.getBoolean(className + ".debug");
+
+    private static final Unsafe unsafe;
+
+    static {
+        try {
+            final Constructor<Unsafe> ctor = Unsafe.class.getDeclaredConstructor();
+            ctor.setAccessible(true);
+            unsafe = ctor.newInstance();
+        } catch (final InvocationTargetException | IllegalAccessException | InstantiationException | NoSuchMethodException e) {
+            throw new Error(e);
+        }
+    }
+
     private final Stream<T> stream;
 
     /**
@@ -175,21 +200,20 @@ public abstract class CheckedStream<T>
     @Nonnull
     protected abstract <U> CheckedStream<U> next(@Nonnull final Stream<U> stream);
 
-    protected abstract <E extends Exception> void terminateVoid(
-            @Nonnull final ThrowingRunnable<E> action)
-            throws E, InterruptedException;
+    protected abstract void terminateVoid(@Nonnull final ThrowingRunnable<RuntimeException> action)
+            throws InterruptedException;
 
-    protected abstract <U, E extends Exception> U terminateConcrete(
-            @Nonnull final ThrowingSupplier<U, E> supplier)
-            throws E, InterruptedException;
+    protected abstract <U> U terminateConcrete(
+            @Nonnull final ThrowingSupplier<U, RuntimeException> supplier)
+            throws InterruptedException;
 
-    protected abstract <E extends Exception> long terminateLong(
-            @Nonnull final ThrowingLongSupplier<E> supplier)
-            throws E, InterruptedException;
+    protected abstract long terminateLong(
+            @Nonnull final ThrowingLongSupplier<RuntimeException> supplier)
+            throws InterruptedException;
 
-    protected abstract <E extends Exception> boolean terminateBoolean(
-            @Nonnull final ThrowingBooleanSupplier<E> supplier)
-            throws E, InterruptedException;
+    protected abstract boolean terminateBoolean(
+            @Nonnull final ThrowingBooleanSupplier<RuntimeException> supplier)
+            throws InterruptedException;
 
     /** Gets the delegated stream. */
     @Nonnull
@@ -199,17 +223,18 @@ public abstract class CheckedStream<T>
 
     /** @see Stream#iterator() */
     @Nonnull
-    public final <E extends Exception> Iterator<T> iterator()
-            throws E, InterruptedException {
-        final ThrowingSupplier<Iterator<T>, E> terminal = () -> evaluateObject(stream::iterator);
+    public final Iterator<T> iterator()
+            throws InterruptedException {
+        final ThrowingSupplier<Iterator<T>, RuntimeException> terminal = () -> evaluateObject(
+                stream::iterator);
         return terminateConcrete(terminal);
     }
 
     /** @see Stream#spliterator() */
     @Nonnull
-    public final <E extends Exception> Spliterator<T> spliterator()
-            throws E, InterruptedException {
-        final ThrowingSupplier<Spliterator<T>, E> terminal = () -> evaluateObject(
+    public final Spliterator<T> spliterator()
+            throws InterruptedException {
+        final ThrowingSupplier<Spliterator<T>, RuntimeException> terminal = () -> evaluateObject(
                 stream::spliterator);
         return terminateConcrete(terminal);
     }
@@ -221,25 +246,25 @@ public abstract class CheckedStream<T>
 
     /** @see Stream#sequential() */
     @Nonnull
-    public abstract CheckedStream<T> sequential()
-            throws Exception;
+    public abstract CheckedStream<T> sequential();
 
     /** @see Stream#parallel() */
     @Nonnull
-    public abstract CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads)
-            throws Exception;
+    public abstract CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads);
 
     /** @see Stream#unordered() */
     @Nonnull
-    public final <E extends Exception> CheckedStream<T> unordered()
+    public final CheckedStream<T> unordered()
             throws InterruptedException {
         return evaluateStream(stream::unordered);
     }
 
     /** @see Stream#onClose(Runnable) */
     @Nonnull
-    public final CheckedStream<T> onClose(@Nonnull final ThrowingRunnable<?> closeHandler) {
-        return next(stream.onClose(closeHandler.asRunnable(StreamException::new)));
+    public final <E extends Exception> CheckedStream<T> onClose(
+            @Nonnull final ThrowingRunnable<E> closeHandler)
+            throws E, InterruptedException {
+        return evaluateStream(() -> stream.onClose(closeHandler.asRunnable(StreamException::new)));
     }
 
     /** @see Stream#filter(Predicate) */
@@ -416,7 +441,7 @@ public abstract class CheckedStream<T>
     public final <E extends Exception> T reduce(@Nonnull final T identity,
             @Nonnull final ThrowingBinaryOperator<T, E> accumulator)
             throws E, InterruptedException {
-        final ThrowingSupplier<T, E> terminal = () -> evaluateObject(
+        final ThrowingSupplier<T, RuntimeException> terminal = () -> evaluateObject(
                 () -> stream.reduce(identity, accumulator.asBinaryOperator(StreamException::new)));
         return terminateConcrete(terminal);
     }
@@ -426,7 +451,7 @@ public abstract class CheckedStream<T>
     public final <E extends Exception> Optional<T> reduce(
             @Nonnull final ThrowingBinaryOperator<T, E> accumulator)
             throws E, InterruptedException {
-        final ThrowingSupplier<Optional<T>, E> terminal = () -> evaluateObject(
+        final ThrowingSupplier<Optional<T>, RuntimeException> terminal = () -> evaluateObject(
                 () -> stream.reduce(accumulator.asBinaryOperator(StreamException::new)));
         return terminateConcrete(terminal);
     }
@@ -436,23 +461,22 @@ public abstract class CheckedStream<T>
             @Nonnull final ThrowingBiFunction<U, ? super T, U, E> accumulator,
             @Nonnull final ThrowingBinaryOperator<U, E> combiner)
             throws E, InterruptedException {
-        final ThrowingSupplier<U, E> terminal = () -> evaluateObject(() -> stream
+        final ThrowingSupplier<U, RuntimeException> terminal = () -> evaluateObject(() -> stream
                 .reduce(identity, accumulator.asBiFunction(StreamException::new),
                         combiner.asBinaryOperator(StreamException::new)));
         return terminateConcrete(terminal);
     }
 
-    /**
-     * @todo Throwing version
-     * @see Stream#collect(Supplier, BiConsumer, BiConsumer)
-     */
+    /** @see Stream#collect(Supplier, BiConsumer, BiConsumer) */
     @Nonnull
-    public final <R, E extends Exception> R collect(@Nonnull final Supplier<R> supplier,
-            @Nonnull final BiConsumer<R, ? super T> accumulator,
-            @Nonnull final BiConsumer<R, R> combiner)
+    public final <R, E extends Exception> R collect(@Nonnull final ThrowingSupplier<R, E> supplier,
+            @Nonnull final ThrowingBiConsumer<R, ? super T, E> accumulator,
+            @Nonnull final ThrowingBiConsumer<R, R, E> combiner)
             throws E, InterruptedException {
-        final ThrowingSupplier<R, E> terminal = () -> evaluateObject(
-                () -> stream.collect(supplier, accumulator, combiner));
+        final ThrowingSupplier<R, RuntimeException> terminal = () -> evaluateObject(() -> stream
+                .collect(supplier.asSupplier(StreamException::new),
+                        accumulator.asBiConsumer(StreamException::new),
+                        combiner.asBiConsumer(StreamException::new)));
         return terminateConcrete(terminal);
     }
 
@@ -464,7 +488,7 @@ public abstract class CheckedStream<T>
     public final <R, A, E extends Exception> R collect(
             @Nonnull final Collector<? super T, A, R> collector)
             throws E, InterruptedException {
-        final ThrowingSupplier<R, E> terminal = () -> evaluateObject(
+        final ThrowingSupplier<R, RuntimeException> terminal = () -> evaluateObject(
                 () -> stream.collect(collector));
         return terminateConcrete(terminal);
     }
@@ -557,8 +581,7 @@ public abstract class CheckedStream<T>
      *
      * @param parallel {@code true} if the new stream should be parallel
      */
-    protected final Stream<T> immediate(final boolean parallel)
-            throws Exception {
+    protected final Stream<T> immediate(final boolean parallel) {
         // Cannot use spliterator: we mix terminals mid-stream in suport of parallel/sequential, so
         // need a fresh stream for immediate operations:
         // return StreamSupport.stream(spliterator(), isParallel());
@@ -566,49 +589,48 @@ public abstract class CheckedStream<T>
         return parallel ? collected.parallelStream() : collected.stream();
     }
 
-    private <R, E extends Exception> CheckedStream<R> evaluateStream(
-            final Supplier<Stream<R>> frame)
-            throws E, InterruptedException {
+    private <R> CheckedStream<R> evaluateStream(final Supplier<Stream<R>> frame)
+            throws InterruptedException {
         try {
             return next(frame.get());
         } catch (final StreamException thrown) {
-            throw thrown.<E>cast();
+            return thrown.asObject();
         }
     }
 
-    private static <U, E extends Exception> U evaluateObject(final Supplier<U> frame)
-            throws E, InterruptedException {
+    private static <U> U evaluateObject(final Supplier<U> frame)
+            throws InterruptedException {
         try {
             return frame.get();
         } catch (final StreamException thrown) {
-            throw thrown.<E>cast();
+            return thrown.asObject();
         }
     }
 
-    private static <E extends Exception> void evaluateVoid(final Runnable frame)
-            throws E, InterruptedException {
+    private static void evaluateVoid(final Runnable frame)
+            throws InterruptedException {
         try {
             frame.run();
         } catch (final StreamException thrown) {
-            throw thrown.<E>cast();
+            thrown.asObject();
         }
     }
 
-    private static <E extends Exception> boolean evaluateBoolean(final BooleanSupplier supplier)
-            throws E, InterruptedException {
+    private static boolean evaluateBoolean(final BooleanSupplier supplier)
+            throws InterruptedException {
         try {
             return supplier.getAsBoolean();
         } catch (final StreamException thrown) {
-            throw thrown.<E>cast();
+            return thrown.asBoolean();
         }
     }
 
-    private static <E extends Exception> long evaluateLong(final LongSupplier supplier)
-            throws E, InterruptedException {
+    private static long evaluateLong(final LongSupplier supplier)
+            throws InterruptedException {
         try {
             return supplier.getAsLong();
         } catch (final StreamException thrown) {
-            throw thrown.<E>cast();
+            return thrown.asLong();
         }
     }
 
@@ -618,8 +640,25 @@ public abstract class CheckedStream<T>
             super(e);
         }
 
-        @SuppressWarnings("unchecked")
-        public <E extends Exception> E cast()
+        public <T> T asObject()
+                throws InterruptedException {
+            rethrow();
+            return null;
+        }
+
+        public boolean asBoolean()
+                throws InterruptedException {
+            rethrow();
+            return false;
+        }
+
+        public long asLong()
+                throws InterruptedException {
+            rethrow();
+            return 0;
+        }
+
+        private void rethrow()
                 throws InterruptedException {
             final Throwable cause = getCause();
             final Throwable[] suppressed = getSuppressed();
@@ -633,7 +672,7 @@ public abstract class CheckedStream<T>
                 throw scrub((InterruptedException) cause);
             }
 
-            return scrub((E) cause);
+            unsafe.throwException(scrub((Exception) cause));
         }
 
         /** When not debugging checked stream, removes framework/glue stack frames. */
@@ -674,44 +713,40 @@ public abstract class CheckedStream<T>
         }
 
         @Override
-        protected <E extends Exception> void terminateVoid(
-                @Nonnull final ThrowingRunnable<E> action)
-                throws E, InterruptedException {
+        protected void terminateVoid(@Nonnull final ThrowingRunnable<RuntimeException> action)
+                throws InterruptedException {
             action.run();
         }
 
         @Override
-        protected <U, E extends Exception> U terminateConcrete(
-                @Nonnull final ThrowingSupplier<U, E> supplier)
-                throws E, InterruptedException {
+        protected <U> U terminateConcrete(
+                @Nonnull final ThrowingSupplier<U, RuntimeException> supplier)
+                throws InterruptedException {
             return supplier.get();
         }
 
         @Override
-        protected <E extends Exception> long terminateLong(
-                @Nonnull final ThrowingLongSupplier<E> supplier)
-                throws E, InterruptedException {
+        protected long terminateLong(@Nonnull final ThrowingLongSupplier<RuntimeException> supplier)
+                throws InterruptedException {
             return supplier.getAsLong();
         }
 
         @Override
-        protected <E extends Exception> boolean terminateBoolean(
-                @Nonnull final ThrowingBooleanSupplier<E> supplier)
-                throws E, InterruptedException {
+        protected boolean terminateBoolean(
+                @Nonnull final ThrowingBooleanSupplier<RuntimeException> supplier)
+                throws InterruptedException {
             return supplier.getAsBoolean();
         }
 
         @Nonnull
         @Override
-        public CheckedStream<T> sequential()
-                throws Exception {
+        public CheckedStream<T> sequential() {
             return this;
         }
 
         @Nonnull
         @Override
-        public CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads)
-                throws Exception {
+        public CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads) {
             return new ParallelCheckedStream<>(immediate(true), threads);
         }
     }
@@ -733,65 +768,76 @@ public abstract class CheckedStream<T>
         }
 
         @Override
-        protected <E extends Exception> void terminateVoid(
-                @Nonnull final ThrowingRunnable<E> action)
-                throws E, InterruptedException {
+        protected void terminateVoid(@Nonnull final ThrowingRunnable<RuntimeException> action)
+                throws InterruptedException {
             try {
                 threads.submit(() -> {
                     action.run();
                     return null;
                 }).get();
             } catch (final ExecutionException e) {
-                throw ParallelCheckedStream.<E>handleForkJoinPool(e);
+                handleForkJoinPoolAsObject(e);
             }
         }
 
         @Override
-        protected <U, E extends Exception> U terminateConcrete(
-                @Nonnull final ThrowingSupplier<U, E> supplier)
-                throws E, InterruptedException {
+        protected <U> U terminateConcrete(
+                @Nonnull final ThrowingSupplier<U, RuntimeException> supplier)
+                throws InterruptedException {
             try {
                 return threads.submit(supplier::get).get();
             } catch (final ExecutionException e) {
-                throw ParallelCheckedStream.<E>handleForkJoinPool(e);
+                return handleForkJoinPoolAsObject(e);
             }
         }
 
         @Override
-        protected <E extends Exception> long terminateLong(
-                @Nonnull final ThrowingLongSupplier<E> supplier)
-                throws E, InterruptedException {
+        protected long terminateLong(@Nonnull final ThrowingLongSupplier<RuntimeException> supplier)
+                throws InterruptedException {
             try {
                 return threads.submit(supplier::getAsLong).get();
             } catch (final ExecutionException e) {
-                throw ParallelCheckedStream.<E>handleForkJoinPool(e);
+                return handleForkJoinPoolAsLong(e);
             }
         }
 
         @Override
-        protected <E extends Exception> boolean terminateBoolean(
-                @Nonnull final ThrowingBooleanSupplier<E> supplier)
-                throws E, InterruptedException {
+        protected boolean terminateBoolean(
+                @Nonnull final ThrowingBooleanSupplier<RuntimeException> supplier)
+                throws InterruptedException {
             try {
                 return threads.submit(supplier::getAsBoolean).get();
             } catch (final ExecutionException e) {
-                throw ParallelCheckedStream.<E>handleForkJoinPool(e);
+                return handleForkJoinPoolAsBoolean(e);
             }
         }
 
         @Nonnull
         @Override
-        public CheckedStream<T> sequential()
-                throws Exception {
+        public CheckedStream<T> sequential() {
             return new SequentialCheckedStream<>(immediate(false));
         }
 
         @Nonnull
         @Override
-        public CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads)
-                throws Exception {
+        public CheckedStream<T> parallel(@Nonnull final ForkJoinPool threads) {
             return this.threads.equals(threads) ? this
                     : new ParallelCheckedStream<>(immediate(true), threads);
+        }
+
+        private static <T> T handleForkJoinPoolAsObject(final ExecutionException e) {
+            rethrow(e);
+            return null;
+        }
+
+        private static boolean handleForkJoinPoolAsBoolean(final ExecutionException e) {
+            rethrow(e);
+            return false;
+        }
+
+        private static long handleForkJoinPoolAsLong(final ExecutionException e) {
+            rethrow(e);
+            return 0;
         }
 
         /**
@@ -799,29 +845,38 @@ public abstract class CheckedStream<T>
          * runtime wraps nothing - check stacktrace for thrown by ForkJoinTask.  FJP also likes to
          * wrap error (why?)
          */
-        @SuppressWarnings("unchecked")
-        private static <E extends Exception> E handleForkJoinPool(final ExecutionException e) {
+        private static void rethrow(final ExecutionException e) {
             final Throwable cause = e.getCause();
             // Bubble out error
             if (cause instanceof Error)
                 throw (Error) cause;
             // Bubble out subtypes of runtime
             if (RuntimeException.class != cause.getClass())
-                return (E) cause;
+                unsafe.throwException(cause);
             // Bubble out wrapped runtimes not wrapped by FJP
             final Throwable x = cause.getCause();
             if (null == x || !cause.getStackTrace()[0].getClassName()
                     .startsWith(ForkJoinTask.class.getName()))
                 throw (RuntimeException) cause;
             // Actual user exception
-            return (E) x;
+            unsafe.throwException(x);
         }
     }
 
-    /** Check that every construct compiles. */
+    /** Check that constructs compiles. */
     private static void compile()
-            throws InterruptedException {
-        checked(Stream.of(1, 2, 3)).
+            throws InterruptedException, AccessException {
+        checked(Stream.of(1)).
+                parallel(null).
+                map(i -> {
+                    throw new NullPointerException();
+                }).
+                map(i -> {
+                    throw new AccessException("foo");
+                }).
+                count();
+
+        checked(Stream.of(1)).
                 distinct().
                 filter(isEqual(1)).
                 flatMap(i -> range(i, i).boxed()).
