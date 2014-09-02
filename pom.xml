@@ -87,6 +87,7 @@
         <janino.version>2.6.1</janino.version>
         <!-- TODO: Merge Eight branch when JDK8 releases -->
         <java.version>8</java.version>
+        <jgitflow-maven-plugin.version>1.0-m4</jgitflow-maven-plugin.version>
         <jmockit.version>1.7</jmockit.version>
         <jnr.version>3.0.1</jnr.version>
         <jopt-simple.version>4.6</jopt-simple.version>
@@ -103,7 +104,6 @@
         <maven-gpg-plugin.version>1.4</maven-gpg-plugin.version>
         <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
-        <maven-jgitflow-plugin.version>1.0-alpha21.1</maven-jgitflow-plugin.version>
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
         <owner.version>1.0.5.1</owner.version>
@@ -368,9 +368,9 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>com.atlassian.maven.plugins</groupId>
-                <artifactId>maven-jgitflow-plugin</artifactId>
-                <version>${maven-jgitflow-plugin.version}</version>
+                <groupId>external.atlassian.jgitflow</groupId>
+                <artifactId>jgitflow-maven-plugin</artifactId>
+                <version>${jgitflow-maven-plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
