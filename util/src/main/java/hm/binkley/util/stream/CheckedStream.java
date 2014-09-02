@@ -133,7 +133,6 @@ import static java.util.stream.IntStream.range;
  * </pre>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Optimize non-throwing, non-terminal calls: they don't need wrapping, but keep throws E
  */
 @SuppressWarnings("UnusedDeclaration")
 public abstract class CheckedStream<T>
