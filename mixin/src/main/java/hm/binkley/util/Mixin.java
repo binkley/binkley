@@ -6,8 +6,6 @@
 
 package hm.binkley.util;
 
-import com.google.common.collect.ImmutableList;
-
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -18,17 +16,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.lang.reflect.Proxy.newProxyInstance;
 import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * {@code Mixin} implements concrete class mixins via JDK proxies.  Proxy handler strategy tries:
  * <ol><li>Previously matched methods</li> <li>Exact static match by enclosing type</li> <li>"Duck"
  * matches by name and parameter type</li></ol>  Mixins expose a single, <em>composite
  * interface</em> of all supported interfaces.
- *
+ * <p>
  * Mixins may optionally include {@code Mixin} as port of the <em>composite interface</em>.  This
  * exposes {@link #mixinDelegates()} providing public access to the mixed in object delegated to by
  * this proxy.
@@ -77,26 +77,21 @@ public interface Mixin {
             }
 
             private List<Object> delegates(final Class<T> as, final List<Object> delegates) {
-                for (final Method method : as.getMethods()) {
-                    if (method.isDefault()) try {
-                        final List<Object> delegatesPlus = new ArrayList<>(delegates.size() + 1);
-                        delegatesPlus.addAll(delegates);
-                        delegatesPlus.add(InterfaceInstance.newInstance(as));
-                        return delegatesPlus;
-                    } catch (final IllegalAccessException e) {
-                        final IllegalAccessError x = new IllegalAccessError(e.getMessage());
-                        x.setStackTrace(e.getStackTrace());
-                        throw x;
-                    } catch (final ClassNotFoundException e) {
-                        final UnknownError x = new UnknownError(e.getMessage());
-                        x.setStackTrace(e.getStackTrace());
-                        throw x;
-                    } catch (final InstantiationException e) {
-                        final InstantiationError x = new InstantiationError(e.getMessage());
-                        x.setStackTrace(e.getStackTrace());
-                        throw x;
-                    }
-                }
+                for (final Method method : as.getMethods())
+                    if (method.isDefault())
+                        try {
+                            final List<Object> delegatesPlus = new ArrayList<>(
+                                    delegates.size() + 1);
+                            delegatesPlus.addAll(delegates);
+                            delegatesPlus.add(InterfaceInstance.newInstance(as));
+                            return delegatesPlus;
+                        } catch (final IllegalAccessException e) {
+                            throw copy(e, IllegalAccessError::new);
+                        } catch (final ClassNotFoundException e) {
+                            throw copy(e, UnknownError::new);
+                        } catch (final InstantiationException e) {
+                            throw copy(e, InstantiationError::new);
+                        }
                 return delegates;
             }
 
@@ -144,6 +139,15 @@ public interface Mixin {
             }
         }
 
+        private static <E extends Throwable> E copy(final Throwable from,
+                final Function<String, E> ctor) {
+            final E to = ctor.apply(from.getMessage());
+            to.setStackTrace(from.getStackTrace());
+            for (final Throwable s : from.getSuppressed())
+                to.addSuppressed(s);
+            return to;
+        }
+
         private static class MixedDelegates
                 implements Mixin {
             private final List<Object> mixed;
@@ -152,9 +156,10 @@ public interface Mixin {
                 final List<Object> mixed = new ArrayList<>(delegates.length + 1);
                 mixed.addAll(asList(delegates));
                 mixed.add(this);
-                this.mixed = ImmutableList.copyOf(mixed);
+                this.mixed = unmodifiableList(mixed);
             }
 
+            @SuppressWarnings("ReturnOfCollectionOrArrayField")
             @Nonnull
             @Override
             public List<Object> mixinDelegates() {

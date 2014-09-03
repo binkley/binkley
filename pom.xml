@@ -4,10 +4,7 @@
   ~ Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
   -->
 
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -22,7 +19,7 @@
 
     <groupId>hm.binkley</groupId>
     <artifactId>binkley-blog</artifactId>
-    <version>0.2</version>
+    <version>0.3</version>
     <packaging>pom</packaging>
 
     <name>binkley's BLOG</name>
@@ -67,21 +64,28 @@
         <module>guice</module>
         <module>spring</module>
         <module>mixin</module>
+        <module>util</module>
+        <module>convert</module>
         <module>value-type</module>
+        <module>xio</module>
+        <module>xml</module>
         <module>xprops</module>
         <module>finance</module>
     </modules>
 
     <properties>
         <commons-lang3.version>3.3.2</commons-lang3.version>
-        <guava.version>16.0.1</guava.version>
+        <freemarker.version>2.3.20</freemarker.version>
         <guava.version>17.0</guava.version>
         <guice.version>3.0</guice.version>
         <hamcrest.version>1.3</hamcrest.version>
         <ini4j.version>0.5.2</ini4j.version>
+        <intellij.version>12.0</intellij.version>
         <janino.version>2.6.1</janino.version>
         <!-- TODO: Merge Eight branch when JDK8 releases -->
         <java.version>8</java.version>
+        <jgitflow-maven-plugin.version>1.0-m4</jgitflow-maven-plugin.version>
+        <jmockit.version>1.7</jmockit.version>
         <jnr.version>3.0.1</jnr.version>
         <jopt-simple.version>4.6</jopt-simple.version>
         <jsr305.version>2.0.3</jsr305.version>
@@ -97,7 +101,6 @@
         <maven-gpg-plugin.version>1.4</maven-gpg-plugin.version>
         <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
-        <maven-jgitflow-plugin.version>1.0-alpha21.1</maven-jgitflow-plugin.version>
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
         <owner.version>1.0.5.1</owner.version>
@@ -113,6 +116,13 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${intellij.version}</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>${jsr305.version}</version>
@@ -125,6 +135,12 @@
             <version>${lombok.version}</version>
             <scope>compile</scope>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.jmockit</groupId>
+            <artifactId>jmockit</artifactId>
+            <version>${jmockit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -154,12 +170,32 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-convert</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-mixin</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-util</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-value-type</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-xio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-xml</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -317,15 +353,21 @@
                 <artifactId>jnr-posix</artifactId>
                 <version>${jnr.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>com.atlassian.maven.plugins</groupId>
-                <artifactId>maven-jgitflow-plugin</artifactId>
-                <version>${maven-jgitflow-plugin.version}</version>
+                <groupId>external.atlassian.jgitflow</groupId>
+                <artifactId>jgitflow-maven-plugin</artifactId>
+                <version>${jgitflow-maven-plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

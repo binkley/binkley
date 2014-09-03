@@ -63,8 +63,8 @@ public final class InterfaceInstance {
         private byte[] loadClassData(final String name) {
             final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             try {
-                final ClassWriter writer = new ClassWriter(new ClassInfo(name, "java.lang.Object",
-                        new String[]{InterfaceInstance.this.base.getName()}));
+                final ClassWriter writer = new ClassWriter(
+                        new ClassInfo(name, "java.lang.Object", base.getName()));
                 writer.writeTo(bytes);
                 return bytes.toByteArray();
             } catch (final Exception e) {
@@ -78,7 +78,7 @@ public final class InterfaceInstance {
         public final String parent;
         public final String[] interfaces;
 
-        public ClassInfo(final String name, final String parent, final String[] interfaces) {
+        private ClassInfo(final String name, final String parent, final String... interfaces) {
             this.name = name;
             this.parent = parent;
             this.interfaces = interfaces;
@@ -108,7 +108,7 @@ public final class InterfaceInstance {
             private final List<Entry> pool = new ArrayList<>(32);
             private final Map<Object, Short> map = new HashMap<>(16);
 
-            private static abstract class Entry {
+            private abstract static class Entry {
                 public abstract void writeTo(DataOutputStream out)
                         throws IOException;
             }
@@ -152,8 +152,8 @@ public final class InterfaceInstance {
 
                 public IndirectEntry(final int tag, final short index) {
                     this.tag = tag;
-                    this.index0 = index;
-                    this.index1 = 0;
+                    index0 = index;
+                    index1 = 0;
                 }
 
                 public IndirectEntry(final int tag, final short index0, final short index1) {
@@ -168,10 +168,10 @@ public final class InterfaceInstance {
                     out.writeByte(tag);
                     out.writeShort(index0);
 
-                    if (tag == CONSTANT_FIELD ||
-                            tag == CONSTANT_METHOD ||
-                            tag == CONSTANT_INTERFACEMETHOD ||
-                            tag == CONSTANT_NAMEANDTYPE)
+                    if (CONSTANT_FIELD == tag ||
+                            CONSTANT_METHOD == tag ||
+                            CONSTANT_INTERFACEMETHOD == tag ||
+                            CONSTANT_NAMEANDTYPE == tag)
                         out.writeShort(index1);
                 }
 
@@ -191,14 +191,14 @@ public final class InterfaceInstance {
 
             private short addEntry(final Entry entry) {
                 pool.add(entry);
-                if (pool.size() >= 0xFFFF)
+                if (0xFFFF <= pool.size())
                     throw new IllegalArgumentException("Constant pool size limit exceeded");
                 return (short) pool.size();
             }
 
             private short get(final Object key, final Supplier<Entry> entry) {
                 final Short index = map.get(key);
-                if (index != null)
+                if (null != index)
                     return index;
                 final short i = addEntry(entry.get());
                 map.put(key, i);

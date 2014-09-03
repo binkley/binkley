@@ -27,6 +27,7 @@ public final class LogMessage {
     private final String message;
     private final Object[] parameters;
 
+    @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
     @Inject
     public LogMessage(final ResourceBundle bundle, @Assisted final String key,
             @Assisted final Object... parameters) {
@@ -62,5 +63,10 @@ public final class LogMessage {
     @Override
     public String toString() {
         return format(message, parameters);
+    }
+
+    @Beta
+    public interface Factory {
+        LogMessage create(final String key, final Object... parameters);
     }
 }

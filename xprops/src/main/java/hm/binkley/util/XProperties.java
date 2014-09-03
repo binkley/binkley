@@ -6,11 +6,10 @@
 
 package hm.binkley.util;
 
-import com.google.common.net.HostAndPort;
+import hm.binkley.util.Converter.Conversion;
 import lombok.NonNull;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
-import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -20,40 +19,25 @@ import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Throwables.getRootCause;
 import static java.lang.String.format;
 import static java.lang.Thread.currentThread;
-import static java.net.InetSocketAddress.createUnresolved;
 import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
 
@@ -89,9 +73,10 @@ import static java.util.regex.Pattern.compile;
  * subdirectories of the classpath</td></tr> </table>
  *
  * @todo Implement defaults
- * @todo Using cache for conversions assumes constant properties; is this correct?
+ * @todo Converter assumes cacheable keys; is this correct?
  * @see PathMatchingResourcePatternResolver
  * @see StrSubstitutor
+ * @see Converter
  * @see #load(Reader) loading properties with inclusions
  * @see #load(InputStream) loading properties with inclusions
  * @see #getProperty(String) getting properties with substitution
@@ -101,87 +86,15 @@ public class XProperties
     private static final Pattern include = compile("^#include\\s+(.*)\\s*$");
     private static final Pattern comma = compile("\\s*,\\s*");
     private static final Pattern colon = compile(":");
-    private static final Map<String, Conversion> factories = new ConcurrentHashMap<>();
-    static {
-        register("address", value -> {
-            final HostAndPort parsed = HostAndPort.fromString(value).requireBracketsForIPv6();
-            return createUnresolved(parsed.getHostText(), parsed.getPort());
-        });
-        register("bundle", ResourceBundle::getBundle);
-        register("byte", Byte::valueOf);
-        register("class", Class::forName);
-        register("date", LocalDate::parse);
-        register("double", Double::valueOf);
-        register("duration", Duration::parse);
-        register("file", File::new);
-        register("float", Float::valueOf);
-        register("inet", InetAddress::getByName);
-        register("int", Integer::valueOf);
-        register("integer", BigInteger::new);
-        register("long", Long::valueOf);
-        register("number", BigDecimal::new);
-        register("path", Paths::get);
-        register("period", Period::parse);
-        register("regex", Pattern::compile);
-        register("resource",
-                value -> new DefaultResourceLoader(currentThread().getContextClassLoader())
-                        .getResource(value));
-        register("resource*", value -> asList(new PathMatchingResourcePatternResolver(
-                currentThread().getContextClassLoader()).getResources(value)));
-        register("short", Short::valueOf);
-        register("time", LocalDateTime::parse);
-        register("timestamp", Instant::parse);
-        register("tz", TimeZone::getTimeZone);
-        register("uri", URI::create);
-        register("url", URL::new);
-    }
 
     private final Set<URI> included = new LinkedHashSet<>();
+    private final Converter converter = new Converter();
     private final Map<Key, Object> converted = new ConcurrentHashMap<>();
 
     private final StrSubstitutor substitutor = new StrSubstitutor(new FindValue());
 
     {
         substitutor.setEnableSubstitutionInVariables(true);
-    }
-
-    /**
-     * Registers a new alias mapping for converting property values to typed objects using the given
-     * <var>prefix</var> and <var>factory</var>.
-     * <p>
-     * The <var>type</var> prefix represents a Java or JDK type as listed here:
-     * <table><tr><th>Prefix</th> <th>Type</th></tr> <tr><td>address</td> <td>{@code
-     * java.net.InetSocketAddress}</td></tr> <tr><td>bundle</td> <td>{@code
-     * java.util.ResourceBundle}</td></tr> <tr><td>byte</td> <td>{@code java.lang.Byte}</td></tr>
-     * <tr><td>class</td> <td>java.lang.Class</td></tr> <tr><td>date</td> <td>{@code
-     * java.time.LocalDate}</td></tr> <tr><td>double</td> <td>{@code java.lang.Double}</td></tr>
-     * <tr><td>duration</td> <td>{@code java.time.Duration}</td></tr> <tr><td>file</td> <td>{@code
-     * java.io.File}</td></tr> <tr><td>float</td> <td>{@code java.lang.Float}</td></tr>
-     * <tr><td>inet</td> <td>{@code java.net.InetAddress}</td></tr> <tr><td>int</td> <td>{@code
-     * java.lang.Integer}</td></tr> <tr><td>integer</td> <td>{@code java.math.BigInteger}</td></tr>
-     * <tr><td>long</td> <td>{@code java.lang.Long}</td></tr> <tr><td>number</td> <td>{@code
-     * java.math.BigDecimal}</td></tr> <tr><td>path</td> <td>{@code java.nio.file.Path}</td></tr>
-     * <tr><td>period</td> <td>{@code java.time.Period}</td></tr> <tr><td>resource</td>
-     * <tr><td>regex</td> <td>{@code java.util.regex.Pattern}</td></tr> <td>{@code
-     * org.springframework.core.io.Resource}</td></tr> <tr><td>resource*</td> <td>{@code
-     * java.util.List&lt;org.springframework.core.io.Resource&gt;}</td></tr> <tr><td>short</td>
-     * <td>{@code java.lang.Short}</td></tr> <tr><td>time</td> <td>{@code
-     * java.time.LocalDateTime}</td></tr> <tr><td>timestamp</td> <td>{@code
-     * java.time.Instant}</td></tr> <tr><td>tz</td> <td>{@code java.util.TimeZone}</td></tr>
-     * <tr><td>uri</td> <td>{@code java.net.URI}</td></tr> <tr><td>url</td> <td>{@code
-     * java.net.URL}</td></tr> </table>
-     *
-     * @param prefix the alias prefix, never missing
-     * @param factory the factory, never missing
-     *
-     * @throws DuplicatePropertyException if <var>prefix</var> is already registered
-     * @see #getObject(String)
-     */
-    public static void register(@Nonnull final String prefix,
-            @Nonnull final Conversion<?, ?> factory)
-            throws DuplicatePropertyException {
-        if (null != factories.putIfAbsent(prefix, factory))
-            throw new DuplicatePropertyException(prefix);
     }
 
     /**
@@ -208,13 +121,25 @@ public class XProperties
     public XProperties() {
     }
 
-    /** * @todo Documentation */
+    /** @todo Documentation */
     public XProperties(@Nonnull final Map<String, String> initial) {
         putAll(initial);
     }
 
     /**
-     * Note {@link XProperties} description for additional features over plain properties loading.
+     * @param prefix the alias prefix, never missing
+     * @param factory the factory, never missing
+     *
+     * @todo Documentation
+     * @see Converter#register(String, Conversion)
+     */
+    public void register(@Nonnull final String prefix,
+            @Nonnull final Conversion<?, ? extends Exception> factory) {
+        converter.register(prefix, factory);
+    }
+
+    /**
+     * Note {@code XProperties} description for additional features over plain properties loading.
      * {@inheritDoc}
      *
      * @throws IOException if the properties cannot be loaded or if included resources cannot be
@@ -249,7 +174,7 @@ public class XProperties
     }
 
     /**
-     * Note {@link XProperties} description for additional features over plain properties loading.
+     * Note {@code XProperties} description for additional features over plain properties loading.
      * {@inheritDoc}
      *
      * @throws IOException if the properties cannot be loaded or if included resources cannot be
@@ -258,15 +183,14 @@ public class XProperties
     @Override
     public synchronized void load(final InputStream inStream)
             throws IOException {
-        load(new InputStreamReader(inStream));
+        load(new InputStreamReader(inStream, Charset.forName("UTF-8")));
     }
 
     /**
      * {@inheritDoc} <p/>
      * Substitutes in property values sequences of the form: <pre>
      * ${<var>variable</var>}</pre>.  Looks up <var>variable</var> in the current properties, and
-     * if
-     * not found, in the system properties.  If found, replaces the text with the variable value,
+     * if not found, in the system properties.  If found, replaces the text with the variable value,
      * including "${" and trailing "}".
      *
      * @throws MissingPropertyException if substitution refers to a missing property
@@ -304,9 +228,9 @@ public class XProperties
      * return to a correct type; failure to do so will cause a {@code ClassCastException} at
      * run-time.
      * <p>
-     * Typed keys are of the form: {@code <var>type</var>:<var>key</var>}.  The <var>key</var>
-     * is the same key as {@link System#getProperty(String) System.getProperty}.  See {@link
-     * #register(String, Conversion) register} for built-in <var>type</var> key prefixes.
+     * Typed keys are of the form: {@code <var>type</var>:<var>key</var>}.  The <var>key</var> is
+     * the same key as {@link System#getProperty(String) System.getProperty}.  See {@link
+     * Converter#register(String, Conversion) register} for built-in <var>type</var> key prefixes.
      * <p>
      * Examples: <table><tr><th>Code</th> <th>Comment</th></tr> <tr><td>{@code Integer foo =
      * xprops.getObject("int:foo");}</td> <td>Gets the "foo" property as an possibly {@code null}
@@ -322,7 +246,7 @@ public class XProperties
      * @return the type property value, possibly missing
      *
      * @see #getObjectOrDefault(String, Object)
-     * @see #register(String, Conversion)
+     * @see Converter#register(String, Conversion)
      */
     @Nullable
     public <T> T getObject(@Nonnull final String key) {
@@ -346,119 +270,10 @@ public class XProperties
         if (null == value)
             return key.fallback;
         try {
-            return XProperties.factoryFor(parts[0]).convert(value);
+            return converter.convert(parts[0], value);
         } catch (final Exception e) {
             final String[] x = colon.split(property, 2);
             throw new FailedConversionException(property, getProperty(x[1]), e.getCause());
-        }
-    }
-
-    @Nonnull
-    @SuppressWarnings("unchecked")
-    private static <T, E extends Exception> Conversion<T, E> factoryFor(final String type) {
-        // Look for alias first
-        Conversion<T, E> factory = factories.get(type);
-        if (null != factory)
-            return factory;
-        final Class<T> token = XProperties.<T>tokenFor(type);
-        // Try Type.valueOf
-        factory = invokeValueOf(token);
-        if (null != factory)
-            return factory;
-        // Try Type.of
-        factory = invokeOf(token);
-        if (null != factory)
-            return factory;
-        // Try new Type
-        factory = invokeConstructor(token);
-        if (null != factory)
-            return factory;
-        throw new Bug("Unsupported conversion: %s", type);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T, E extends Exception> Conversion<T, E> invokeValueOf(final Class<T> token)
-            throws NoSuchMethodError {
-        try {
-            final Method method = token.getMethod("valueOf", String.class);
-            return value -> {
-                try {
-                    return (T) method.invoke(null, value);
-                } catch (final IllegalAccessException e) {
-                    final IllegalAccessError x = new IllegalAccessError(e.getMessage());
-                    x.setStackTrace(e.getStackTrace());
-                    throw x;
-                } catch (final InvocationTargetException e) {
-                    final Throwable root = getRootCause(e);
-                    final RuntimeException x = new RuntimeException(root);
-                    x.setStackTrace(root.getStackTrace());
-                    throw x;
-                }
-            };
-        } catch (final NoSuchMethodException ignored) {
-            return null;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T, E extends Exception> Conversion<T, E> invokeOf(final Class<T> token)
-            throws NoSuchMethodError {
-        try {
-            final Method method = token.getMethod("of", String.class);
-            return value -> {
-                try {
-                    return (T) method.invoke(null, value);
-                } catch (final IllegalAccessException e) {
-                    final IllegalAccessError x = new IllegalAccessError(e.getMessage());
-                    x.setStackTrace(e.getStackTrace());
-                    throw x;
-                } catch (final InvocationTargetException e) {
-                    final Throwable root = getRootCause(e);
-                    final RuntimeException x = new RuntimeException(root);
-                    x.setStackTrace(root.getStackTrace());
-                    throw x;
-                }
-            };
-        } catch (final NoSuchMethodException ignored) {
-            return null;
-        }
-    }
-
-    private static <T, E extends Exception> Conversion<T, E> invokeConstructor(final Class<T> token)
-            throws NoSuchMethodError {
-        try {
-            final Constructor<T> ctor = token.getConstructor(String.class);
-            return value -> {
-                try {
-                    return ctor.newInstance(value);
-                } catch (final IllegalAccessException e) {
-                    final IllegalAccessError x = new IllegalAccessError(e.getMessage());
-                    x.setStackTrace(e.getStackTrace());
-                    throw x;
-                } catch (final InvocationTargetException e) {
-                    final Throwable root = getRootCause(e);
-                    final RuntimeException x = new RuntimeException(root);
-                    x.setStackTrace(root.getStackTrace());
-                    throw x;
-                } catch (final InstantiationException e) {
-                    final InstantiationError x = new InstantiationError(e.getMessage());
-                    x.setStackTrace(e.getStackTrace());
-                    throw x;
-                }
-            };
-        } catch (final NoSuchMethodException ignored) {
-            return null;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> Class<T> tokenFor(final String type) {
-        try {
-            return (Class<T>) Class.forName(type);
-        } catch (final ClassNotFoundException e) {
-            final IllegalArgumentException x = new IllegalArgumentException(type + ": " + e);
-            x.setStackTrace(e.getStackTrace());
-            throw x;
         }
     }
 
@@ -466,38 +281,13 @@ public class XProperties
             extends StrLookup {
         @Override
         public String lookup(final String key) {
-            final String value = getProperty(key);
-            if (null != value)
-                return value;
-            final String sysprop = System.getProperty(key);
-            if (null != sysprop)
-                return sysprop;
-            final String envvar = System.getenv(key);
-            if (null != envvar)
-                return envvar;
-            throw new MissingPropertyException(key);
+            return asList((Function<String, String>) XProperties.this::getProperty,
+                    System::getProperty, System::getenv).stream().
+                    map(f -> f.apply(key)).
+                    filter(v -> null != v).
+                    findFirst().
+                    orElseThrow(() -> new MissingPropertyException(key));
         }
-    }
-
-    /**
-     * Converts a string property value into a typed object.
-     *
-     * @param <T> the converted type
-     * @param <E> the exception type on failed converstion, {@code RuntimeException} if none
-     */
-    @FunctionalInterface
-    public static interface Conversion<T, E extends Exception> {
-        /**
-         * Converts the given property <var>value</var> into a typed object.
-         *
-         * @param value the property value, never missing
-         *
-         * @return the typed object
-         *
-         * @throws E if conversion fails
-         */
-        T convert(@Nonnull final String value)
-                throws E;
     }
 
     /** @todo Documentation */
@@ -521,14 +311,6 @@ public class XProperties
         public FailedConversionException(final String key, final String value,
                 final Throwable cause) {
             super(format("%s = %s", key, value), cause);
-        }
-    }
-
-    /** @todo Documentation */
-    public static class DuplicatePropertyException
-            extends IllegalArgumentException {
-        public DuplicatePropertyException(final String key) {
-            super(key);
         }
     }
 

@@ -6,19 +6,28 @@
 
 package hm.binkley.util.logging.osi;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.util.StatusPrinter;
 import hm.binkley.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
+import java.io.IOException;
+import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_DEBUG;
 import static java.lang.String.format;
 import static java.lang.System.clearProperty;
 import static java.lang.System.getProperty;
+import static java.lang.System.out;
 import static java.lang.System.setProperty;
+import static java.util.Arrays.asList;
 
 /**
  * {@code OSI} enable OSI logging for simple cases.
@@ -27,44 +36,93 @@ import static java.lang.System.setProperty;
  */
 public final class OSI {
     /**
-     * Enable OSI logging using the default configuration file, "osi-logback.xml" as found on the
-     * class path.  Control configuration through use of other {@link SystemProperty OSI system
+     * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
+     * the class path.  Control configuration through use of other {@link SystemProperty OSI system
      * properties}. <p> Must be called before first use of logback.
+     * <p>
+     * Do not show status of the logging system.
      */
     public static void enable() {
+        enable(false);
+    }
+
+    /**
+     * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
+     * the class path.  Control configuration through use of other {@link SystemProperty OSI system
+     * properties}. <p> Must be called before first use of logback.
+     *
+     * @param show if {@code true} log the status of the logging system including setup details.
+     */
+    public static void enable(final boolean show) {
         SLF4JBridgeHandler.install();
         LOGBACK_CONFIGURATION_FILE.set("osi-logback.xml", false);
+        if (!show)
+            return;
+        asList(SystemProperty.values()).forEach(out::println);
+        // No point duplicating the status messages
+        if (Boolean.valueOf(LOGBACK_DEBUG.get()))
+            return;
+        StatusPrinter.print((LoggerContext) LoggerFactory.getILoggerFactory());
     }
 
     /**
      * {@code SystemProperty} defines system properties used by OSI. Use {@link #set(String,
      * boolean)} and {@link #unset()} to control these properties.
      */
-    public static enum SystemProperty {
+    public enum SystemProperty {
         /**
-         * Sets the logback configuration file, rarely changed except for testing.  Default is
+         * Sets the logback configuration resource, rarely changed except for testing.  Default is
          * "osi-logback.xml".
+         * <p>
+         * Note this is defined by logback.  Although looked for on the classpath, logback names
+         * this "configurationFile".
          *
          * @see #enable()
          */
         LOGBACK_CONFIGURATION_FILE("logback.configurationFile"),
         /**
+         * As an alternative to setting system properties, put properties here.  Default is
+         * "osi-logback.properties" in the classpath root.
+         * <p>
+         * These cannot, however, override these system properties which are used before the
+         * properties resource is loaded: <ul><li>logback.configurationFile</li>
+         * <li>logback.propertiesResource</li> <li>logback.debug</li></ul>
+         */
+        LOGBACK_PROPERTIES_RESOURCE("logback.propertiesResource"),
+        /**
          * Sets a custom style file for logging, rarely changed.  Default is
          * "osi-logback-style.properties".
+         *
+         * @see #LOGBACK_STYLES_RESOURCE
          */
-        LOGBACK_STYLES_FILE("logback.stylesFile"),
+        LOGBACK_STYLES_RESOURCE("logback.stylesResource"),
         /**
-         * Sets the default logging style.  See "osi-logback-styles.properties" for details. Default
-         * is "standard".
+         * Sets the default logging style. Default is "standard".
+         * <p>
+         * See {@code osi-logback-styles.properties} for help and details.
+         *
+         * @see #LOGBACK_STYLES_RESOURCE
          */
         LOGBACK_STYLE("logback.style"),
         /**
-         * Sets the file of additional included logging directives.  This is often changed (or one
-         * named "osi-logback-included.xml" is provided in the application class path) to control
-         * logging such as changing log levels.  Default is "osi-logback-included.xml".
+         * Sets the resource for additional included logging directives.  Default is
+         * "osi-logback-included.xml".
+         * <p>
+         * This is often changed (or one named {@code osi-logback-included.xml} is provided in the
+         * application class path) to control logging such as changing log levels.
+         *
+         * @see #LOGBACK_INCLUDED_RESOURCE
          */
-        LOGBACK_INCLUDED_FILE("logback.includedFile"),
-        /** Enables logback debugging.  Default is "false". */
+        LOGBACK_INCLUDED_RESOURCE("logback.includedResource"),
+        /** Enables JMX support for logback.  Default is "true". */
+        LOGBACK_JMX("logback.jmx"),
+        /**
+         * Enables logback debugging.  Default is "false".
+         * <p>
+         * Enabling logback debugging sets {@code log.level} to "DEBUG".
+         *
+         * @see #LOG_LEVEL
+         */
         LOGBACK_DEBUG("logback.debug"),
         /**
          * Adjusts the general logging level when no more specific level is configured for a logger.
@@ -73,9 +131,16 @@ public final class OSI {
          * @see Level
          */
         LOG_LEVEL("log.level"),
-        /** Sets the root appender.  Default is "console". */
+        /**
+         * Sets the root appender.  Default is "console".
+         * <p>
+         * Use in combination with a custom appender defined in {@code osi-logback-included.xml}.
+         *
+         * @see #LOGBACK_INCLUDED_RESOURCE
+         */
         LOGBACK_ROOT_APPENDER("logback.rootAppender");
-        private static final Map<SystemProperty, String> totem = new HashMap<>(values().length);
+        private static final Map<SystemProperty, String> totem = new EnumMap<>(
+                SystemProperty.class);
         @Nonnull
         private final String key;
 
@@ -123,19 +188,15 @@ public final class OSI {
          */
         public final boolean set(@Nullable final String value, final boolean override) {
             final String existing = getProperty(key);
-            if (totem.containsKey(this)) {
+            if (totem.containsKey(this) && !override)
                 throw new IllegalStateException(
                         format("%s: Already modified, unset first: %s", this, existing));
-            }
-            if (null != value && null != existing && !override) {
+            if (null != value && null != existing && !override)
                 return false;
-            }
-            final String previous;
-            if (null == value) {
+            if (null == value)
                 clearProperty(key);
-            } else {
+            else
                 setProperty(key, value);
-            }
             totem.put(this, existing);
             return true;
         }
@@ -148,22 +209,33 @@ public final class OSI {
          * @throws IllegalStateException if not set
          */
         public final void unset() {
-            if (!totem.containsKey(this)) {
+            if (!totem.containsKey(this))
                 throw new IllegalStateException(format("%s: Not set", this));
-            }
             final String value = totem.get(this);
-            if (null == value) {
+            if (null == value)
                 clearProperty(key);
-            } else {
+            else
                 setProperty(key, value);
-            }
             totem.remove(this);
         }
 
         @Nonnull
         @Override
         public final String toString() {
-            return String.format("%s(%s)", name(), key);
+            return format("%s(%s)=%s", name(), key, Objects.toString(getProperty(key), "<default>"));
         }
+
+        static void resetForTesting() {
+            totem.clear();
+        }
+    }
+
+    public static void main(final String... args) {
+        enable(true);
+        final Logger log = LoggerFactory.getLogger(OSI.class);
+        log.warn("Won't log");
+        log.error("Will log");
+        log.error("Example stacktrace: {}", "Hi, mom!",
+                new IOException("Nothing actually is wrong"));
     }
 }

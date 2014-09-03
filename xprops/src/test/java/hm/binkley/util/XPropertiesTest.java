@@ -3,6 +3,8 @@ package hm.binkley.util;
 import hm.binkley.util.XProperties.FailedConversionException;
 import hm.binkley.util.XProperties.MissingPropertyException;
 import hm.binkley.util.XProperties.RecursiveIncludeException;
+import mockit.Mock;
+import mockit.MockUp;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,11 +38,14 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public final class XPropertiesTest {
+    @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
     private static final String pathPrefix = "/" + XPropertiesTest.class.getPackage().getName()
             .replaceAll("\\.", "/");
+    public static final Pattern firstPath = Pattern.compile("^(/[^/]+).*");
+    private static final Pattern lastPath = Pattern.compile("/[^/]+$");
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public final ExpectedException thrown = ExpectedException.none();
 
     private XProperties xprops;
 
@@ -127,6 +132,32 @@ public final class XPropertiesTest {
     }
 
     @Test
+    public void shouldReplaceGetPropertyFromSystemProperties() {
+        try {
+            System.setProperty("foo", "found");
+            xprops.setProperty("bar", "${foo}");
+
+            assertThat(xprops.getProperty("bar"), is(equalTo("found")));
+        } finally {
+            System.clearProperty("foo");
+        }
+    }
+
+    @Test
+    public void shouldReplaceGetPropertyFromEnvironment() {
+        new MockUp<System>() {
+            @Mock(invocations = 1)
+            public String getenv(final String key) {
+                return "found";
+            }
+        };
+
+        xprops.setProperty("bar", "${foo}");
+
+        assertThat(xprops.getProperty("bar"), is(equalTo("found")));
+    }
+
+    @Test
     public void shouldReplaceRepeatedGetProperty() {
         xprops.setProperty("baz", "found");
         xprops.setProperty("foo", "${baz}");
@@ -183,13 +214,13 @@ public final class XPropertiesTest {
 
         xprops.setProperty("bar", "");
 
-        // Ignored but required to force type conversion
+        //noinspection UnusedDeclaration
         final Integer ignored = xprops.getObject("bar");
     }
 
     @Test
     public void shouldRegister() {
-        XProperties.register("x", String::toString);
+        xprops.register("x", String::toString);
         xprops.setProperty("bar", "foo");
 
         assertThat(xprops.getObject("x:bar"), is(equalTo("foo")));
@@ -220,7 +251,7 @@ public final class XPropertiesTest {
     public void shouldGetDecimal() {
         xprops.setProperty("bar", "3");
 
-        assertThat(xprops.getObject("number:bar"), is(equalTo(new BigDecimal("3"))));
+        assertThat(xprops.getObject("decimal:bar"), is(equalTo(new BigDecimal("3"))));
     }
 
     @Test
@@ -229,6 +260,7 @@ public final class XPropertiesTest {
                 format("classpath*:%s/**/included*.properties", firstPathComponent(pathPrefix)));
         final List<Resource> resources = xprops.getObject("resource*:bar");
 
+        //noinspection ConstantConditions
         assertThat(resources.size(), is(equalTo(2)));
         assertThat(resources.get(0).getFilename(), endsWith("included.properties"));
         assertThat(resources.get(1).getFilename(), endsWith("included2.properties"));
@@ -239,6 +271,7 @@ public final class XPropertiesTest {
         xprops.setProperty("bar", "[2001:db8::1]:80");
 
         final InetSocketAddress address = xprops.getObject("address:bar");
+        //noinspection ConstantConditions
         assertThat(address.getHostString(), is(equalTo("2001:db8::1")));
         assertThat(address.getPort(), is(equalTo(80)));
     }
@@ -259,11 +292,11 @@ public final class XPropertiesTest {
     }
 
     private static String removeLastPathComponent(final String path) {
-        return path.replaceAll("/[^/]+$", "");
+        return lastPath.matcher(path).replaceAll("");
     }
 
     private static String firstPathComponent(final String path) {
-        final Matcher matcher = Pattern.compile("^(/[^/]+).*").matcher(path);
+        final Matcher matcher = firstPath.matcher(path);
         if (!matcher.find())
             fail();
         return matcher.group(1);

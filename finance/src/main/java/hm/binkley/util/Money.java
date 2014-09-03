@@ -6,6 +6,8 @@
 
 package hm.binkley.util;
 
+import lombok.EqualsAndHashCode;
+
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -26,6 +28,7 @@ import static java.text.NumberFormat.getCurrencyInstance;
  * @todo Help with formatting, perhaps format()?
  * @todo How to handle currencies with more than one locale, e.g., EUR?
  */
+@EqualsAndHashCode
 public final class Money
         implements Comparable<Money> {
     /** @todo Does JDK have a pattern for floating point? */
@@ -45,6 +48,7 @@ public final class Money
      * @todo Are Special Drawing Rights, et al, handled correctly?
      * @todo Negative amounts: accept surrounding parens or only minus sign?
      * @todo Some kind of caching?
+     * @todo Needs a rounding mode!
      */
     public static Money parse(@Nonnull final String value)
             throws MoneyFormatException {
@@ -175,25 +179,6 @@ public final class Money
     public int compareTo(@Nonnull final Money that) {
         checkCurrency(that);
         return amount.compareTo(that.amount);
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-
-        final Money that = (Money) o;
-
-        return currency.equals(that.currency) && amount.equals(that.amount);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = currency.hashCode();
-        result = 31 * result + amount.hashCode();
-        return result;
     }
 
     private void checkCurrency(final Money that) {

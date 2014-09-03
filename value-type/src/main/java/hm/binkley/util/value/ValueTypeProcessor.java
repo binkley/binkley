@@ -40,6 +40,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
+import javax.tools.Diagnostic.Kind;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -78,8 +79,8 @@ public final class ValueTypeProcessor
     private final String template;
 
     public ValueTypeProcessor() {
-        try (final Scanner scanner = new Scanner(
-                getClass().getResourceAsStream("value-type.java"), UTF_8.name())) {
+        try (final Scanner scanner = new Scanner(getClass().getResourceAsStream("value-type.java"),
+                UTF_8.name())) {
             template = scanner.useDelimiter("\\A").next();
         }
     }
@@ -87,67 +88,62 @@ public final class ValueTypeProcessor
     @Override
     public boolean process(final Set<? extends TypeElement> annotations,
             final RoundEnvironment roundEnv) {
-        if (roundEnv.processingOver())
-            return false;
+        ELEMENT:
+        for (final Element element : roundEnv.getElementsAnnotatedWith(
+                processingEnv.getElementUtils().getTypeElement(ValueType.class.getName()))) {
+            final List<? extends AnnotationMirror> aMirrors = element.getAnnotationMirrors();
+            for (final AnnotationMirror mirror : aMirrors) {
+                if (!ValueType.class.getName().equals(mirror.getAnnotationType().toString()))
+                    continue;
 
-        for (final String aName : getSupportedAnnotationTypes()) {
-            ELEMEMT:
-            for (final Element element : roundEnv.getElementsAnnotatedWith(
-                    processingEnv.getElementUtils().getTypeElement(aName))) {
-                final List<? extends AnnotationMirror> aMirrors = element.getAnnotationMirrors();
-                for (final AnnotationMirror mirror : aMirrors) {
-                    if (!ValueType.class.getName().equals(mirror.getAnnotationType().toString()))
-                        continue;
+                final Messenger messenger = new Messenger(element, mirror);
 
-                    final Messenger messenger = new Messenger(element, mirror);
-
-                    if (INTERFACE != element.getKind()) {
-                        messenger.error("@ValueType only supported on interfaces");
-                        continue;
-                    }
-
-                    if (PACKAGE != element.getEnclosingElement().getKind()) {
-                        messenger.error("@ValueType only supported on top-level interfaces");
-                        continue;
-                    }
-
-                    ((TypeElement) element).getEnclosedElements().stream().
-                            map(ExecutableElement.class::cast).
-                            filter(ValueTypeProcessor::unsupported).
-                            forEach(m -> messenger
-                                    .error("@ValueType supports only static and default methods: %s",
-                                            m));
-
-                    // Rely on knowledge there is only the value field
-                    final AnnotationValue value = mirror.getElementValues().values().stream().
-                            findFirst().get();
-
-                    final String packaj = processingEnv.getElementUtils().getPackageOf(element)
-                            .getQualifiedName().toString();
-                    final String clazz = element.getSimpleName().toString();
-                    final String source = format("%s.%sValue", packaj, clazz);
-                    final DeclaredType valueType = (DeclaredType) value.getValue();
-                    final String type = valueType.toString();
-                    final String modify = "java.lang.String".equals(type) ? ".intern()" : "";
-
-                    final boolean comparable = comparable(valueType);
-                    final String base = comparable ? "ComparableValue" : "Value";
-
-                    try (final OutputStream out = processingEnv.getFiler()
-                            .createSourceFile(source, element).openOutputStream()) {
-                        String generated = packageVar.matcher(template).replaceAll(packaj);
-                        generated = classVar.matcher(generated).replaceAll(clazz);
-                        generated = baseVar.matcher(generated).replaceAll(base);
-                        generated = typeVar.matcher(generated).replaceAll(type);
-                        generated = modifyVar.matcher(generated).replaceAll(modify);
-                        out.write(generated.getBytes(UTF_8));
-                    } catch (final IOException e) {
-                        messenger.error("Cannot generate source: %s", e);
-                        continue ELEMEMT;
-                    }
-
-                    messenger.note("Generated %s.java", source);
+                if (INTERFACE != element.getKind()) {
+                    messenger.error("@ValueType only supported on interfaces");
+                    continue;
                 }
+
+                if (PACKAGE != element.getEnclosingElement().getKind()) {
+                    messenger.error("@ValueType only supported on top-level interfaces");
+                    continue;
+                }
+
+                ((TypeElement) element).getEnclosedElements().stream().
+                        map(ExecutableElement.class::cast).
+                        filter(ValueTypeProcessor::unsupported).
+                        forEach(m -> messenger
+                                .error("@ValueType supports only static and default methods: %s",
+                                        m));
+
+                // Rely on knowledge there is only the value field
+                final AnnotationValue value = mirror.getElementValues().values().stream().
+                        findFirst().get();
+
+                final String packaj = processingEnv.getElementUtils().getPackageOf(element)
+                        .getQualifiedName().toString();
+                final String clazz = element.getSimpleName().toString();
+                final String source = format("%s.%sValue", packaj, clazz);
+                final DeclaredType valueType = (DeclaredType) value.getValue();
+                final String type = valueType.toString();
+                final String modify = "java.lang.String".equals(type) ? ".intern()" : "";
+
+                final boolean comparable = comparable(valueType);
+                final String base = comparable ? "ComparableValue" : "Value";
+
+                try (final OutputStream out = processingEnv.getFiler()
+                        .createSourceFile(source, element).openOutputStream()) {
+                    String generated = packageVar.matcher(template).replaceAll(packaj);
+                    generated = classVar.matcher(generated).replaceAll(clazz);
+                    generated = baseVar.matcher(generated).replaceAll(base);
+                    generated = typeVar.matcher(generated).replaceAll(type);
+                    generated = modifyVar.matcher(generated).replaceAll(modify);
+                    out.write(generated.getBytes(UTF_8));
+                } catch (final IOException e) {
+                    messenger.error("Cannot generate source: %s", e);
+                    continue ELEMENT;
+                }
+
+                messenger.note("Generated %s.java", source);
             }
         }
 
@@ -177,15 +173,19 @@ public final class ValueTypeProcessor
         }
 
         void error(final String format, final Object... args) {
-            processingEnv.getMessager().printMessage(ERROR, format(format, args), element, mirror);
+            message(ERROR, format, args);
         }
 
         void warning(final String format, final Object... args) {
-            processingEnv.getMessager().printMessage(WARNING, format(format, args), element, mirror);
+            message(WARNING, format, args);
         }
 
         void note(final String format, final Object... args) {
-            processingEnv.getMessager().printMessage(NOTE, format(format, args), element, mirror);
+            message(NOTE, format, args);
+        }
+
+        private void message(final Kind kind, final String format, final Object... args) {
+            processingEnv.getMessager().printMessage(kind, format(format, args), element, mirror);
         }
     }
 }

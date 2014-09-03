@@ -53,6 +53,7 @@ public final class JMXTypeListener
             } catch (final MalformedObjectNameException | ManagementException e) {
                 // Guice will handle RuntimeException during provision.  Update the stack trace
                 // to bring the root cause to the fore
+                @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
                 final Throwable cause = getRootCause(e);
                 final RuntimeException x = new RuntimeException(cause.toString());
                 x.setStackTrace(cause.getStackTrace());

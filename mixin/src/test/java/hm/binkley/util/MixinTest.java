@@ -45,30 +45,16 @@ public class MixinTest {
     public void shouldStaticType()
             throws IOException {
         final int roll = 13;
-        assertThat(newMixin(Testy.class, new Bob() {
-            @Override
-            public int throwDown(final String ignored) {
-                return roll;
-            }
-        }).throwDown("Hoe down!"), is(equalTo(roll)));
+        assertThat(newMixin(Testy.class, (Bob) ignored -> roll).throwDown("Hoe down!"),
+                is(equalTo(roll)));
     }
 
     @Test
     public void shouldPickFirstMatch()
             throws IOException {
         final int firstRoll = 14;
-        assertThat(newMixin(Testy.class, new Bob() {
-                    @Override
-                    public int throwDown(final String ignored) {
-                        return firstRoll;
-                    }
-                }, new Bob() {
-                    @Override
-                    public int throwDown(final String ignored) {
-                        return firstRoll - 1;
-                    }
-                }
-        ).throwDown("Hoe down!"), is(equalTo(firstRoll)));
+        assertThat(newMixin(Testy.class, (Bob) ignored -> firstRoll, (Bob) ignored -> firstRoll - 1)
+                .throwDown("Hoe down!"), is(equalTo(firstRoll)));
     }
 
     @Test
@@ -91,23 +77,16 @@ public class MixinTest {
     @Test(expected = IOException.class)
     public void shouldPassThroughCheckedExceptionsFromStaticTyping()
             throws IOException {
-        newMixin(Testy.class, new Bob() {
-            @Override
-            public int throwDown(final String ignored)
-                    throws IOException {
-                throw new IOException("The horror!");
-            }
+        newMixin(Testy.class, (Bob) ignored -> {
+            throw new IOException("The horror!");
         }).throwDown("not used");
     }
 
     @Test(expected = IOError.class)
     public void shouldPassThroughUncheckedExceptionsFromStaticTyping()
             throws IOException {
-        newMixin(Testy.class, new Bob() {
-            @Override
-            public int throwDown(final String ignored) {
-                throw new IOError(new IOException("The horror!"));
-            }
+        newMixin(Testy.class, (Bob) ignored -> {
+            throw new IOError(new IOException("The horror!"));
         }).throwDown("not used");
     }
 
@@ -146,11 +125,13 @@ public class MixinTest {
     }
 
     public interface DefaultMethodPublic {
-        default void foo() {}
+        default void foo() {
+        }
     }
 
     interface DefaultMethodNotPublic {
-        default void foo() {}
+        default void foo() {
+        }
     }
 
     interface Testy
