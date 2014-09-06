@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONTEXT_NAME;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_DEBUG;
 import static java.lang.String.format;
 import static java.lang.System.clearProperty;
@@ -37,26 +38,68 @@ import static java.util.Arrays.asList;
 public final class OSI {
     /**
      * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
-     * the class path.  Control configuration through use of other {@link SystemProperty OSI system
-     * properties}. <p> Must be called before first use of logback.
+     * the class path, and the default application name.  Control configuration through use of other
+     * {@link SystemProperty OSI system properties}.
+     * <p>
+     * Must be called before first use of logback.
      * <p>
      * Do not show status of the logging system.
      */
+    @SuppressWarnings("ConstantConditions")
     public static void enable() {
-        enable(false);
+        enable(null, false);
     }
 
     /**
      * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
-     * the class path.  Control configuration through use of other {@link SystemProperty OSI system
-     * properties}. <p> Must be called before first use of logback.
+     * the class path, and the default application name.  Control configuration through use of other
+     * {@link SystemProperty OSI system properties}.
+     * <p>
+     * Must be called before first use of logback.
      *
-     * @param show if {@code true} log the status of the logging system including setup details.
+     * @param showDetail if {@code true} log the status of the logging system including setup
+     * details.
      */
-    public static void enable(final boolean show) {
+    @SuppressWarnings("ConstantConditions")
+    public static void enable(final boolean showDetail) {
+        enable(null, showDetail);
+    }
+
+    /**
+     * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
+     * the class path, and the given <var>applicationName</var>.  Control configuration through use
+     * of other {@link SystemProperty OSI system properties}.
+     * <p>
+     * Must be called before first use of logback.
+     * <p>
+     * Do not show status of the logging system.
+     *
+     * @param applicationName the logback context name, never missing
+     */
+    public static void enable(@Nonnull final String applicationName) {
+        enable(applicationName, false);
+    }
+
+    /**
+     * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
+     * the class path, and the given <var>applicationName</var>.  Control configuration through use
+     * of other {@link SystemProperty OSI system properties}.
+     * <p>
+     * Must be called before first use of logback.
+     *
+     * @param applicationName the logback context name, never missing
+     * @param showDetail if {@code true} log the status of the logging system including setup
+     * details.
+     *
+     * @see #enable(boolean)
+     */
+    @SuppressWarnings("ConstantConditions")
+    public static void enable(@Nonnull final String applicationName, final boolean showDetail) {
         SLF4JBridgeHandler.install();
         LOGBACK_CONFIGURATION_FILE.set("osi-logback.xml", false);
-        if (!show)
+        if (null != applicationName) // Publically non-null, internally nullable
+            LOGBACK_CONTEXT_NAME.set(applicationName, false);
+        if (!showDetail)
             return;
         asList(SystemProperty.values()).forEach(out::println);
         // No point duplicating the status messages
@@ -80,6 +123,16 @@ public final class OSI {
          * @see #enable()
          */
         LOGBACK_CONFIGURATION_FILE("logback.configurationFile"),
+        /**
+         * Sets the logback context name, equivalently, a short tag identifying the application.
+         * Default is "default".
+         * <p>
+         * Use this to distinguish merging of logging from multiple application.
+         *
+         * @see <a href="http://logback.qos.ch/manual/configuration.html#contextName">Setting the
+         * context name</a>
+         */
+        LOGBACK_CONTEXT_NAME("logback.contextName"),
         /**
          * As an alternative to setting system properties, put properties here.  Default is
          * "osi-logback.properties" in the classpath root.
@@ -222,7 +275,8 @@ public final class OSI {
         @Nonnull
         @Override
         public final String toString() {
-            return format("%s(%s)=%s", name(), key, Objects.toString(getProperty(key), "<default>"));
+            return format("%s(%s)=%s", name(), key,
+                    Objects.toString(getProperty(key), "<default>"));
         }
 
         static void resetForTesting() {

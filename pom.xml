@@ -21,7 +21,7 @@
 
     <groupId>hm.binkley</groupId>
     <artifactId>binkley-blog</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.4.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>binkley's BLOG</name>
@@ -113,6 +113,7 @@
         <service-binder.version>0.3</service-binder.version>
         <slf4j.version>1.7.7</slf4j.version>
         <spring.version>4.0.5.RELEASE</spring.version>
+        <system-rules.version>1.6.0</system-rules.version>
         <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
     </properties>
 
@@ -154,6 +155,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.stefanbirkner</groupId>
+            <artifactId>system-rules</artifactId>
+            <version>${system-rules.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

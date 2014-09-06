@@ -24,6 +24,8 @@ import static java.util.function.Function.identity;
  * {@code ParameterizedHelper} assists in writing JUnit {@link Parameterized} tests.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Move to hm.binkley.junit package
+ * @todo Rename to ParameterizedTestHelper
  */
 public final class ParameterizedHelper {
     private ParameterizedHelper() {}

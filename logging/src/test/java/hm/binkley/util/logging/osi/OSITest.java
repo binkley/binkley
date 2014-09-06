@@ -31,14 +31,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 import org.junit.rules.ExpectedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
-//import static hm.binkley.util.logging.osi.OSI.SystemProperty.resetForTesting;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.resetForTesting;
 import static java.lang.System.getProperty;
 import static java.lang.System.setProperty;
 import static java.util.Arrays.asList;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -49,10 +52,14 @@ import static org.junit.rules.ExpectedException.none;
  * {@code OSITest} tests {@link OSI}.
  *
  * @author <a href="mailto:Brian.Oxley@macquarie.com">Brian Oxley</a>
+ * @todo StandardOutputStreamLog still prints to sout/serr
+ * @todo StandardOutputStreamLog does not process into List of String
  */
 public final class OSITest {
     @Rule
     public final ExpectedException thrown = none();
+    @Rule
+    public final StandardOutputStreamLog xxx = new StandardOutputStreamLog();
 
     @Before
     public void setUpOSITest() {
@@ -88,7 +95,7 @@ public final class OSITest {
     public void shouldThrowIfSetTwice() {
         thrown.expect(IllegalStateException.class);
 
-        LOGBACK_CONFIGURATION_FILE.set("ignroed", false);
+        LOGBACK_CONFIGURATION_FILE.set("ignored", false);
         LOGBACK_CONFIGURATION_FILE.set("ignored", false);
     }
 
@@ -112,5 +119,13 @@ public final class OSITest {
         final String configurationFile = "other ignored";
         LOGBACK_CONFIGURATION_FILE.set(configurationFile, true);
         assertThat(getProperty(LOGBACK_CONFIGURATION_FILE.key()), is(equalTo(configurationFile)));
+    }
+
+    @Test
+    public void shouldIncludeApplicationName() {
+        OSI.enable("MyApp");
+        final Logger bob = LoggerFactory.getLogger("bob");
+        bob.error("ouch");
+        assertThat(xxx.getLog(), containsString("MyApp"));
     }
 }

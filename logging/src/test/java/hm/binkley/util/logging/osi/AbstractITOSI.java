@@ -23,6 +23,7 @@ import static java.lang.String.format;
  * Base class for OSI integration tests.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Does not do what you would expect
  */
 public abstract class AbstractITOSI
         extends AbstractITLogback {
