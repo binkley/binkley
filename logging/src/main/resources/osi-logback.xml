@@ -8,6 +8,7 @@
 <!-- Select with -Dlogback.configurationFile=osi-logback.xml -->
 <!-- See OSI.enable() -->
 <configuration debug="${logback.debug:-false}">
+    <contextName>${logback.contextName:-default}</contextName>
     <!-- As an alternative to system properties -->
     <property resource="${logback.propertiesResource:-osi-logback.properties}"/>
     <!-- Default logging to 'logback.level' -->
@@ -20,6 +21,8 @@
     <!-- Enables %match(cond1,patt1,...,fallback) -->
     <conversionRule conversionWord="match"
                     converterClass="hm.binkley.util.logging.MatchConverter"/>
+    <!-- Define timestamp for use by file appenders -->
+    <timestamp key="logback.timestamp" datePattern="yyyyMMdd'T'HHmmss"/>
     <!-- Applies application custom log settings: override default with logback.includedResource -->
     <include resource="${logback.includedResource:-osi-logback-included.xml}"/>
     <!-- Sets up logging properties: override with logback.stylesResource -->
