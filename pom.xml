@@ -112,6 +112,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <service-binder.version>0.3</service-binder.version>
         <slf4j.version>1.7.7</slf4j.version>
+        <!-- TODO: Sort out 1.0 vs 1.0-SNAPSHOT for splunklogging -->
+        <splunklogging.version>1.0-SNAPSHOT</splunklogging.version>
         <spring.version>4.0.5.RELEASE</spring.version>
         <system-rules.version>1.6.0</system-rules.version>
         <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
@@ -269,18 +271,21 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>jcl-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
-                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
-                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>jul-to-slf4j</artifactId>
                 <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.splunk</groupId>
+                <artifactId>logging</artifactId>
+                <version>${splunklogging.version}</version>
             </dependency>
 
             <dependency>
