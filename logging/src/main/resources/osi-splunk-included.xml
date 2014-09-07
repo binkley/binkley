@@ -29,21 +29,10 @@
     <!-- Out of the box, Splunk AUDIT logger sends to console -->
     <variable name="logback.splunk" value="${logback.splunk:-console}"/>
 
+    <!-- Replace audit unless "console" -->
     <if condition='"console".equals("${logback.splunk}")'>
         <then>
-            <!-- Audits get special treatment, in addition to regular treatment. -->
-            <appender name="audit" class="ch.qos.logback.core.ConsoleAppender">
-                <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-                    <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
-                        <marker>AUDIT</marker>
-                    </evaluator>
-                    <onMatch>NEUTRAL</onMatch>
-                    <onMismatch>DENY</onMismatch>
-                </filter>
-                <encoder>
-                    <pattern>${${logback.style:-standard}}</pattern>
-                </encoder>
-            </appender>
+            <!-- Do nothing, already set to send to console -->
         </then>
         <else>
             <if condition='"tcp".equals("${logback.splunk}")'>
@@ -58,6 +47,7 @@
                         <!-- TODO: Update to support encoder, not layout -->
                         <layout class="ch.qos.logback.classic.PatternLayout">
                             <!-- TODO: Needs testing: will exceptions stacks work this way? -->
+                            <!-- TODO: Update to use Splunk CIM or similar key/value pairs -->
                             <pattern>${${logback.style:-standard}}</pattern>
                         </layout>
                     </appender>
@@ -67,7 +57,7 @@
                     <!-- See http://logback.qos.ch/manual/appenders.html#FileAppender -->
                     <appender name="audit" class="ch.qos.logback.core.FileAppender">
                         <!-- TODO: How to use a formatted string for logfile name? -->
-                        <file>${logback.splunk}-${logback.timestamp}.log</file>
+                        <file>${logback.splunk}</file>
                         <!-- Performance penalties, especially on NFS, but guarantees no loss -->
                         <prudent>true</prudent>
                         <encoder>
