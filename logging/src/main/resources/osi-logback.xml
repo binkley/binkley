@@ -22,7 +22,8 @@
     <conversionRule conversionWord="match"
                     converterClass="hm.binkley.util.logging.MatchConverter"/>
     <!-- Define timestamp for use by file appenders -->
-    <timestamp key="logback.timestamp" datePattern="yyyyMMdd'T'HHmmss"/>
+    <timestamp key="logback.timestamp" datePattern="yyyyMMdd'T'HHmmss"
+               timeReference="contextBirth"/>
     <!-- Applies application custom log settings: override default with logback.includedResource -->
     <include resource="${logback.includedResource:-osi-logback-included.xml}"/>
     <!-- Sets up logging properties: override with logback.stylesResource -->
