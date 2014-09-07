@@ -109,6 +109,7 @@ public final class XPropertiesTest {
     @Test
     public void shouldIncludeWildcard()
             throws IOException {
+        // TODO: Fails from inside InteliJ, works on command line
         xprops.load(new StringReader(format("#include %s/included*.properties", pathPrefix)));
 
         assertThat(xprops.getProperty("foo"), is(equalTo("found")));

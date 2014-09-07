@@ -6,7 +6,7 @@
 
 package hm.binkley.util;
 
-import hm.binkley.util.Converter.Conversion;
+import hm.binkley.util.XPropsConverter.Conversion;
 import lombok.NonNull;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
@@ -76,7 +76,7 @@ import static java.util.regex.Pattern.compile;
  * @todo Converter assumes cacheable keys; is this correct?
  * @see PathMatchingResourcePatternResolver
  * @see StrSubstitutor
- * @see Converter
+ * @see XPropsConverter
  * @see #load(Reader) loading properties with inclusions
  * @see #load(InputStream) loading properties with inclusions
  * @see #getProperty(String) getting properties with substitution
@@ -88,7 +88,7 @@ public class XProperties
     private static final Pattern colon = compile(":");
 
     private final Set<URI> included = new LinkedHashSet<>();
-    private final Converter converter = new Converter();
+    private final XPropsConverter converter = new XPropsConverter();
     private final Map<Key, Object> converted = new ConcurrentHashMap<>();
 
     private final StrSubstitutor substitutor = new StrSubstitutor(new FindValue());
@@ -131,7 +131,7 @@ public class XProperties
      * @param factory the factory, never missing
      *
      * @todo Documentation
-     * @see Converter#register(String, Conversion)
+     * @see XPropsConverter#register(String, Conversion)
      */
     public void register(@Nonnull final String prefix,
             @Nonnull final Conversion<?, ? extends Exception> factory) {
@@ -230,7 +230,8 @@ public class XProperties
      * <p>
      * Typed keys are of the form: {@code <var>type</var>:<var>key</var>}.  The <var>key</var> is
      * the same key as {@link System#getProperty(String) System.getProperty}.  See {@link
-     * Converter#register(String, Conversion) register} for built-in <var>type</var> key prefixes.
+     * XPropsConverter#register(String, Conversion) register} for built-in <var>type</var> key
+     * prefixes.
      * <p>
      * Examples: <table><tr><th>Code</th> <th>Comment</th></tr> <tr><td>{@code Integer foo =
      * xprops.getObject("int:foo");}</td> <td>Gets the "foo" property as an possibly {@code null}
@@ -246,7 +247,7 @@ public class XProperties
      * @return the type property value, possibly missing
      *
      * @see #getObjectOrDefault(String, Object)
-     * @see Converter#register(String, Conversion)
+     * @see XPropsConverter#register(String, Conversion)
      */
     @Nullable
     public <T> T getObject(@Nonnull final String key) {
