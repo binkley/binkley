@@ -7,24 +7,41 @@
 package hm.binkley.util.logging.osi;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
+import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 
+import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_INCLUDED_RESOURCE;
 import static hm.binkley.util.logging.osi.SupportLoggers.ALERT;
 import static hm.binkley.util.logging.osi.SupportLoggers.APPLICATION;
 import static hm.binkley.util.logging.osi.SupportLoggers.AUDIT;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertThat;
 
 /**
  * {@code ITSupportLoggers} integration tests {@link SupportLoggers}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley</a>
  */
-public final class ITSupportLoggers
-        extends AbstractITOSI {
+public final class ITSupportLoggers {
+    @Rule
+    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    @Rule
+    public final StandardErrorStreamLog serr = new StandardErrorStreamLog();
+    @Rule
+    public final ProvideSystemProperty osi = new ProvideSystemProperty(
+            LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml");
+    @Rule
+    public final ProvideSystemProperty included = new ProvideSystemProperty(
+            LOGBACK_INCLUDED_RESOURCE.key(), "osi-support-loggers-included.xml");
+
     @Before
-    public void setUpITSupportLogger() {
-        setOSISystemProperty(LOGBACK_INCLUDED_RESOURCE, "osi-support-loggers-included.xml");
+    public void setUp() {
+        refreshLogback();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -32,24 +49,24 @@ public final class ITSupportLoggers
         ALERT.getLogger("test").info("Ignored");
     }
 
-    @SuppressWarnings("JUnitTestMethodWithNoAssertions")
     @Test
     public void applicationShouldLogNormally() {
         APPLICATION.getLogger("test").error("Test");
-        assertLogLine(containsString("Test"));
+
+        assertThat(sout.getLog(), containsString("Test"));
     }
 
-    @SuppressWarnings("JUnitTestMethodWithNoAssertions")
     @Test
     public void alertShouldSayAlertWarn() {
         ALERT.getLogger("test").warn("Ignored");
-        assertLogLine(containsString("ALERT/WARN"));
+
+        assertThat(serr.getLog(), containsString("ALERT/WARN"));
     }
 
-    @SuppressWarnings("JUnitTestMethodWithNoAssertions")
     @Test
     public void auditShouldSayAuditWarn() {
         AUDIT.getLogger("test").warn("Ignored");
-        assertLogLine(containsString("AUDIT/WARN"));
+
+        assertThat(sout.getLog(), containsString("AUDIT/WARN"));
     }
 }

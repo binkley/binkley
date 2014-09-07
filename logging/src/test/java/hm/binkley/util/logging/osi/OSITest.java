@@ -33,8 +33,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 import org.junit.rules.ExpectedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.resetForTesting;
@@ -47,6 +45,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.rules.ExpectedException.none;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * {@code OSITest} tests {@link OSI}.
@@ -59,7 +58,7 @@ public final class OSITest {
     @Rule
     public final ExpectedException thrown = none();
     @Rule
-    public final StandardOutputStreamLog xxx = new StandardOutputStreamLog();
+    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
 
     @Before
     public void setUpOSITest() {
@@ -124,8 +123,7 @@ public final class OSITest {
     @Test
     public void shouldIncludeApplicationName() {
         OSI.enable("MyApp");
-        final Logger bob = LoggerFactory.getLogger("bob");
-        bob.error("ouch");
-        assertThat(xxx.getLog(), containsString("MyApp"));
+        getLogger("bob").warn("ouch");
+        assertThat(sout.getLog(), containsString("MyApp"));
     }
 }

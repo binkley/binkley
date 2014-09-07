@@ -6,9 +6,13 @@
 
 package hm.binkley.util.logging;
 
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.RestoreSystemProperties;
+import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
 import static java.lang.System.clearProperty;
@@ -16,6 +20,7 @@ import static java.lang.System.setProperty;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -23,8 +28,12 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public final class ITMatchConverter
-        extends AbstractITLogback {
+public final class ITMatchConverter {
+    @Rule
+    public StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    @Rule
+    public RestoreSystemProperties pattern = new RestoreSystemProperties("logback.pattern");
+
     private String previous;
 
     @Before
@@ -65,5 +74,9 @@ public final class ITMatchConverter
         refreshLogback();
         getLogger("test").warn("Ignored.");
         assertLogLine(containsString("Missing options for %match - null"));
+    }
+
+    private void assertLogLine(final Matcher<String> matcher) {
+        assertThat(sout.getLog().trim(), matcher); // Remove trailing line ending
     }
 }

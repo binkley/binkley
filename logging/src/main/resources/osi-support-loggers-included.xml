@@ -29,7 +29,7 @@
     <!-- Supports marking ALERT and AUDIT log lines specially. -->
     <!-- TODO: General property for listing special markers -->
     <evaluator name="WITH_MARKER">
-        <expression>null != marker &amp;&amp; java.util.Arrays.asList("ALERT", "AUDIT").contains(marker.getName())</expression>
+        <expression>null != marker &amp;&amp; ("ALERT".equals(marker.getName()) || "AUDIT".equals(marker.getName()))</expression>
     </evaluator>
 
     <!-- Ensure all alerts go out regardless of level. -->
