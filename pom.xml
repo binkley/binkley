@@ -74,50 +74,13 @@
         <module>xprops</module>
     </modules>
 
-    <properties>
-        <commons-lang3.version>3.3.2</commons-lang3.version>
-        <freemarker.version>2.3.20</freemarker.version>
-        <guava.version>18.0</guava.version>
-        <guice.version>3.0</guice.version>
-        <hamcrest.version>1.3</hamcrest.version>
-        <ini4j.version>0.5.2</ini4j.version>
-        <intellij.version>12.0</intellij.version>
-        <janino.version>2.7.6</janino.version>
-        <!-- TODO: Merge Eight branch when JDK8 releases -->
-        <java.version>8</java.version>
-        <jgitflow-maven-plugin.version>1.0-m4.3</jgitflow-maven-plugin.version>
-        <jmockit.version>1.7</jmockit.version>
-        <jnr.version>3.0.6</jnr.version>
-        <jopt-simple.version>4.7</jopt-simple.version>
-        <jsr305.version>3.0.0</jsr305.version>
-        <junit.version>4.11</junit.version>
-        <!-- <lifegycle.version>0.2-SNAPSHOT</lifegycle.version> -->
-        <logback.version>1.1.2</logback.version>
-        <lombok.version>1.14.6</lombok.version>
-        <maven.version>3.1</maven.version>
-        <metainf-services.version>1.5</metainf-services.version>
-        <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
-        <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
-        <maven-dependency-plugin.version>2.8</maven-dependency-plugin.version>
-        <maven-failsafe-plugin.version>2.17</maven-failsafe-plugin.version>
-        <maven-gpg-plugin.version>1.4</maven-gpg-plugin.version>
-        <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-        <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
-        <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
-        <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
-        <owner.version>1.0.5.1</owner.version>
-        <pojo-mbean.version>1.1</pojo-mbean.version>
-        <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <service-binder.version>0.3</service-binder.version>
-        <slf4j.version>1.7.7</slf4j.version>
-        <!-- TODO: Sort out 1.0 vs 1.0-SNAPSHOT for splunklogging -->
-        <splunklogging.version>1.0-SNAPSHOT</splunklogging.version>
-        <spring.version>4.1.0.RELEASE</spring.version>
-        <system-rules.version>1.6.0</system-rules.version>
-        <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
-    </properties>
+    <repositories>
+        <!-- Splunk doesn't believe in Maven central, no, really -->
+        <repository>
+            <id>ext-release-local</id>
+            <url>http://splunk.artifactoryonline.com/splunk/ext-releases-local</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -166,6 +129,52 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <properties>
+        <commons-lang3.version>3.3.2</commons-lang3.version>
+        <freemarker.version>2.3.20</freemarker.version>
+        <guava.version>18.0</guava.version>
+        <guice.version>3.0</guice.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <ini4j.version>0.5.2</ini4j.version>
+        <intellij.version>12.0</intellij.version>
+        <janino.version>2.7.6</janino.version>
+        <!-- TODO: Merge Eight branch when JDK8 releases -->
+        <java.version>8</java.version>
+        <jgitflow-maven-plugin.version>1.0-m4.3</jgitflow-maven-plugin.version>
+        <jmockit.version>1.7</jmockit.version>
+        <jnr.version>3.0.6</jnr.version>
+        <jopt-simple.version>4.7</jopt-simple.version>
+        <jsr305.version>3.0.0</jsr305.version>
+        <junit.version>4.11</junit.version>
+        <!-- <lifegycle.version>0.2-SNAPSHOT</lifegycle.version> -->
+        <logback.version>1.1.2</logback.version>
+        <lombok.version>1.14.6</lombok.version>
+        <maven.version>3.1</maven.version>
+        <metainf-services.version>1.5</metainf-services.version>
+        <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
+        <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+        <maven-dependency-plugin.version>2.8</maven-dependency-plugin.version>
+        <maven-failsafe-plugin.version>2.17</maven-failsafe-plugin.version>
+        <maven-gpg-plugin.version>1.4</maven-gpg-plugin.version>
+        <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
+        <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
+        <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
+        <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+        <owner.version>1.0.5.1</owner.version>
+        <pojo-mbean.version>1.1</pojo-mbean.version>
+        <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <service-binder.version>0.3</service-binder.version>
+        <slf4j.version>1.7.7</slf4j.version>
+        <splunk.version>1.3.0</splunk.version>
+        <!-- TODO: Sort out 1.0 vs 1.0-SNAPSHOT for splunklogging -->
+        <splunklogging.version>1.0-SNAPSHOT</splunklogging.version>
+        <spring.version>4.1.0.RELEASE</spring.version>
+        <system-rules.version>1.6.0</system-rules.version>
+        <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
+    </properties>
 
     <dependencyManagement>
         <dependencies>
@@ -281,6 +290,11 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>jul-to-slf4j</artifactId>
                 <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.splunk</groupId>
+                <artifactId>splunk</artifactId>
+                <version>${splunk.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.splunk</groupId>

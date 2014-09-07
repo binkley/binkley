@@ -69,8 +69,13 @@
         </dependency>
         <dependency>
             <groupId>com.splunk</groupId>
+            <artifactId>splunk</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.splunk</groupId>
             <artifactId>logging</artifactId>
-            <version>${splunklogging.version}</version>
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
