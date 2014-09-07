@@ -82,7 +82,7 @@ public final class ITSplunkLoggers {
         final File auditLog = logDir.newFile();
         System.setProperty("logback.splunk", auditLog.getAbsolutePath());
 
-        OSI.enable("MyApp");
+        refreshLogback();
         AUDIT.getLogger("test").warn("Foo!");
 
         assertThat(sout.getLog(), isEmptyString());

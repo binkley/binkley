@@ -39,13 +39,11 @@ import static hm.binkley.util.logging.osi.OSI.SystemProperty.resetForTesting;
 import static java.lang.System.getProperty;
 import static java.lang.System.setProperty;
 import static java.util.Arrays.asList;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.rules.ExpectedException.none;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * {@code OSITest} tests {@link OSI}.
@@ -61,7 +59,7 @@ public final class OSITest {
     public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
 
     @Before
-    public void setUpOSITest() {
+    public void setUp() {
         asList(OSI.SystemProperty.values()).stream().
                 map(OSI.SystemProperty::key).
                 filter(key -> null != getProperty(key)).
@@ -69,7 +67,7 @@ public final class OSITest {
     }
 
     @After
-    public void tearDownOSITest() {
+    public void tearDown() {
         resetForTesting();
     }
 
@@ -118,12 +116,5 @@ public final class OSITest {
         final String configurationFile = "other ignored";
         LOGBACK_CONFIGURATION_FILE.set(configurationFile, true);
         assertThat(getProperty(LOGBACK_CONFIGURATION_FILE.key()), is(equalTo(configurationFile)));
-    }
-
-    @Test
-    public void shouldIncludeApplicationName() {
-        OSI.enable("MyApp");
-        getLogger("bob").warn("ouch");
-        assertThat(sout.getLog(), containsString("MyApp"));
     }
 }
