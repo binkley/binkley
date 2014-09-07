@@ -72,7 +72,6 @@
         <module>xio</module>
         <module>xml</module>
         <module>xprops</module>
-        <module>finance</module>
     </modules>
 
     <properties>
