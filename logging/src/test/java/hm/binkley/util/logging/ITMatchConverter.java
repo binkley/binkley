@@ -6,21 +6,29 @@
 
 package hm.binkley.util.logging;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.status.Status;
 import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.RestoreSystemProperties;
+import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
+import org.slf4j.Logger;
+
+import java.util.List;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
 import static java.lang.System.clearProperty;
 import static java.lang.System.setProperty;
-import static org.hamcrest.Matchers.containsString;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.slf4j.LoggerFactory.getILoggerFactory;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -31,6 +39,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public final class ITMatchConverter {
     @Rule
     public StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    @Rule
+    public StandardErrorStreamLog serr = new StandardErrorStreamLog();
     @Rule
     public RestoreSystemProperties pattern = new RestoreSystemProperties("logback.pattern");
 
@@ -68,15 +78,21 @@ public final class ITMatchConverter {
 
     @Test
     public void shouldComplainWhenWrong() {
-        // This passes on command line and fails inside IDE - IDEs hijack System.out early in (see
-        // JUnitCore.runMain for details) before we can hijack it for capturing logging output
         previous = setProperty("logback.pattern", "%match");
         refreshLogback();
-        getLogger("test").warn("Ignored.");
-        assertLogLine(containsString("Missing options for %match - null"));
+        final Logger log = getLogger("test");
+        log.warn("Ignored.");
+
+        final List<String> messages = ((LoggerContext) getILoggerFactory()).
+                getStatusManager().
+                getCopyOfStatusList().stream().
+                filter(status -> Status.ERROR == status.getLevel()).
+                map(Status::getMessage).
+                collect(toList());
+        assertThat("ERROR", messages, hasItem("Missing options for %match - missing options"));
     }
 
     private void assertLogLine(final Matcher<String> matcher) {
-        assertThat(sout.getLog().trim(), matcher); // Remove trailing line ending
+        assertThat("STDOUT", sout.getLog().trim(), matcher); // Remove trailing line ending
     }
 }
