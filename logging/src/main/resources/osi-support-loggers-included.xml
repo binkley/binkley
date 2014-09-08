@@ -28,6 +28,7 @@
 <included>
     <!-- Supports marking ALERT and AUDIT log lines specially. -->
     <!-- TODO: General property for listing special markers -->
+    <!-- TODO: 07:10:50,982 |-INFO in ch.qos.logback.classic.boolex.JaninoEventEvaluator@1e13529a - Adding [return] prefix and a semicolon suffix. Expression becomes [return null != marker && ("ALERT".equals(marker.getName()) || "AUDIT".equals(marker.getName()));] -->
     <evaluator name="WITH_MARKER">
         <expression>null != marker &amp;&amp; ("ALERT".equals(marker.getName()) || "AUDIT".equals(marker.getName()))</expression>
     </evaluator>

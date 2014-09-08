@@ -6,6 +6,7 @@
 
 package hm.binkley.util.logging.osi;
 
+import hm.binkley.util.logging.osi.OSI.SystemProperty;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,15 +59,27 @@ public final class ITSupportLoggers {
 
     @Test
     public void alertShouldSayAlertWarn() {
+        SystemProperty.LOGBACK_DEBUG.set("true", true);
+        refreshLogback();
         ALERT.getLogger("test").warn("Ignored");
 
         assertThat(serr.getLog(), containsString("ALERT/WARN"));
     }
 
-    @Test
-    public void auditShouldSayAuditWarn() {
-        AUDIT.getLogger("test").warn("Ignored");
+    @Test(expected = IllegalStateException.class)
+    public void alertComplainWithInfo() {
+        ALERT.getLogger("test").info("Ignored");
+    }
 
-        assertThat(sout.getLog(), containsString("AUDIT/WARN"));
+    @Test
+    public void auditShouldSayAuditInfo() {
+        AUDIT.getLogger("test").info("Ignored");
+
+        assertThat(sout.getLog(), containsString("AUDIT/INFO"));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void auditShouldComplainWithDebug() {
+        AUDIT.getLogger("test").debug("Ignored");
     }
 }
