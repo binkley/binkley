@@ -85,7 +85,7 @@
         <janino.version>2.6.1</janino.version>
         <!-- TODO: Merge Eight branch when JDK8 releases -->
         <java.version>8</java.version>
-        <jgitflow-maven-plugin.version>1.0-m4</jgitflow-maven-plugin.version>
+        <jgitflow-maven-plugin.version>1.0-m4.3</jgitflow-maven-plugin.version>
         <jmockit.version>1.7</jmockit.version>
         <jnr.version>3.0.1</jnr.version>
         <jopt-simple.version>4.6</jopt-simple.version>
