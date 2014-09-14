@@ -109,6 +109,7 @@
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.reporting.sourceEncoding>UTF-8</project.reporting.sourceEncoding>
         <service-binder.version>0.3</service-binder.version>
         <slf4j.version>1.7.7</slf4j.version>
         <spring.version>4.0.5.RELEASE</spring.version>
