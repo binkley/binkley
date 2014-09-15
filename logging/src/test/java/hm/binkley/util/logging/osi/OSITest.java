@@ -33,10 +33,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 import org.junit.rules.ExpectedException;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_JANSI;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_STYLE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.resetForTesting;
 import static java.lang.System.getProperty;
 import static java.lang.System.setProperty;
@@ -59,7 +60,7 @@ public final class OSITest {
     @Rule
     public final ExpectedException thrown = none();
     @Rule
-    public final StandardOutputStreamLog xxx = new StandardOutputStreamLog();
+    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
 
     @Before
     public void setUpOSITest() {
@@ -124,8 +125,16 @@ public final class OSITest {
     @Test
     public void shouldIncludeApplicationName() {
         OSI.enable("MyApp");
-        final Logger bob = LoggerFactory.getLogger("bob");
-        bob.error("ouch");
-        assertThat(xxx.getLog(), containsString("MyApp"));
+        LoggerFactory.getLogger("bob").error("ouch");
+        assertThat(sout.getLog(), containsString("MyApp"));
+    }
+
+    @Test
+    public void shouldIncludeAnsiEscapes() {
+        setProperty(LOGBACK_JANSI.key(), "true");
+        setProperty(LOGBACK_STYLE.key(), "%black(%message)");
+        resetForTesting();
+        LoggerFactory.getLogger("bob").error("broke");
+        assertThat(sout.getLog(), is(equalTo("broke")));
     }
 }
