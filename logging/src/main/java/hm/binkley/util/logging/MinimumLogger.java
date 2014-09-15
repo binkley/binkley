@@ -33,6 +33,16 @@ public class MinimumLogger
     private final Level minimum;
 
     /**
+     * Gets the underlying wrapped logger for extensions.
+     *
+     * @return the underlying logger, never missing
+     */
+    @Nonnull
+    public final Logger getUnderlying() {
+        return logger;
+    }
+
+    /**
      * Constructs a new {@code MinimalLogger} for the given parameters.
      *
      * @param logger the logger to delegate to, never missing

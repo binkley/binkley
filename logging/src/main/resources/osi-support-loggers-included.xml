@@ -42,6 +42,7 @@
     <!-- Alerts get special treatment, in addition to regular treatment. -->
     <appender name="alert" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.err</target>
+        <withJansi>${logback.jansi:-false}</withJansi>
         <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
             <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
                 <marker>ALERT</marker>
@@ -63,6 +64,7 @@
 
     <!-- Audits get special treatment, in addition to regular treatment. -->
     <appender name="audit" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>${logback.jansi:-false}</withJansi>
         <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
             <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
                 <marker>AUDIT</marker>

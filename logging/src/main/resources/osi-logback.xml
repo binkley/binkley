@@ -28,6 +28,7 @@
     <!-- Sets up logging properties: override with logback.stylesResource -->
     <variable resource="${logback.stylesResource:-osi-logback-styles.properties}"/>
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>${logback.jansi:-false}</withJansi>
         <encoder>
             <!-- Picks logging style: override with logback.style -->
             <pattern>${${logback.style:-standard}}</pattern>
