@@ -33,12 +33,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 import org.junit.rules.ExpectedException;
+import org.slf4j.LoggerFactory;
 
+import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_JANSI;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_STYLES_RESOURCE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.resetForTesting;
 import static java.lang.System.getProperty;
 import static java.lang.System.setProperty;
 import static java.util.Arrays.asList;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -46,13 +51,13 @@ import static org.junit.Assert.assertThat;
 import static org.junit.rules.ExpectedException.none;
 
 /**
- * {@code OSITest} tests {@link OSI}.
+ * {@code OSIIT} tests {@link OSI}.
  *
  * @author <a href="mailto:Brian.Oxley@macquarie.com">Brian Oxley</a>
  * @todo StandardOutputStreamLog still prints to sout/serr
  * @todo StandardOutputStreamLog does not process into List of String
  */
-public final class OSITest {
+public final class OSIIT {
     @Rule
     public final ExpectedException thrown = none();
     @Rule
@@ -116,5 +121,21 @@ public final class OSITest {
         final String configurationFile = "other ignored";
         LOGBACK_CONFIGURATION_FILE.set(configurationFile, true);
         assertThat(getProperty(LOGBACK_CONFIGURATION_FILE.key()), is(equalTo(configurationFile)));
+    }
+
+    @Test
+    public void shouldIncludeApplicationName() {
+        OSI.enable("MyApp");
+        LoggerFactory.getLogger("bob").error("ouch");
+        assertThat(sout.getLog(), containsString("MyApp"));
+    }
+
+    @Test
+    public void shouldIncludeAnsiEscapes() {
+        setProperty(LOGBACK_JANSI.key(), "true");
+        setProperty(LOGBACK_STYLES_RESOURCE.key(), "osi-logback-jansi-styles.properties");
+        refreshLogback();
+        LoggerFactory.getLogger("bob").error("broke");
+        assertThat(sout.getLog(), is(equalTo("broke")));
     }
 }

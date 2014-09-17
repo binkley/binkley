@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.ext.LoggerWrapper;
 
+import javax.annotation.Nonnull;
+
 /**
  * {@code MarkedLogger} is an SLF4J logger with a default marker applied to all methods with a
  * marker variant.
@@ -32,12 +34,22 @@ public class MarkedLogger
     private final Marker marker;
 
     /**
+     * Gets the underlying wrapped logger for extensions.
+     *
+     * @return the underlying logger, never missing
+     */
+    @Nonnull
+    public final Logger getUnderlying() {
+        return logger;
+    }
+
+    /**
      * Constructds a new {@code MarkedLogger} for the given parameters.
      *
      * @param logger the logger to delegate to, never missing
      * @param marker the marker for unmarked logging, never missing
      */
-    public MarkedLogger(final Logger logger, final Marker marker) {
+    public MarkedLogger(@Nonnull final Logger logger, @Nonnull final Marker marker) {
         this(logger, MarkedLogger.class.getName(), marker);
     }
 
@@ -48,7 +60,8 @@ public class MarkedLogger
      * @param fqcn the fully-qualified class name of the extending logger, never missing
      * @param marker the marker for unmarked logging, never missing
      */
-    public MarkedLogger(final Logger logger, final String fqcn, final Marker marker) {
+    public MarkedLogger(@Nonnull final Logger logger, @Nonnull final String fqcn,
+            @Nonnull final Marker marker) {
         super(logger, fqcn);
         this.marker = marker;
     }

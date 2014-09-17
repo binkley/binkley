@@ -83,6 +83,7 @@
         <ini4j.version>0.5.2</ini4j.version>
         <intellij.version>12.0</intellij.version>
         <janino.version>2.7.6</janino.version>
+        <jansi.version>1.11</jansi.version>
         <java.version>8</java.version>
         <jgitflow-maven-plugin.version>1.0-m4.3</jgitflow-maven-plugin.version>
         <jmockit.version>1.7</jmockit.version>
@@ -273,6 +274,11 @@
                 <groupId>org.codehaus.janino</groupId>
                 <artifactId>janino</artifactId>
                 <version>${janino.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.fusesource.jansi</groupId>
+                <artifactId>jansi</artifactId>
+                <version>${jansi.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>

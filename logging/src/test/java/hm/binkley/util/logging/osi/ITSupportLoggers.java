@@ -22,6 +22,8 @@ import static hm.binkley.util.logging.osi.SupportLoggers.APPLICATION;
 import static hm.binkley.util.logging.osi.SupportLoggers.AUDIT;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.isEmptyString;
+import static org.junit.Assert.assertThat;
 
 /**
  * {@code ITSupportLoggers} integration tests {@link SupportLoggers}.
@@ -58,12 +60,17 @@ public final class ITSupportLoggers {
     }
 
     @Test
-    public void alertShouldSayAlertWarn() {
-        SystemProperty.LOGBACK_DEBUG.set("true", true);
-        refreshLogback();
+    public void alertShouldSayAlertWarnOnStderr() {
         ALERT.getLogger("test").warn("Ignored");
 
         assertThat(serr.getLog(), containsString("ALERT/WARN"));
+    }
+
+    @Test
+    public void alertShouldSayNothingOnStdout() {
+        ALERT.getLogger("test").warn("Ignored");
+
+        assertThat(sout.getLog(), isEmptyString());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -72,10 +79,18 @@ public final class ITSupportLoggers {
     }
 
     @Test
-    public void auditShouldSayAuditInfo() {
+    public void auditShouldSayAuditInfoOnStdout() {
         AUDIT.getLogger("test").info("Ignored");
 
+        assertThat(serr.getLog(), containsString("AUDIT/INFO"));
         assertThat(sout.getLog(), containsString("AUDIT/INFO"));
+    }
+
+    @Test
+    public void auditShouldSayNothingOnStderr() {
+        AUDIT.getLogger("test").info("Ignored");
+
+        assertThat(serr.getLog(), isEmptyString());
     }
 
     @Test(expected = IllegalStateException.class)

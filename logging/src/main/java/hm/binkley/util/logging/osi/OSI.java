@@ -191,7 +191,9 @@ public final class OSI {
          *
          * @see #LOGBACK_INCLUDED_RESOURCE
          */
-        LOGBACK_ROOT_APPENDER("logback.rootAppender");
+        LOGBACK_ROOT_APPENDER("logback.rootAppender"),
+        /** Enables ANSI color codes for logging, including Windows.  Default is "false". */
+        LOGBACK_JANSI("logback.jansi");
         private static final Map<SystemProperty, String> totem = new EnumMap<>(
                 SystemProperty.class);
         @Nonnull
