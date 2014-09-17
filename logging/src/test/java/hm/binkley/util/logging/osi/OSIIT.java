@@ -35,9 +35,10 @@ import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 import org.junit.rules.ExpectedException;
 import org.slf4j.LoggerFactory;
 
+import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_JANSI;
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_STYLE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_STYLES_RESOURCE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.resetForTesting;
 import static java.lang.System.getProperty;
 import static java.lang.System.setProperty;
@@ -50,20 +51,20 @@ import static org.junit.Assert.assertThat;
 import static org.junit.rules.ExpectedException.none;
 
 /**
- * {@code OSITest} tests {@link OSI}.
+ * {@code OSIIT} tests {@link OSI}.
  *
  * @author <a href="mailto:Brian.Oxley@macquarie.com">Brian Oxley</a>
  * @todo StandardOutputStreamLog still prints to sout/serr
  * @todo StandardOutputStreamLog does not process into List of String
  */
-public final class OSITest {
+public final class OSIIT {
     @Rule
     public final ExpectedException thrown = none();
     @Rule
     public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
 
     @Before
-    public void setUpOSITest() {
+    public void setUpOSIIT() {
         asList(OSI.SystemProperty.values()).stream().
                 map(OSI.SystemProperty::key).
                 filter(key -> null != getProperty(key)).
@@ -71,7 +72,7 @@ public final class OSITest {
     }
 
     @After
-    public void tearDownOSITest() {
+    public void tearDownOSIIT() {
         resetForTesting();
     }
 
@@ -132,8 +133,8 @@ public final class OSITest {
     @Test
     public void shouldIncludeAnsiEscapes() {
         setProperty(LOGBACK_JANSI.key(), "true");
-        setProperty(LOGBACK_STYLE.key(), "%black(%message)");
-        resetForTesting();
+        setProperty(LOGBACK_STYLES_RESOURCE.key(), "osi-logback-jansi-styles.properties");
+        refreshLogback();
         LoggerFactory.getLogger("bob").error("broke");
         assertThat(sout.getLog(), is(equalTo("broke")));
     }
