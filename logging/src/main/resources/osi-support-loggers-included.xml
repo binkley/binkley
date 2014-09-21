@@ -42,6 +42,7 @@
                 <marker>ALERT</marker>
             </evaluator>
             <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
         </filter>
         <encoder>
             <pattern>${${logback.style:-standard}}</pattern>
@@ -61,6 +62,7 @@
                 <marker>AUDIT</marker>
             </evaluator>
             <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
         </filter>
         <encoder>
             <pattern>${${logback.style:-standard}}</pattern>

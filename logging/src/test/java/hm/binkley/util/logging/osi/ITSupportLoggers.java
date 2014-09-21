@@ -6,16 +6,23 @@
 
 package hm.binkley.util.logging.osi;
 
+import org.hamcrest.Description;
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
+import org.junit.rules.ExpectedException;
 
 import java.io.PrintStream;
+import java.util.regex.Pattern;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
+import static hm.binkley.util.logging.osi.ITSupportLoggers.PatternMatcher.pattern;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_INCLUDED_RESOURCE;
 import static hm.binkley.util.logging.osi.SupportLoggers.ALERT;
@@ -24,6 +31,7 @@ import static hm.binkley.util.logging.osi.SupportLoggers.AUDIT;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.junit.Assert.assertThat;
+import static org.junit.rules.ExpectedException.none;
 
 /**
  * {@code ITSupportLoggers} integration tests {@link SupportLoggers}.
@@ -31,6 +39,8 @@ import static org.junit.Assert.assertThat;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley</a>
  */
 public final class ITSupportLoggers {
+    @Rule
+    public final ExpectedException thrown = none();
     @Rule
     public final Sout sout = new Sout();
     @Rule
@@ -48,14 +58,15 @@ public final class ITSupportLoggers {
     }
 
     @Test
-    public void applicationShouldLogNormally() {
+    public void applicationShouldLogNormallyOnce() {
         APPLICATION.getLogger("test").error("Ignored");
 
         assertThat(sout.getLog(), containsString("Ignored"));
+//        assertThat(sout.getLog(), containsOnce("Ignored"));
     }
 
     @Test
-    public void alertShouldSayWarnOnStderr() {
+    public void alertShouldSayWarnOnStderrOnce() {
         ALERT.getLogger("alert").warn("Ignored");
 
         assertThat(serr.getLog(), containsString("ALERT/WARN"));
@@ -80,6 +91,11 @@ public final class ITSupportLoggers {
         ALERT.getLogger("alert").warn("Ignored");
 
         assertThat(sout.getLog(), containsString("ALERT/WARN"));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void alertShouldComplainWithDebug() {
+        ALERT.getLogger("test").debug("Ignored");
     }
 
     @Test(expected = IllegalStateException.class)
@@ -134,6 +150,76 @@ public final class ITSupportLoggers {
         @Override
         protected PrintStream getOriginalStream() {
             return super.getOriginalStream();
+        }
+    }
+
+    private static Matcher<CharSequence> containsOnce(final String s) {
+        return pattern(".*" + s + "(?!.*" + s + ")");
+    }
+
+    /**
+     * Tests if the argument is a {@link CharSequence} that matches a regular expression.
+     *
+     * @todo Copied from Hamcrest 1.4, yet to be released
+     */
+    public static class PatternMatcher
+            extends TypeSafeMatcher<CharSequence> {
+        /**
+         * Creates a matcher that matches if the examined {@link CharSequence} matches the specified
+         * regular expression.
+         * <p>
+         * For example:
+         * <pre>assertThat("myStringOfNote", pattern("[0-9]+"))</pre>
+         *
+         * @param regex the regular expression that the returned matcher will use to match any
+         * examined {@link CharSequence}
+         */
+        @Factory
+        public static Matcher<CharSequence> pattern(final String regex) {
+            return pattern(Pattern.compile(regex));
+        }
+
+        /**
+         * Creates a matcher that matches if the examined {@link CharSequence} matches the specified
+         * {@link Pattern}.
+         * <p>
+         * For example:
+         * <pre>assertThat("myStringOfNote", Pattern.compile("[0-9]+"))</pre>
+         *
+         * @param pattern the pattern that the returned matcher will use to match any examined
+         * {@link CharSequence}
+         */
+        @Factory
+        public static Matcher<CharSequence> pattern(final Pattern pattern) {
+            return new PatternMatcher(pattern);
+        }
+
+        private final Pattern pattern;
+
+        public PatternMatcher(final Pattern pattern) {
+            this.pattern = pattern;
+        }
+
+        @Override
+        public boolean matchesSafely(final CharSequence item) {
+            return pattern.matcher(item).matches();
+        }
+
+        @Override
+        public void describeMismatchSafely(final CharSequence item,
+                final Description mismatchDescription) {
+            mismatchDescription.
+                    appendText("was \"").
+                    appendText(String.valueOf(item)).
+                    appendText("\"");
+        }
+
+        @Override
+        public void describeTo(final Description description) {
+            description.
+                    appendText("a string with pattern \"").
+                    appendText(String.valueOf(pattern)).
+                    appendText("\"");
         }
     }
 }
