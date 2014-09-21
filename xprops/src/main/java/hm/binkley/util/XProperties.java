@@ -84,7 +84,6 @@ public class XProperties
     private static final Pattern include = compile("^#include\\s+(.*)\\s*$");
     private static final Pattern comma = compile("\\s*,\\s*");
     private static final Pattern colon = compile(":");
-    private static final ResourcePatternResolver loader = new PathMatchingResourcePatternResolver();
 
     private final Set<URI> included = new LinkedHashSet<>();
     private final XPropsConverter converter = new XPropsConverter();
@@ -107,7 +106,8 @@ public class XProperties
     @Nonnull
     public static XProperties from(@Nonnull @NonNull final String absolutePath)
             throws IOException {
-        final Resource resource = loader.getResource(absolutePath);
+        final Resource resource = new PathMatchingResourcePatternResolver()
+                .getResource(absolutePath);
         try (final InputStream in = resource.getInputStream()) {
             final XProperties xprops = new XProperties();
             xprops.included.add(resource.getURI());
@@ -147,6 +147,7 @@ public class XProperties
     @Override
     public synchronized void load(@Nonnull final Reader reader)
             throws IOException {
+        final ResourcePatternResolver loader = new PathMatchingResourcePatternResolver();
         try (final CharArrayWriter writer = new CharArrayWriter()) {
             try (final BufferedReader lines = new BufferedReader(reader)) {
                 for (String line = lines.readLine(); null != line; line = lines.readLine()) {
