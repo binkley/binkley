@@ -69,6 +69,7 @@
 
     <!-- Audits get special treatment, in addition to regular treatment. -->
     <appender name="audit" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
         <withJansi>${logback.jansi:-false}</withJansi>
         <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
             <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
