@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +36,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.String.format;
-import static java.lang.Thread.currentThread;
 import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
 
@@ -86,6 +84,7 @@ public class XProperties
     private static final Pattern include = compile("^#include\\s+(.*)\\s*$");
     private static final Pattern comma = compile("\\s*,\\s*");
     private static final Pattern colon = compile(":");
+    private static final ResourcePatternResolver loader = new PathMatchingResourcePatternResolver();
 
     private final Set<URI> included = new LinkedHashSet<>();
     private final XPropsConverter converter = new XPropsConverter();
@@ -108,10 +107,10 @@ public class XProperties
     @Nonnull
     public static XProperties from(@Nonnull @NonNull final String absolutePath)
             throws IOException {
-        final URL resource = XProperties.class.getResource(absolutePath);
-        try (final InputStream in = resource.openStream()) {
+        final Resource resource = loader.getResource(absolutePath);
+        try (final InputStream in = resource.getInputStream()) {
             final XProperties xprops = new XProperties();
-            xprops.included.add(URI.create(resource.toString()));
+            xprops.included.add(resource.getURI());
             xprops.load(in);
             return xprops;
         }
@@ -148,8 +147,6 @@ public class XProperties
     @Override
     public synchronized void load(@Nonnull final Reader reader)
             throws IOException {
-        final ResourcePatternResolver loader = new PathMatchingResourcePatternResolver(
-                currentThread().getContextClassLoader());
         try (final CharArrayWriter writer = new CharArrayWriter()) {
             try (final BufferedReader lines = new BufferedReader(reader)) {
                 for (String line = lines.readLine(); null != line; line = lines.readLine()) {
