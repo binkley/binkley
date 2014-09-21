@@ -45,11 +45,6 @@ public final class ITSupportLoggers {
         refreshLogback();
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void alertShouldRejectTrivialMessages() {
-        ALERT.getLogger("test").info("Ignored");
-    }
-
     @Test
     public void applicationShouldLogNormally() {
         APPLICATION.getLogger("test").error("Ignored");
@@ -72,10 +67,10 @@ public final class ITSupportLoggers {
     }
 
     @Test
-    public void alertShouldSayNothingOnStdout() {
-        ALERT.getLogger("test").warn("Ignored");
+    public void alertShouldDuplicateOnStdout() {
+        ALERT.getLogger("alert").warn("Ignored");
 
-        assertThat(sout.getLog(), isEmptyString());
+        assertThat(sout.getLog(), containsString("ALERT/WARN"));
     }
 
     @Test(expected = IllegalStateException.class)
