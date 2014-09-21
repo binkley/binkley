@@ -9,10 +9,9 @@ package hm.binkley.util.logging;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.core.status.Status;
 import org.hamcrest.Matcher;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.contrib.java.lang.system.RestoreSystemProperties;
 import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
@@ -21,7 +20,7 @@ import org.slf4j.Logger;
 import java.util.List;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
-import static java.lang.System.clearProperty;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static java.lang.System.setProperty;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.equalTo;
@@ -43,22 +42,9 @@ public final class ITMatchConverter {
     public StandardErrorStreamLog serr = new StandardErrorStreamLog();
     @Rule
     public RestoreSystemProperties pattern = new RestoreSystemProperties("logback.pattern");
-
-    private String previous;
-
-    @Before
-    public void setUpITMatchConverter() {
-        previous = setProperty("logback.configurationFile", "it-match-converter-logback.xml");
-    }
-
-    @After
-    public void tearDownITMatchConverter() {
-        if (null == previous)
-            clearProperty("logback.configurationFile");
-        else
-            setProperty("logback.configurationFile", previous);
-        clearProperty("logback.pattern");
-    }
+    @Rule
+    public final ProvideSystemProperty osi = new ProvideSystemProperty(
+            LOGBACK_CONFIGURATION_FILE.key(), "it-match-converter-logback.xml");
 
     @Test
     public void shouldMatch() {
@@ -78,7 +64,7 @@ public final class ITMatchConverter {
 
     @Test
     public void shouldComplainWhenWrong() {
-        previous = setProperty("logback.pattern", "%match");
+        setProperty("logback.pattern", "%match");
         refreshLogback();
         final Logger log = getLogger("test");
         log.warn("Ignored.");
