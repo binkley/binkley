@@ -18,7 +18,6 @@ import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 import org.junit.rules.ExpectedException;
 
-import java.io.PrintStream;
 import java.util.regex.Pattern;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
@@ -28,7 +27,6 @@ import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_INCLUDED_RE
 import static hm.binkley.util.logging.osi.SupportLoggers.ALERT;
 import static hm.binkley.util.logging.osi.SupportLoggers.APPLICATION;
 import static hm.binkley.util.logging.osi.SupportLoggers.AUDIT;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.junit.Assert.assertThat;
 import static org.junit.rules.ExpectedException.none;
@@ -42,7 +40,7 @@ public final class ITSupportLoggers {
     @Rule
     public final ExpectedException thrown = none();
     @Rule
-    public final Sout sout = new Sout();
+    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
     @Rule
     public final StandardErrorStreamLog serr = new StandardErrorStreamLog();
     @Rule
@@ -61,36 +59,35 @@ public final class ITSupportLoggers {
     public void applicationShouldLogNormallyOnce() {
         APPLICATION.getLogger("test").error("Ignored");
 
-        assertThat(sout.getLog(), containsString("Ignored"));
-//        assertThat(sout.getLog(), containsOnce("Ignored"));
+        assertThat(sout.getLog(), containsOnce("Ignored"));
     }
 
     @Test
     public void alertShouldSayWarnOnStderrOnce() {
         ALERT.getLogger("alert").warn("Ignored");
 
-        assertThat(serr.getLog(), containsString("ALERT/WARN"));
+        assertThat(serr.getLog(), containsOnce("ALERT/WARN"));
     }
 
     @Test
-    public void alertShouldSayErrorOnStderr() {
+    public void alertShouldSayErrorOnStderrOnce() {
         ALERT.getLogger("alert").error("Ignored");
 
-        assertThat(serr.getLog(), containsString("ALERT/ERROR"));
+        assertThat(serr.getLog(), containsOnce("ALERT/ERROR"));
     }
 
     @Test
     public void alertShouldIncludeNonAlertLoggerName() {
         ALERT.getLogger("test").warn("Ignored");
 
-        assertThat(serr.getLog(), containsString("ALERT/WARN"));
+        assertThat(serr.getLog(), containsOnce("ALERT/WARN"));
     }
 
     @Test
-    public void alertShouldDuplicateOnStdout() {
+    public void alertShouldDuplicateOnStdoutOnce() {
         ALERT.getLogger("alert").warn("Ignored");
 
-        assertThat(sout.getLog(), containsString("ALERT/WARN"));
+        assertThat(sout.getLog(), containsOnce("ALERT/WARN"));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -104,39 +101,38 @@ public final class ITSupportLoggers {
     }
 
     @Test
-    public void auditShouldSayInfoOnStdout() {
+    public void auditShouldSayInfoOnStdoutTwice() {
         AUDIT.getLogger("audit").info("Ignored");
 
-        assertThat(sout.getLog(), containsString("AUDIT/INFO"));
+        // TODO: How to get it only once when AUDIT goes to stdout?
+        assertThat(sout.getLog(), containsTwice("AUDIT/INFO"));
     }
 
     @Test
-    public void auditShouldSayWarnOnStdout() {
+    public void auditShouldSayWarnOnStdoutTwice() {
         AUDIT.getLogger("audit").warn("Ignored");
 
-        assertThat(sout.getLog(), containsString("AUDIT/WARN"));
+        assertThat(sout.getLog(), containsTwice("AUDIT/WARN"));
     }
 
     @Test
-    public void auditShouldSayErrorOnStdout() {
+    public void auditShouldSayErrorOnStdoutTwice() {
         AUDIT.getLogger("audit").error("Ignored");
 
-        assertThat(sout.getLog(), containsString("AUDIT/ERROR"));
+        assertThat(sout.getLog(), containsTwice("AUDIT/ERROR"));
     }
 
     @Test
-    public void auditShouldIncludeNonAuditLoggerName() {
+    public void auditShouldIncludeNonAuditLoggerNameTwice() {
         AUDIT.getLogger("test").info("Ignored");
 
-        assertThat(sout.getLog(), containsString("AUDIT/INFO"));
+        assertThat(sout.getLog(), containsTwice("AUDIT/INFO"));
     }
 
     @Test
     public void auditShouldSayNothingOnStderr() {
         AUDIT.getLogger("test").info("Ignored");
 
-        sout.getOriginalStream().println("out: " + sout.getLog());
-        sout.getOriginalStream().println("err: " + serr.getLog());
         assertThat(serr.getLog(), isEmptyString());
     }
 
@@ -145,16 +141,14 @@ public final class ITSupportLoggers {
         AUDIT.getLogger("test").debug("Ignored");
     }
 
-    private static class Sout
-            extends StandardOutputStreamLog {
-        @Override
-        protected PrintStream getOriginalStream() {
-            return super.getOriginalStream();
-        }
+    private static Matcher<CharSequence> containsOnce(final String s) {
+        // TODO: Now you have two problems
+        return pattern("(?s)([^\n]*" + s + "[^\n]*\n)(?!\\1)");
     }
 
-    private static Matcher<CharSequence> containsOnce(final String s) {
-        return pattern(".*" + s + "(?!.*" + s + ")");
+    private static Matcher<CharSequence> containsTwice(final String s) {
+        // TODO: Now you have two problems
+        return pattern("(?s)([^\n]*" + s + "[^\n]*\n)\\1");
     }
 
     /**
