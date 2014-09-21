@@ -33,13 +33,6 @@
         <expression>null != marker &amp;&amp; ("ALERT".equals(marker.getName()) || "AUDIT".equals(marker.getName()))</expression>
     </evaluator>
 
-    <!-- Ensure all alerts go out regardless of level. -->
-    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
-        <marker>ALERT</marker>
-        <onMatch>ACCEPT</onMatch>
-        <onMismatch>NEUTRAL</onMismatch>
-    </turboFilter>
-
     <!-- Alerts get special treatment, in addition to regular treatment. -->
     <appender name="alert" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.err</target>
@@ -48,8 +41,7 @@
             <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
                 <marker>ALERT</marker>
             </evaluator>
-            <onMatch>NEUTRAL</onMatch>
-            <onMismatch>DENY</onMismatch>
+            <onMatch>ACCEPT</onMatch>
         </filter>
         <encoder>
             <pattern>${${logback.style:-standard}}</pattern>
@@ -60,13 +52,6 @@
         <appender-ref ref="alert"/>
     </root>
 
-    <!-- Ensure all audits go out regardless of level. -->
-    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
-        <marker>AUDIT</marker>
-        <onMatch>ACCEPT</onMatch>
-        <onMismatch>NEUTRAL</onMismatch>
-    </turboFilter>
-
     <!-- Audits get special treatment, in addition to regular treatment. -->
     <appender name="audit" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.out</target>
@@ -75,8 +60,7 @@
             <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
                 <marker>AUDIT</marker>
             </evaluator>
-            <onMatch>NEUTRAL</onMatch>
-            <onMismatch>DENY</onMismatch>
+            <onMatch>ACCEPT</onMatch>
         </filter>
         <encoder>
             <pattern>${${logback.style:-standard}}</pattern>

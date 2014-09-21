@@ -9,13 +9,11 @@ package hm.binkley.util.logging.osi;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.core.util.StatusPrinter;
 import hm.binkley.util.logging.Level;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
@@ -284,14 +282,5 @@ public final class OSI {
         static void resetForTesting() {
             totem.clear();
         }
-    }
-
-    public static void main(final String... args) {
-        enable(true);
-        final Logger log = LoggerFactory.getLogger(OSI.class);
-        log.warn("Won't log");
-        log.error("Will log");
-        log.error("Example stacktrace: {}", "Hi, mom!",
-                new IOException("Nothing actually is wrong"));
     }
 }

@@ -13,6 +13,8 @@ import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 
+import java.io.PrintStream;
+
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_INCLUDED_RESOURCE;
@@ -30,7 +32,7 @@ import static org.junit.Assert.assertThat;
  */
 public final class ITSupportLoggers {
     @Rule
-    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    public final Sout sout = new Sout();
     @Rule
     public final StandardErrorStreamLog serr = new StandardErrorStreamLog();
     @Rule
@@ -60,6 +62,13 @@ public final class ITSupportLoggers {
     }
 
     @Test
+    public void alertShouldSayErrorOnStderr() {
+        ALERT.getLogger("alert").error("Ignored");
+
+        assertThat(serr.getLog(), containsString("ALERT/ERROR"));
+    }
+
+    @Test
     public void alertShouldIncludeNonAlertLoggerName() {
         ALERT.getLogger("test").warn("Ignored");
 
@@ -86,6 +95,20 @@ public final class ITSupportLoggers {
     }
 
     @Test
+    public void auditShouldSayWarnOnStdout() {
+        AUDIT.getLogger("audit").warn("Ignored");
+
+        assertThat(sout.getLog(), containsString("AUDIT/WARN"));
+    }
+
+    @Test
+    public void auditShouldSayErrorOnStdout() {
+        AUDIT.getLogger("audit").error("Ignored");
+
+        assertThat(sout.getLog(), containsString("AUDIT/ERROR"));
+    }
+
+    @Test
     public void auditShouldIncludeNonAuditLoggerName() {
         AUDIT.getLogger("test").info("Ignored");
 
@@ -96,11 +119,21 @@ public final class ITSupportLoggers {
     public void auditShouldSayNothingOnStderr() {
         AUDIT.getLogger("test").info("Ignored");
 
+        sout.getOriginalStream().println("out: " + sout.getLog());
+        sout.getOriginalStream().println("err: " + serr.getLog());
         assertThat(serr.getLog(), isEmptyString());
     }
 
     @Test(expected = IllegalStateException.class)
     public void auditShouldComplainWithDebug() {
         AUDIT.getLogger("test").debug("Ignored");
+    }
+
+    private static class Sout
+            extends StandardOutputStreamLog {
+        @Override
+        protected PrintStream getOriginalStream() {
+            return super.getOriginalStream();
+        }
     }
 }

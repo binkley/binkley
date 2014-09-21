@@ -37,7 +37,7 @@
         </encoder>
     </appender>
     <!-- Sets default log level: override with log.level -->
-    <root level="${log.level:-WARN}">
+    <root level="${log.level:-info}">
         <!-- Sets default log output: override with logback.rootAppender -->
         <!-- If overriden, define encoder pattern as for console -->
         <appender-ref ref="${logback.rootAppender:-console}"/>
