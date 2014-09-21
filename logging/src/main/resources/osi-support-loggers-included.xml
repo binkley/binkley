@@ -56,6 +56,10 @@
         </encoder>
     </appender>
 
+    <root level="warn">
+        <appender-ref ref="alert"/>
+    </root>
+
     <!-- Ensure all audits go out regardless of level. -->
     <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
         <marker>AUDIT</marker>
@@ -77,6 +81,10 @@
             <pattern>${${logback.style:-standard}}</pattern>
         </encoder>
     </appender>
+
+    <root level="info">
+        <appender-ref ref="audit"/>
+    </root>
 
     <!--
     In addition to console logging, audits might log to a database, etc.

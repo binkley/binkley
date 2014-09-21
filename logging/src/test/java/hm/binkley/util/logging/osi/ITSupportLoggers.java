@@ -6,7 +6,6 @@
 
 package hm.binkley.util.logging.osi;
 
-import hm.binkley.util.logging.osi.OSI.SystemProperty;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,7 +20,6 @@ import static hm.binkley.util.logging.osi.SupportLoggers.ALERT;
 import static hm.binkley.util.logging.osi.SupportLoggers.APPLICATION;
 import static hm.binkley.util.logging.osi.SupportLoggers.AUDIT;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.junit.Assert.assertThat;
 
@@ -60,7 +58,14 @@ public final class ITSupportLoggers {
     }
 
     @Test
-    public void alertShouldSayAlertWarnOnStderr() {
+    public void alertShouldSayWarnOnStderr() {
+        ALERT.getLogger("alert").warn("Ignored");
+
+        assertThat(serr.getLog(), containsString("ALERT/WARN"));
+    }
+
+    @Test
+    public void alertShouldIncludeNonAlertLoggerName() {
         ALERT.getLogger("test").warn("Ignored");
 
         assertThat(serr.getLog(), containsString("ALERT/WARN"));
@@ -74,15 +79,21 @@ public final class ITSupportLoggers {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void alertComplainWithInfo() {
+    public void alertShouldComplainWithInfo() {
         ALERT.getLogger("test").info("Ignored");
     }
 
     @Test
-    public void auditShouldSayAuditInfoOnStdout() {
+    public void auditShouldSayInfoOnStdout() {
+        AUDIT.getLogger("audit").info("Ignored");
+
+        assertThat(sout.getLog(), containsString("AUDIT/INFO"));
+    }
+
+    @Test
+    public void auditShouldIncludeNonAuditLoggerName() {
         AUDIT.getLogger("test").info("Ignored");
 
-        assertThat(serr.getLog(), containsString("AUDIT/INFO"));
         assertThat(sout.getLog(), containsString("AUDIT/INFO"));
     }
 
