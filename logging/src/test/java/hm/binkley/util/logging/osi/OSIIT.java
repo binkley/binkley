@@ -64,7 +64,7 @@ public final class OSIIT {
     public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
 
     @Before
-    public void setUpOSIIT() {
+    public void setUp() {
         asList(OSI.SystemProperty.values()).stream().
                 map(OSI.SystemProperty::key).
                 filter(key -> null != getProperty(key)).
@@ -72,7 +72,7 @@ public final class OSIIT {
     }
 
     @After
-    public void tearDownOSIIT() {
+    public void tearDown() {
         resetForTesting();
     }
 

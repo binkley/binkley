@@ -21,12 +21,14 @@
     <!-- Enables %match(cond1,patt1,...,fallback) -->
     <conversionRule conversionWord="match"
                     converterClass="hm.binkley.util.logging.MatchConverter"/>
-    <!-- Define timestamp for use by file appenders -->
-    <timestamp key="logback.timestamp" datePattern="yyyyMMdd'T'HHmmss"/>
+    <!-- Define timestamp for use by appenders -->
+    <timestamp key="logback.timestamp" datePattern="yyyyMMdd'T'HHmmss"
+               timeReference="contextBirth"/>
+    <!-- Sets up logging properties: override with logback.stylesResource,
+         before included so they may reference styles -->
+    <variable resource="${logback.stylesResource:-osi-logback-styles.properties}"/>
     <!-- Applies application custom log settings: override default with logback.includedResource -->
     <include resource="${logback.includedResource:-osi-logback-included.xml}"/>
-    <!-- Sets up logging properties: override with logback.stylesResource -->
-    <variable resource="${logback.stylesResource:-osi-logback-styles.properties}"/>
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <withJansi>${logback.jansi:-false}</withJansi>
         <encoder>

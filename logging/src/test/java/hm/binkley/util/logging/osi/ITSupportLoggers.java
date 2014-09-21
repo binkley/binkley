@@ -58,7 +58,14 @@ public final class ITSupportLoggers {
     }
 
     @Test
-    public void alertShouldSayAlertWarnOnStderr() {
+    public void alertShouldSayWarnOnStderr() {
+        ALERT.getLogger("alert").warn("Ignored");
+
+        assertThat(serr.getLog(), containsString("ALERT/WARN"));
+    }
+
+    @Test
+    public void alertShouldIncludeNonAlertLoggerName() {
         ALERT.getLogger("test").warn("Ignored");
 
         assertThat(serr.getLog(), containsString("ALERT/WARN"));
@@ -72,15 +79,21 @@ public final class ITSupportLoggers {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void alertComplainWithInfo() {
+    public void alertShouldComplainWithInfo() {
         ALERT.getLogger("test").info("Ignored");
     }
 
     @Test
-    public void auditShouldSayAuditInfoOnStdout() {
+    public void auditShouldSayInfoOnStdout() {
+        AUDIT.getLogger("audit").info("Ignored");
+
+        assertThat(sout.getLog(), containsString("AUDIT/INFO"));
+    }
+
+    @Test
+    public void auditShouldIncludeNonAuditLoggerName() {
         AUDIT.getLogger("test").info("Ignored");
 
-        assertThat(serr.getLog(), containsString("AUDIT/INFO"));
         assertThat(sout.getLog(), containsString("AUDIT/INFO"));
     }
 
