@@ -52,9 +52,9 @@ public final class ITSupportLoggers {
 
     @Test
     public void applicationShouldLogNormally() {
-        APPLICATION.getLogger("test").error("Test");
+        APPLICATION.getLogger("test").error("Ignored");
 
-        assertThat(sout.getLog(), containsString("Test"));
+        assertThat(sout.getLog(), containsString("Ignored"));
     }
 
     @Test
