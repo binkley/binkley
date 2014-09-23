@@ -27,7 +27,6 @@
 
 package hm.binkley.util.logging.osi;
 
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONTEXT_NAME;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_JANSI;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_STYLES_RESOURCE;
 import static org.hamcrest.Matchers.containsString;
@@ -57,17 +57,13 @@ public final class ITOSI {
     @Rule
     public final ProvideSystemProperty props = new ProvideSystemProperty(
             LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml").
+            and(LOGBACK_CONTEXT_NAME.key(), null).
             and(LOGBACK_JANSI.key(), null);
-
-    @Before
-    public void setUp() {
-        refreshLogback();
-    }
 
     @Test
     public void shouldIncludeApplicationName() {
         OSI.enable("MyApp");
-        LoggerFactory.getLogger("bob").error("Ignored");
+        LoggerFactory.getLogger("bob").info("Ignored");
         assertThat(sout.getLog(), containsString("MyApp"));
     }
 
