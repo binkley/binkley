@@ -36,10 +36,8 @@ import org.slf4j.LoggerFactory;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONTEXT_NAME;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_JANSI;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_STYLES_RESOURCE;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -51,21 +49,13 @@ import static org.junit.Assert.assertThat;
  * @todo StandardOutputStreamLog still prints to sout/serr
  * @todo StandardOutputStreamLog does not process into List of String
  */
-public final class ITOSI {
+public final class ITOSIJansi {
     @Rule
     public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
     @Rule
     public final ProvideSystemProperty props = new ProvideSystemProperty(
             LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml").
-            and(LOGBACK_CONTEXT_NAME.key(), null).
             and(LOGBACK_JANSI.key(), null);
-
-    @Test
-    public void shouldIncludeApplicationName() {
-        OSI.enable("MyApp");
-        LoggerFactory.getLogger("bob").info("Ignored");
-        assertThat(sout.getLog(), containsString("MyApp"));
-    }
 
     @Ignore("How to test? Jansi cannot setup up terminal on wrapped stream")
     @Test
