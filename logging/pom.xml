@@ -18,7 +18,7 @@
     <artifactId>binkley-logging</artifactId>
 
     <properties>
-        <java.version>7</java.version>
+        <java.version>7</java.version> <!-- Support previous version -->
     </properties>
 
     <dependencies>

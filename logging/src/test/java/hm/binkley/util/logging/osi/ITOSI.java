@@ -27,22 +27,22 @@
 
 package hm.binkley.util.logging.osi;
 
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
-import org.junit.rules.ExpectedException;
 import org.slf4j.LoggerFactory;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_JANSI;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_STYLES_RESOURCE;
-import static java.lang.System.setProperty;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.rules.ExpectedException.none;
 
 /**
  * {@code OSIIT} tests {@link OSI}.
@@ -51,26 +51,33 @@ import static org.junit.rules.ExpectedException.none;
  * @todo StandardOutputStreamLog still prints to sout/serr
  * @todo StandardOutputStreamLog does not process into List of String
  */
-public final class OSIIT {
-    @Rule
-    public final ExpectedException thrown = none();
+public final class ITOSI {
     @Rule
     public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    @Rule
+    public final ProvideSystemProperty props = new ProvideSystemProperty(
+            LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml").
+            and(LOGBACK_JANSI.key(), null);
+
+    @Before
+    public void setUp() {
+        refreshLogback();
+    }
 
     @Test
     public void shouldIncludeApplicationName() {
         OSI.enable("MyApp");
-        LoggerFactory.getLogger("bob").error("ouch");
+        LoggerFactory.getLogger("bob").error("Ignored");
         assertThat(sout.getLog(), containsString("MyApp"));
     }
 
-    @Ignore("How to test?  Does not work on wrapped console")
+    @Ignore("How to test? Jansi cannot setup up terminal on wrapped stream")
     @Test
     public void shouldIncludeAnsiEscapes() {
-        setProperty(LOGBACK_JANSI.key(), "true");
-        setProperty(LOGBACK_STYLES_RESOURCE.key(), "osi-logback-jansi-styles.properties");
+        LOGBACK_JANSI.set("true");
+        LOGBACK_STYLES_RESOURCE.set("osi-logback-jansi-styles.properties");
         refreshLogback();
-        LoggerFactory.getLogger("bob").error("broke");
-        assertThat(sout.getLog(), is(equalTo("broke")));
+        LoggerFactory.getLogger("bob").error("Ignored");
+        assertThat(sout.getLog(), is(equalTo("Ignored")));
     }
 }
