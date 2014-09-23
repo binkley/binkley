@@ -26,7 +26,6 @@ import static java.lang.System.clearProperty;
 import static java.lang.System.getProperty;
 import static java.lang.System.out;
 import static java.lang.System.setProperty;
-import static java.util.Arrays.asList;
 
 /**
  * {@code OSI} enable OSI logging for simple cases.
@@ -99,7 +98,8 @@ public final class OSI {
             LOGBACK_CONTEXT_NAME.set(applicationName, false);
         if (!showDetail)
             return;
-        asList(SystemProperty.values()).forEach(out::println);
+        for (final SystemProperty property : SystemProperty.values())
+            out.println(property);
         // No point duplicating the status messages
         if (Boolean.valueOf(LOGBACK_DEBUG.get()))
             return;

@@ -17,12 +17,12 @@ import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static java.lang.System.setProperty;
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
@@ -69,12 +69,13 @@ public final class ITMatchConverter {
         final Logger log = getLogger("test");
         log.warn("Ignored.");
 
-        final List<String> messages = ((LoggerContext) getILoggerFactory()).
+        final List<String> messages = new ArrayList<>();
+        for (final Status status : ((LoggerContext) getILoggerFactory()).
                 getStatusManager().
-                getCopyOfStatusList().stream().
-                filter(status -> Status.ERROR == status.getLevel()).
-                map(Status::getMessage).
-                collect(toList());
+                getCopyOfStatusList())
+            if (Status.ERROR == status.getLevel())
+                messages.add(status.getMessage());
+
         assertThat("ERROR", messages, hasItem("Missing options for %match - missing options"));
     }
 

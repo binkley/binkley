@@ -27,6 +27,7 @@
 
 package hm.binkley.util.logging.osi;
 
+import hm.binkley.util.logging.osi.OSI.SystemProperty;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,9 +41,9 @@ import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATI
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_JANSI;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_STYLES_RESOURCE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.resetForTesting;
+import static java.lang.System.clearProperty;
 import static java.lang.System.getProperty;
 import static java.lang.System.setProperty;
-import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -65,10 +66,11 @@ public final class OSIIT {
 
     @Before
     public void setUp() {
-        asList(OSI.SystemProperty.values()).stream().
-                map(OSI.SystemProperty::key).
-                filter(key -> null != getProperty(key)).
-                forEach(System::clearProperty);
+        for (final SystemProperty property : SystemProperty.values()) {
+            final String key = property.key();
+            if (null != getProperty(key))
+                clearProperty(key);
+        }
     }
 
     @After

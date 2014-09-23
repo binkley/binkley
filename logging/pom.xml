@@ -17,6 +17,10 @@
 
     <artifactId>binkley-logging</artifactId>
 
+    <properties>
+        <java.version>7</java.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>javax.inject</groupId>
