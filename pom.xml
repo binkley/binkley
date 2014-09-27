@@ -487,13 +487,12 @@
                     <detectLinks>true</detectLinks>
                     <linksource>true</linksource>
                     <links>
-                        <!-- TODO: These guys need complex URLs which javadoc does not grok -->
-                        <!--<link>http://google-guice.googlecode.com/git/javadoc/</link>-->
-                        <!--<link>http://docs.guava-libraries.googlecode.com/git/javadoc/</link>-->
-                        <link>http://owner.newinstance.it/${owner.version}/apidocs/</link>
-                        <link>http://slf4j.org/api/</link>
-                        <link>http://pholser.github.io/jopt-simple/apidocs/</link>
+                        <link>http://docs.guava-libraries.googlecode.com/git-history/v${guava.version}/javadoc/</link>
                         <link>http://findbugs.sourceforge.net/api/</link>
+                        <link>http://google.github.io/guice/api-docs/${guice.version}/javadoc/</link>
+                        <link>http://owner.newinstance.it/${owner.version}/apidocs/</link>
+                        <link>http://pholser.github.io/jopt-simple/apidocs/</link>
+                        <link>http://slf4j.org/api/</link>
                     </links>
                     <tags>
                         <tag>
