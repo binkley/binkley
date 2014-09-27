@@ -5,7 +5,7 @@ binkley's BLOG
 
 This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
 
-Current released version is 0.4.
+Current released version is 0.4.  [View javadoc](http://binkley.github.io/).
 
 ## Modules
 
