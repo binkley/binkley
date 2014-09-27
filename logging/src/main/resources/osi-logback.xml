@@ -21,6 +21,10 @@
     <!-- Enables %match(cond1,patt1,...,fallback) -->
     <conversionRule conversionWord="match"
                     converterClass="hm.binkley.util.logging.MatchConverter"/>
+    <conversionRule conversionWord="timezone"
+                    converterClass="hm.binkley.util.logging.TimeZoneConverter"/>
+    <conversionRule conversionWord="tz"
+                    converterClass="hm.binkley.util.logging.TimeZoneConverter"/>
     <!-- Define timestamp for use by appenders -->
     <timestamp key="logback.timestamp" datePattern="yyyyMMdd'T'HHmmss"
                timeReference="contextBirth"/>
