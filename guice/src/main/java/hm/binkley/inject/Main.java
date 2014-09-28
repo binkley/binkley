@@ -112,11 +112,9 @@ public abstract class Main<C extends Config> {
 
     private static String asPropertyKey(final String prefix, final OptionSpec<?> spec) {
         final Collection<String> flags = spec.options();
-        for (final String flag : flags) {
-            if (1 < flag.length()) {
+        for (final String flag : flags)
+            if (1 < flag.length())
                 return null == prefix ? flag : prefix + '.' + flag;
-            }
-        }
         throw new IllegalArgumentException("No usable non-short flag: " + flags);
     }
 
