@@ -19,7 +19,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>hm.binkley</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>binkley-convert</artifactId>
         </dependency>
 
@@ -43,7 +43,7 @@
         </dependency>
         <dependency>
             <!-- Required by static initializtion of Spring core classes -->
-            <groupId>hm.binkley</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>binkley-logging</artifactId>
             <scope>test</scope>
         </dependency>

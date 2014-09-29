@@ -20,7 +20,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>hm.binkley</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>binkley-util</artifactId>
         </dependency>
         <dependency>
@@ -33,7 +33,7 @@
         </dependency>
         <!-- Blame Spring -->
         <dependency>
-            <groupId>hm.binkley</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>binkley-logging</artifactId>
             <scope>test</scope>
         </dependency>
