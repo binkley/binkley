@@ -28,6 +28,7 @@
     <name>binkley's BLOG</name>
     <description>Extended code samples from my blog</description>
     <url>http://binkley.blogspot.com</url>
+    <inceptionYear>2013</inceptionYear>
 
     <licenses>
         <license>
@@ -36,6 +37,16 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <issueManagement>
+        <system>Github</system>
+	<url>https://github.com/binkley/binkley/issues</url>
+    </issueManagement>
+
+    <ciManagement>
+        <system>Travis</system>
+	<url>https://travis-ci.org/binkley/binkley</url>
+    </ciManagement>
 
     <scm>
         <connection>scm:git:git://github.com/binkley/binkley.git</connection>
