@@ -27,16 +27,17 @@
 
 package hm.binkley.util.logging.osi;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
-import org.slf4j.LoggerFactory;
 
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONTEXT_NAME;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * {@code OSIIT} tests {@link OSI}.
@@ -49,14 +50,18 @@ public final class ITOSIApplicationName {
     @Rule
     public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
     @Rule
-    public final ProvideSystemProperty props = new ProvideSystemProperty(
-            LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml").
-            and(LOGBACK_CONTEXT_NAME.key(), null);
+    public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
+
+    @Before
+    public void setUp() {
+        sysprops.setProperty(LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml");
+        sysprops.setProperty(LOGBACK_CONTEXT_NAME.key(), null);
+    }
 
     @Test
     public void shouldIncludeApplicationName() {
         OSI.enable("MyApp");
-        LoggerFactory.getLogger("bob").info("Ignored");
+        getLogger("bob").info("Ignored");
         assertThat(sout.getLog(), containsString("MyApp"));
     }
 }

@@ -44,14 +44,12 @@ public final class ITSupportLoggers {
     @Rule
     public final StandardErrorStreamLog serr = new StandardErrorStreamLog();
     @Rule
-    public final ProvideSystemProperty osi = new ProvideSystemProperty(
-            LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml");
-    @Rule
-    public final ProvideSystemProperty included = new ProvideSystemProperty(
-            LOGBACK_INCLUDED_RESOURCE.key(), "osi-support-loggers-included.xml");
+    public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
 
     @Before
     public void setUp() {
+        sysprops.setProperty(LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml");
+        sysprops.setProperty(LOGBACK_INCLUDED_RESOURCE.key(), "osi-support-loggers-included.xml");
         refreshLogback();
     }
 

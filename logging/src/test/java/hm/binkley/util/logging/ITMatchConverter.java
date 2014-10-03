@@ -9,6 +9,7 @@ package hm.binkley.util.logging;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.core.status.Status;
 import org.hamcrest.Matcher;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
@@ -43,8 +44,12 @@ public final class ITMatchConverter {
     @Rule
     public RestoreSystemProperties pattern = new RestoreSystemProperties("logback.pattern");
     @Rule
-    public final ProvideSystemProperty osi = new ProvideSystemProperty(
-            LOGBACK_CONFIGURATION_FILE.key(), "it-match-converter-logback.xml");
+    public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
+
+    @Before
+    public void setUp() {
+        sysprops.setProperty(LOGBACK_CONFIGURATION_FILE.key(), "it-match-converter-logback.xml");
+    }
 
     @Test
     public void shouldMatch() {

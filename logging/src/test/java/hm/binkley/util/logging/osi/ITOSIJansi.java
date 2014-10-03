@@ -27,6 +27,7 @@
 
 package hm.binkley.util.logging.osi;
 
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,9 +54,13 @@ public final class ITOSIJansi {
     @Rule
     public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
     @Rule
-    public final ProvideSystemProperty props = new ProvideSystemProperty(
-            LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml").
-            and(LOGBACK_JANSI.key(), null);
+    public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
+
+    @Before
+    public void setUp() {
+        sysprops.setProperty(LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml");
+        sysprops.setProperty(LOGBACK_JANSI.key(), null);
+    }
 
     @Ignore("How to test? Jansi cannot setup up terminal on wrapped stream")
     @Test
