@@ -30,3 +30,4 @@ Current released version is 0.4.  [View javadoc](//binkley.github.io/binkley/).
 * Added support for ANSI codes in logging via OSI and other improvements.
 * OSI logging requires a minimum of Java 7 or higher.
 * Various converters reorganized.
+* Checked stream is Java 8 streams with checked exceptions.
