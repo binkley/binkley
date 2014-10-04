@@ -65,11 +65,11 @@ import static java.util.Arrays.asList;
  * @todo Needs documentation.
  * @todo Replace with prefix->class mapping and use the other Converter
  */
-public final class Converter {
+public final class XPropsConverter {
     private final Map<String, Conversion<?, ? extends Exception>> factories
             = new ConcurrentHashMap<>();
 
-    public Converter() {
+    public XPropsConverter() {
         register("address", value -> {
             final HostAndPort parsed = HostAndPort.fromString(value).requireBracketsForIPv6();
             return createUnresolved(parsed.getHostText(), parsed.getPort());
@@ -113,7 +113,8 @@ public final class Converter {
      * java.net.InetSocketAddress}</td></tr> <tr><td>bundle</td> <td>{@code
      * java.util.ResourceBundle}</td></tr> <tr><td>byte</td> <td>{@code java.lang.Byte}</td></tr>
      * <tr><td>class</td> <td>java.lang.Class</td></tr> <tr><td>date</td> <td>{@code
-     * java.time.LocalDate}</td></tr> <tr><td>decimal</td> <td>{@code java.math.BigDecimal}</td></tr>
+     * java.time.LocalDate}</td></tr> <tr><td>decimal</td> <td>{@code java.math
+     * .BigDecimal}</td></tr>
      * <tr><td>double</td> <td>{@code java.lang.Double}</td></tr> <tr><td>duration</td> <td>{@code
      * java.time.Duration}</td></tr> <tr><td>file</td> <td>{@code java.io.File}</td></tr>
      * <tr><td>float</td> <td>{@code java.lang.Float}</td></tr> <tr><td>inet</td> <td>{@code
@@ -144,7 +145,7 @@ public final class Converter {
     /** @todo Documentation */
     @SuppressWarnings("unchecked")
     public <T> T convert(@Nonnull final String key, @Nonnull final String value)
-    throws Exception {
+            throws Exception {
         return (T) factoryFor(key).convert(value);
     }
 

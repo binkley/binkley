@@ -10,14 +10,14 @@
     <parent>
         <groupId>hm.binkley</groupId>
         <artifactId>binkley-blog</artifactId>
-        <version>0.3</version>
+        <version>0.4</version>
     </parent>
 
     <artifactId>binkley-convert</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>hm.binkley</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>binkley-util</artifactId>
         </dependency>
         <dependency>
@@ -30,7 +30,7 @@
         </dependency>
         <!-- Blame Spring -->
         <dependency>
-            <groupId>hm.binkley</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>binkley-logging</artifactId>
             <scope>test</scope>
         </dependency>

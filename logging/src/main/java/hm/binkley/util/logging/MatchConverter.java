@@ -17,7 +17,6 @@ import javax.annotation.Nonnull;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static ch.qos.logback.core.CoreConstants.EVALUATOR_MAP;
 import static java.util.Collections.emptyMap;
@@ -53,7 +52,8 @@ public final class MatchConverter
     public void start() {
         final List<String> options = getOptionList();
         if (null == options || 2 > options.size()) {
-            addError("Missing options for %match - " + Objects.toString(options));
+            addError("Missing options for %match - " + (null == options ? "missing options"
+                    : options));
             conditions = emptyMap();
             unmatched = "";
             return;

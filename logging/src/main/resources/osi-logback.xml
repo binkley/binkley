@@ -8,6 +8,7 @@
 <!-- Select with -Dlogback.configurationFile=osi-logback.xml -->
 <!-- See OSI.enable() -->
 <configuration debug="${logback.debug:-false}">
+    <contextName>${logback.contextName:-default}</contextName>
     <!-- As an alternative to system properties -->
     <property resource="${logback.propertiesResource:-osi-logback.properties}"/>
     <!-- Default logging to 'logback.level' -->
@@ -20,18 +21,27 @@
     <!-- Enables %match(cond1,patt1,...,fallback) -->
     <conversionRule conversionWord="match"
                     converterClass="hm.binkley.util.logging.MatchConverter"/>
+    <conversionRule conversionWord="timezone"
+                    converterClass="hm.binkley.util.logging.TimeZoneConverter"/>
+    <conversionRule conversionWord="tz"
+                    converterClass="hm.binkley.util.logging.TimeZoneConverter"/>
+    <!-- Define timestamp for use by appenders -->
+    <timestamp key="logback.timestamp" datePattern="yyyyMMdd'T'HHmmss"
+               timeReference="contextBirth"/>
+    <!-- Sets up logging properties: override with logback.stylesResource,
+         before included so they may reference styles -->
+    <variable resource="${logback.stylesResource:-osi-logback-styles.properties}"/>
     <!-- Applies application custom log settings: override default with logback.includedResource -->
     <include resource="${logback.includedResource:-osi-logback-included.xml}"/>
-    <!-- Sets up logging properties: override with logback.stylesResource -->
-    <variable resource="${logback.stylesResource:-osi-logback-styles.properties}"/>
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>${logback.jansi:-false}</withJansi>
         <encoder>
             <!-- Picks logging style: override with logback.style -->
             <pattern>${${logback.style:-standard}}</pattern>
         </encoder>
     </appender>
     <!-- Sets default log level: override with log.level -->
-    <root level="${log.level:-WARN}">
+    <root level="${log.level:-info}">
         <!-- Sets default log output: override with logback.rootAppender -->
         <!-- If overriden, define encoder pattern as for console -->
         <appender-ref ref="${logback.rootAppender:-console}"/>

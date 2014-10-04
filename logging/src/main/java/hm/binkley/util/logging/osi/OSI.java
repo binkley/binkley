@@ -9,25 +9,21 @@ package hm.binkley.util.logging.osi;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.core.util.StatusPrinter;
 import hm.binkley.util.logging.Level;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.Objects;
 
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONTEXT_NAME;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_DEBUG;
 import static java.lang.String.format;
 import static java.lang.System.clearProperty;
 import static java.lang.System.getProperty;
 import static java.lang.System.out;
 import static java.lang.System.setProperty;
-import static java.util.Arrays.asList;
 
 /**
  * {@code OSI} enable OSI logging for simple cases.
@@ -37,38 +33,78 @@ import static java.util.Arrays.asList;
 public final class OSI {
     /**
      * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
-     * the class path.  Control configuration through use of other {@link SystemProperty OSI system
-     * properties}. <p> Must be called before first use of logback.
+     * the class path, and the default application name.  Control configuration through use of other
+     * {@link SystemProperty OSI system properties}.
+     * <p>
+     * Must be called before first use of logback.
      * <p>
      * Do not show status of the logging system.
      */
+    @SuppressWarnings("ConstantConditions")
     public static void enable() {
-        enable(false);
+        enable(null, false);
     }
 
     /**
      * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
-     * the class path.  Control configuration through use of other {@link SystemProperty OSI system
-     * properties}. <p> Must be called before first use of logback.
+     * the class path, and the default application name.  Control configuration through use of other
+     * {@link SystemProperty OSI system properties}.
+     * <p>
+     * Must be called before first use of logback.
      *
-     * @param show if {@code true} log the status of the logging system including setup details.
+     * @param showDetail if {@code true} log the status of the logging system including setup
+     * details.
      */
-    public static void enable(final boolean show) {
+    @SuppressWarnings("ConstantConditions")
+    public static void enable(final boolean showDetail) {
+        enable(null, showDetail);
+    }
+
+    /**
+     * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
+     * the class path, and the given <var>applicationName</var>.  Control configuration through use
+     * of other {@link SystemProperty OSI system properties}.
+     * <p>
+     * Must be called before first use of logback.
+     * <p>
+     * Do not show status of the logging system.
+     *
+     * @param applicationName the logback context name, never missing
+     */
+    public static void enable(@Nonnull final String applicationName) {
+        enable(applicationName, false);
+    }
+
+    /**
+     * Enable OSI logging using the default configuration resource, "osi-logback.xml" as found on
+     * the class path, and the given <var>applicationName</var>.  Control configuration through use
+     * of other {@link SystemProperty OSI system properties}.
+     * <p>
+     * Must be called before first use of logback.
+     *
+     * @param applicationName the logback context name, never missing
+     * @param showDetail if {@code true} log the status of the logging system including setup
+     * details.
+     *
+     * @see #enable(boolean)
+     */
+    @SuppressWarnings("ConstantConditions")
+    public static void enable(@Nonnull final String applicationName, final boolean showDetail) {
         SLF4JBridgeHandler.install();
-        LOGBACK_CONFIGURATION_FILE.set("osi-logback.xml", false);
-        if (!show)
+        LOGBACK_CONFIGURATION_FILE.set("osi-logback.xml");
+        if (null != applicationName) // Publically non-null, internally nullable
+            LOGBACK_CONTEXT_NAME.set(applicationName);
+        if (!showDetail)
             return;
-        asList(SystemProperty.values()).forEach(out::println);
+        for (final SystemProperty property : SystemProperty.values())
+            out.println(property);
         // No point duplicating the status messages
         if (Boolean.valueOf(LOGBACK_DEBUG.get()))
             return;
         StatusPrinter.print((LoggerContext) LoggerFactory.getILoggerFactory());
     }
 
-    /**
-     * {@code SystemProperty} defines system properties used by OSI. Use {@link #set(String,
-     * boolean)} and {@link #unset()} to control these properties.
-     */
+    /** {@code SystemProperty} defines system properties used by OSI. */
     public enum SystemProperty {
         /**
          * Sets the logback configuration resource, rarely changed except for testing.  Default is
@@ -80,6 +116,16 @@ public final class OSI {
          * @see #enable()
          */
         LOGBACK_CONFIGURATION_FILE("logback.configurationFile"),
+        /**
+         * Sets the logback context name, equivalently, a short tag identifying the application.
+         * Default is "default".
+         * <p>
+         * Use this to distinguish merging of logging from multiple application.
+         *
+         * @see <a href="http://logback.qos.ch/manual/configuration.html#contextName">Setting the
+         * context name</a>
+         */
+        LOGBACK_CONTEXT_NAME("logback.contextName"),
         /**
          * As an alternative to setting system properties, put properties here.  Default is
          * "osi-logback.properties" in the classpath root.
@@ -138,9 +184,10 @@ public final class OSI {
          *
          * @see #LOGBACK_INCLUDED_RESOURCE
          */
-        LOGBACK_ROOT_APPENDER("logback.rootAppender");
-        private static final Map<SystemProperty, String> totem = new EnumMap<>(
-                SystemProperty.class);
+        LOGBACK_ROOT_APPENDER("logback.rootAppender"),
+        /** Enables ANSI color codes for logging, including Windows.  Default is "false". */
+        LOGBACK_JANSI("logback.jansi");
+
         @Nonnull
         private final String key;
 
@@ -169,73 +216,27 @@ public final class OSI {
         }
 
         /**
-         * Sets the value of the corresponding system property, or clears it if {@code null}.  May
-         * be called only once without an interving call to {@link #unset()} for the same key. <p>
-         * If <var>override</var> it {@code true} can replace an existing system property value to
-         * be restored by {@link #unset()}.  Will always return {@code true} in this case. <p> If
-         * <var>override</var> is {@code false} will only set a system property that does not
-         * already exist, and returns {@code true}.  But if the system property already has a value,
-         * does nothing and returns {@code false}. <p> The <var>override</var> variant exists to aid
-         * testing which might replace a value, or production which should respect explictly set
-         * system properties from the command line.
+         * Sets the value of the corresponding system property, or clears it if {@code null}.
          *
          * @param value the system property value or {@code null} to clear
-         * @param override if {@code true} (temporarily) replaces existing system property value
-         *
-         * @return {@code true} if the system properties were modified
-         *
-         * @throws IllegalStateException if already set
          */
-        public final boolean set(@Nullable final String value, final boolean override) {
-            final String existing = getProperty(key);
-            if (totem.containsKey(this) && !override)
-                throw new IllegalStateException(
-                        format("%s: Already modified, unset first: %s", this, existing));
-            if (null != value && null != existing && !override)
-                return false;
+        public final void set(@Nullable final String value) {
             if (null == value)
                 clearProperty(key);
             else
                 setProperty(key, value);
-            totem.put(this, existing);
-            return true;
         }
 
-        /**
-         * Unsets the value to the corresponding system property, restoring the previous value or
-         * clearing if not present.  May be called only after a call to {@link #set(String,
-         * boolean)} for the same key.
-         *
-         * @throws IllegalStateException if not set
-         */
-        public final void unset() {
-            if (!totem.containsKey(this))
-                throw new IllegalStateException(format("%s: Not set", this));
-            final String value = totem.get(this);
-            if (null == value)
-                clearProperty(key);
-            else
-                setProperty(key, value);
-            totem.remove(this);
+        /** Clears the value to the corresponding system property. */
+        public final void clear() {
+            clearProperty(key);
         }
 
         @Nonnull
         @Override
         public final String toString() {
-            return format("%s(%s)=%s", name(), key, Objects.toString(getProperty(key), "<default>"));
+            return format("%s(%s)=%s", name(), key,
+                    Objects.toString(getProperty(key), "<default>"));
         }
-
-        static void resetForTesting() {
-            totem.clear();
-        }
-    }
-
-    public static void main(final String... args) {
-        enable(true);
-        final Logger log = LoggerFactory.getLogger(OSI.class);
-        log.warn("Won't log");
-        log.error("Will log");
-        log.error("Example stacktrace: {}", "Hi, mom!",
-                new IOException("Nothing actually is wrong"));
     }
 }

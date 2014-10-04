@@ -9,7 +9,7 @@
     <parent>
         <groupId>hm.binkley</groupId>
         <artifactId>binkley-blog</artifactId>
-        <version>0.3</version>
+        <version>0.4</version>
     </parent>
 
     <artifactId>binkley-guice</artifactId>
@@ -56,8 +56,8 @@
             <artifactId>metainf-services</artifactId>
         </dependency>
         <dependency>
-            <groupId>hm.binkley</groupId>
-            <artifactId>binkley-logging</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -28,25 +28,20 @@
 <included>
     <!-- Supports marking ALERT and AUDIT log lines specially. -->
     <!-- TODO: General property for listing special markers -->
+    <!-- TODO: 07:10:50,982 |-INFO in ch.qos.logback.classic.boolex.JaninoEventEvaluator@1e13529a - Adding [return] prefix and a semicolon suffix. Expression becomes [return null != marker && ("ALERT".equals(marker.getName()) || "AUDIT".equals(marker.getName()));] -->
     <evaluator name="WITH_MARKER">
-        <expression>null != marker &amp;&amp; java.util.Arrays.asList("ALERT", "AUDIT").contains(marker.getName())</expression>
+        <expression>null != marker &amp;&amp; ("ALERT".equals(marker.getName()) || "AUDIT".equals(marker.getName()))</expression>
     </evaluator>
-
-    <!-- Ensure all alerts go out regardless of level. -->
-    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
-        <marker>ALERT</marker>
-        <onMatch>ACCEPT</onMatch>
-        <onMismatch>NEUTRAL</onMismatch>
-    </turboFilter>
 
     <!-- Alerts get special treatment, in addition to regular treatment. -->
     <appender name="alert" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.err</target>
+        <withJansi>${logback.jansi:-false}</withJansi>
         <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
             <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
                 <marker>ALERT</marker>
             </evaluator>
-            <onMatch>NEUTRAL</onMatch>
+            <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
         <encoder>
@@ -54,26 +49,29 @@
         </encoder>
     </appender>
 
-    <!-- Ensure all audits go out regardless of level. -->
-    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
-        <marker>AUDIT</marker>
-        <onMatch>ACCEPT</onMatch>
-        <onMismatch>NEUTRAL</onMismatch>
-    </turboFilter>
+    <root level="warn">
+        <appender-ref ref="alert"/>
+    </root>
 
     <!-- Audits get special treatment, in addition to regular treatment. -->
     <appender name="audit" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <withJansi>${logback.jansi:-false}</withJansi>
         <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
             <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
                 <marker>AUDIT</marker>
             </evaluator>
-            <onMatch>NEUTRAL</onMatch>
+            <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
         <encoder>
             <pattern>${${logback.style:-standard}}</pattern>
         </encoder>
     </appender>
+
+    <root level="info">
+        <appender-ref ref="audit"/>
+    </root>
 
     <!--
     In addition to console logging, audits might log to a database, etc.

@@ -61,7 +61,10 @@ public enum SupportLoggers {
             return logger;
         }
     },
-    /** Marks "AUDIT" loggers to record an audit trail, typically to a database. */
+    /**
+     * Marks "AUDIT" loggers to record an audit trail, typically to a database.  Rejects logging
+     * less than {@code INFO} level (throws {@code IllegalStateException}).
+     */
     AUDIT(INFO),
     /** Trace loggers ({@link XLogger} for debugging. */
     TRACE(ALL) {

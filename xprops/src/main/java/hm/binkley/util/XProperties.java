@@ -6,7 +6,7 @@
 
 package hm.binkley.util;
 
-import hm.binkley.util.Converter.Conversion;
+import hm.binkley.util.XPropsConverter.Conversion;
 import lombok.NonNull;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +36,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.String.format;
-import static java.lang.Thread.currentThread;
 import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
 
@@ -76,7 +74,7 @@ import static java.util.regex.Pattern.compile;
  * @todo Converter assumes cacheable keys; is this correct?
  * @see PathMatchingResourcePatternResolver
  * @see StrSubstitutor
- * @see Converter
+ * @see XPropsConverter
  * @see #load(Reader) loading properties with inclusions
  * @see #load(InputStream) loading properties with inclusions
  * @see #getProperty(String) getting properties with substitution
@@ -88,7 +86,7 @@ public class XProperties
     private static final Pattern colon = compile(":");
 
     private final Set<URI> included = new LinkedHashSet<>();
-    private final Converter converter = new Converter();
+    private final XPropsConverter converter = new XPropsConverter();
     private final Map<Key, Object> converted = new ConcurrentHashMap<>();
 
     private final StrSubstitutor substitutor = new StrSubstitutor(new FindValue());
@@ -108,10 +106,11 @@ public class XProperties
     @Nonnull
     public static XProperties from(@Nonnull @NonNull final String absolutePath)
             throws IOException {
-        final URL resource = XProperties.class.getResource(absolutePath);
-        try (final InputStream in = resource.openStream()) {
+        final Resource resource = new PathMatchingResourcePatternResolver()
+                .getResource(absolutePath);
+        try (final InputStream in = resource.getInputStream()) {
             final XProperties xprops = new XProperties();
-            xprops.included.add(URI.create(resource.toString()));
+            xprops.included.add(resource.getURI());
             xprops.load(in);
             return xprops;
         }
@@ -131,7 +130,7 @@ public class XProperties
      * @param factory the factory, never missing
      *
      * @todo Documentation
-     * @see Converter#register(String, Conversion)
+     * @see XPropsConverter#register(String, Conversion)
      */
     public void register(@Nonnull final String prefix,
             @Nonnull final Conversion<?, ? extends Exception> factory) {
@@ -148,8 +147,7 @@ public class XProperties
     @Override
     public synchronized void load(@Nonnull final Reader reader)
             throws IOException {
-        final ResourcePatternResolver loader = new PathMatchingResourcePatternResolver(
-                currentThread().getContextClassLoader());
+        final ResourcePatternResolver loader = new PathMatchingResourcePatternResolver();
         try (final CharArrayWriter writer = new CharArrayWriter()) {
             try (final BufferedReader lines = new BufferedReader(reader)) {
                 for (String line = lines.readLine(); null != line; line = lines.readLine()) {
@@ -230,7 +228,8 @@ public class XProperties
      * <p>
      * Typed keys are of the form: {@code <var>type</var>:<var>key</var>}.  The <var>key</var> is
      * the same key as {@link System#getProperty(String) System.getProperty}.  See {@link
-     * Converter#register(String, Conversion) register} for built-in <var>type</var> key prefixes.
+     * XPropsConverter#register(String, Conversion) register} for built-in <var>type</var> key
+     * prefixes.
      * <p>
      * Examples: <table><tr><th>Code</th> <th>Comment</th></tr> <tr><td>{@code Integer foo =
      * xprops.getObject("int:foo");}</td> <td>Gets the "foo" property as an possibly {@code null}
@@ -246,7 +245,7 @@ public class XProperties
      * @return the type property value, possibly missing
      *
      * @see #getObjectOrDefault(String, Object)
-     * @see Converter#register(String, Conversion)
+     * @see XPropsConverter#register(String, Conversion)
      */
     @Nullable
     public <T> T getObject(@Nonnull final String key) {

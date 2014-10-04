@@ -6,16 +6,29 @@
 
 package hm.binkley.util.logging;
 
-import org.junit.After;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.status.Status;
+import org.hamcrest.Matcher;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import org.junit.contrib.java.lang.system.RestoreSystemProperties;
+import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
+import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
+import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
-import static java.lang.System.clearProperty;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static java.lang.System.setProperty;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.slf4j.LoggerFactory.getILoggerFactory;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -23,22 +36,19 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public final class ITMatchConverter
-        extends AbstractITLogback {
-    private String previous;
+public final class ITMatchConverter {
+    @Rule
+    public StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    @Rule
+    public StandardErrorStreamLog serr = new StandardErrorStreamLog();
+    @Rule
+    public RestoreSystemProperties pattern = new RestoreSystemProperties("logback.pattern");
+    @Rule
+    public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
 
     @Before
-    public void setUpITMatchConverter() {
-        previous = setProperty("logback.configurationFile", "it-match-converter-logback.xml");
-    }
-
-    @After
-    public void tearDownITMatchConverter() {
-        if (null == previous)
-            clearProperty("logback.configurationFile");
-        else
-            setProperty("logback.configurationFile", previous);
-        clearProperty("logback.pattern");
+    public void setUp() {
+        sysprops.setProperty(LOGBACK_CONFIGURATION_FILE.key(), "it-match-converter-logback.xml");
     }
 
     @Test
@@ -59,11 +69,22 @@ public final class ITMatchConverter
 
     @Test
     public void shouldComplainWhenWrong() {
-        // This passes on command line and fails inside IDE - IDEs hijack System.out early in (see
-        // JUnitCore.runMain for details) before we can hijack it for capturing logging output
-        previous = setProperty("logback.pattern", "%match");
+        setProperty("logback.pattern", "%match");
         refreshLogback();
-        getLogger("test").warn("Ignored.");
-        assertLogLine(containsString("Missing options for %match - null"));
+        final Logger log = getLogger("test");
+        log.warn("Ignored.");
+
+        final List<String> messages = new ArrayList<>();
+        for (final Status status : ((LoggerContext) getILoggerFactory()).
+                getStatusManager().
+                getCopyOfStatusList())
+            if (Status.ERROR == status.getLevel())
+                messages.add(status.getMessage());
+
+        assertThat("ERROR", messages, hasItem("Missing options for %match - missing options"));
+    }
+
+    private void assertLogLine(final Matcher<String> matcher) {
+        assertThat("STDOUT", sout.getLog().trim(), matcher); // Remove trailing line ending
     }
 }

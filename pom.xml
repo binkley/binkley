@@ -19,20 +19,31 @@
 
     <groupId>hm.binkley</groupId>
     <artifactId>binkley-blog</artifactId>
-    <version>0.3</version>
+    <version>0.4</version>
     <packaging>pom</packaging>
 
     <name>binkley's BLOG</name>
     <description>Extended code samples from my blog</description>
     <url>http://binkley.blogspot.com</url>
+    <inceptionYear>2013</inceptionYear>
 
     <licenses>
         <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <name>Public Domain</name>
+            <url>http://unlicense.org/</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <issueManagement>
+        <system>Github</system>
+        <url>https://github.com/binkley/binkley/issues</url>
+    </issueManagement>
+
+    <ciManagement>
+        <system>Travis</system>
+        <url>https://travis-ci.org/binkley/binkley</url>
+    </ciManagement>
 
     <scm>
         <connection>scm:git:git://github.com/binkley/binkley.git</connection>
@@ -70,47 +81,49 @@
         <module>xio</module>
         <module>xml</module>
         <module>xprops</module>
-        <module>finance</module>
     </modules>
 
     <properties>
         <commons-lang3.version>3.3.2</commons-lang3.version>
         <freemarker.version>2.3.20</freemarker.version>
-        <guava.version>17.0</guava.version>
+        <guava.version>18.0</guava.version>
         <guice.version>3.0</guice.version>
         <hamcrest.version>1.3</hamcrest.version>
         <ini4j.version>0.5.2</ini4j.version>
         <intellij.version>12.0</intellij.version>
-        <janino.version>2.6.1</janino.version>
-        <!-- TODO: Merge Eight branch when JDK8 releases -->
+        <janino.version>2.7.6</janino.version>
+        <jansi.version>1.11</jansi.version>
         <java.version>8</java.version>
-        <jgitflow-maven-plugin.version>1.0-m4</jgitflow-maven-plugin.version>
+        <jgitflow-maven-plugin.version>1.0-m4.3</jgitflow-maven-plugin.version>
         <jmockit.version>1.7</jmockit.version>
-        <jnr.version>3.0.1</jnr.version>
-        <jopt-simple.version>4.6</jopt-simple.version>
-        <jsr305.version>2.0.3</jsr305.version>
+        <jnr.version>3.0.6</jnr.version>
+        <jopt-simple.version>4.7</jopt-simple.version>
+        <jsr305.version>3.0.0</jsr305.version>
         <junit.version>4.11</junit.version>
-        <!-- <lifegycle.version>0.2-SNAPSHOT</lifegycle.version> -->
         <logback.version>1.1.2</logback.version>
-        <lombok.version>1.14.2</lombok.version>
-        <maven.version>3.1</maven.version>
-        <metainf-services.version>1.5</metainf-services.version>
+        <lombok.version>1.14.8</lombok.version>
         <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
         <maven-dependency-plugin.version>2.8</maven-dependency-plugin.version>
+        <maven-enforcer-plugin.version>1.3.1</maven-enforcer-plugin.version>
+        <maven-failsafe-plugin.version>2.17</maven-failsafe-plugin.version>
         <maven-gpg-plugin.version>1.4</maven-gpg-plugin.version>
         <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
         <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+        <maven.version>3.1</maven.version>
+        <metainf-services.version>1.5</metainf-services.version>
         <owner.version>1.0.5.1</owner.version>
         <pojo-mbean.version>1.1</pojo-mbean.version>
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.reporting.sourceEncoding>UTF-8</project.reporting.sourceEncoding>
         <service-binder.version>0.3</service-binder.version>
         <slf4j.version>1.7.7</slf4j.version>
-        <spring.version>4.0.5.RELEASE</spring.version>
+        <spring.version>4.1.1.RELEASE</spring.version>
+        <system-rules.version>1.6.0</system-rules.version>
         <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
     </properties>
 
@@ -153,6 +166,18 @@
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.stefanbirkner</groupId>
+            <artifactId>system-rules</artifactId>
+            <version>${system-rules.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit-dep</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -257,16 +282,19 @@
                 <version>${janino.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.fusesource.jansi</groupId>
+                <artifactId>jansi</artifactId>
+                <version>${jansi.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>jcl-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
-                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
-                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -375,6 +403,11 @@
                 <version>${versions-maven-plugin.version}</version>
             </plugin>
             <plugin>
+                <!-- Sonatype OSS parent pom breaks intermodule dependencies otherwise -->
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin.version}</version>
+            </plugin>
+            <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>${maven-clean-plugin.version}</version>
             </plugin>
@@ -410,6 +443,24 @@
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven-failsafe-plugin.version}</version>
+                <configuration>
+                    <enableAssertions>true</enableAssertions>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
@@ -453,16 +504,23 @@
                             <addExtensions>true</addExtensions>
                         </manifest>
                     </archive>
+                    <author>true</author>
+                    <charset>UTF-8</charset>
                     <detectLinks>true</detectLinks>
+                    <keywords>true</keywords>
                     <linksource>true</linksource>
                     <links>
-                        <!-- TODO: These guys need complex URLs which javadoc does not grok -->
-                        <!--<link>http://google-guice.googlecode.com/git/javadoc/</link>-->
-                        <!--<link>http://docs.guava-libraries.googlecode.com/git/javadoc/</link>-->
-                        <link>http://owner.newinstance.it/${owner.version}/apidocs/</link>
-                        <link>http://slf4j.org/api/</link>
-                        <link>http://pholser.github.io/jopt-simple/apidocs/</link>
+                        <link>
+                            http://docs.guava-libraries.googlecode.com/git-history/v${guava.version}/javadoc/
+                        </link>
                         <link>http://findbugs.sourceforge.net/api/</link>
+                        <link>http://google.github.io/guice/api-docs/${guice.version}/javadoc/
+                        </link>
+                        <link>http://hamcrest.org/JavaHamcrest/javadoc/${hamcrest.version}/</link>
+                        <link>http://owner.newinstance.it/${owner.version}/apidocs/</link>
+                        <link>http://pholser.github.io/jopt-simple/apidocs/</link>
+                        <link>http://projectlombok.org/api/</link>
+                        <link>http://slf4j.org/api/</link>
                     </links>
                     <tags>
                         <tag>
@@ -471,6 +529,8 @@
                             <head>Pending:</head>
                         </tag>
                     </tags>
+                    <use>true</use>
+                    <version>true</version>
                 </configuration>
                 <executions>
                     <execution>
@@ -479,6 +539,8 @@
                         <goals>
                             <goal>jar</goal>
                             <goal>test-jar</goal>
+                            <goal>aggregate</goal>
+                            <goal>test-aggregate</goal>
                         </goals>
                     </execution>
                 </executions>
