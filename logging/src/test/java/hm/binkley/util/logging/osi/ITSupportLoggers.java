@@ -29,6 +29,7 @@ import static hm.binkley.util.logging.osi.SupportLoggers.APPLICATION;
 import static hm.binkley.util.logging.osi.SupportLoggers.AUDIT;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.junit.Assert.assertThat;
+import static org.junit.contrib.java.lang.system.LogMode.LOG_ONLY;
 import static org.junit.rules.ExpectedException.none;
 
 /**
@@ -40,9 +41,9 @@ public final class ITSupportLoggers {
     @Rule
     public final ExpectedException thrown = none();
     @Rule
-    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    public final StandardOutputStreamLog sout = new StandardOutputStreamLog(LOG_ONLY);
     @Rule
-    public final StandardErrorStreamLog serr = new StandardErrorStreamLog();
+    public final StandardErrorStreamLog serr = new StandardErrorStreamLog(LOG_ONLY);
     @Rule
     public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
 

@@ -42,6 +42,7 @@ import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_STYLES_RESO
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.contrib.java.lang.system.LogMode.LOG_ONLY;
 
 /**
  * {@code OSIIT} tests {@link OSI}.
@@ -52,7 +53,7 @@ import static org.junit.Assert.assertThat;
  */
 public final class ITOSIJansi {
     @Rule
-    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    public final StandardOutputStreamLog sout = new StandardOutputStreamLog(LOG_ONLY);
     @Rule
     public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
 

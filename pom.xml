@@ -122,7 +122,7 @@
         <service-binder.version>0.3</service-binder.version>
         <slf4j.version>1.7.7</slf4j.version>
         <spring.version>4.1.1.RELEASE</spring.version>
-        <system-rules.version>1.6.0</system-rules.version>
+        <system-rules.version>1.7.0</system-rules.version>
         <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
     </properties>
 

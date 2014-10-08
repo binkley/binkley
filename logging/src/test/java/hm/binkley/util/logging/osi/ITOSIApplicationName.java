@@ -37,6 +37,7 @@ import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATI
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONTEXT_NAME;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
+import static org.junit.contrib.java.lang.system.LogMode.LOG_ONLY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -48,7 +49,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public final class ITOSIApplicationName {
     @Rule
-    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    public final StandardOutputStreamLog sout = new StandardOutputStreamLog(LOG_ONLY);
     @Rule
     public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
 
