@@ -1,6 +1,5 @@
 package hm.binkley.corba;
 
-import hm.binkley.corba.CORBAHelper;
 import org.omg.CosNaming.NamingContextPackage.CannotProceed;
 import org.omg.CosNaming.NamingContextPackage.InvalidName;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
