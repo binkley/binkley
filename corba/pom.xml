@@ -21,12 +21,22 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>binkley-mixin</artifactId>
+            <artifactId>binkley-logging</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>binkley-logging</artifactId>
+            <artifactId>binkley-mixin</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>hm.binkley</groupId>
+            <artifactId>binkley-testing</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>binkley-util</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
