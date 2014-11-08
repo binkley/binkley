@@ -119,6 +119,11 @@ public class MixinTest {
         newMixin(DefaultMethodPublic.class).foo();
     }
 
+    @Test
+    public void shouldFindDefaultMethodsOnTwoInterfaces() {
+        newMixin(DescendantWithDefaultMethod.class).bar();
+    }
+
     @Test(expected = IllegalAccessError.class)
     public void shouldThrowOnNonPublicForDefaultMethod() {
         newMixin(DefaultMethodNotPublic.class).foo();
@@ -132,6 +137,15 @@ public class MixinTest {
     interface DefaultMethodNotPublic {
         default void foo() {
         }
+    }
+
+    public interface DefaultMethodOther {
+        default void bar() {
+        }
+    }
+
+    public interface DescendantWithDefaultMethod
+            extends DefaultMethodPublic, DefaultMethodOther {
     }
 
     interface Testy

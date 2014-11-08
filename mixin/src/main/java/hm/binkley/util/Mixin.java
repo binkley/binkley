@@ -6,6 +6,8 @@
 
 package hm.binkley.util;
 
+import lombok.SneakyThrows;
+
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -16,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.lang.reflect.Proxy.newProxyInstance;
@@ -76,22 +77,16 @@ public interface Mixin {
                 matches = new ConcurrentHashMap<>(as.getMethods().length);
             }
 
+            @SneakyThrows({IllegalAccessException.class, ClassNotFoundException.class,
+                    InstantiationException.class})
             private List<Object> delegates(final Class<T> as, final List<Object> delegates) {
                 for (final Method method : as.getMethods())
-                    if (method.isDefault())
-                        try {
-                            final List<Object> delegatesPlus = new ArrayList<>(
-                                    delegates.size() + 1);
-                            delegatesPlus.addAll(delegates);
-                            delegatesPlus.add(InterfaceInstance.newInstance(as));
-                            return delegatesPlus;
-                        } catch (final IllegalAccessException e) {
-                            throw copy(e, IllegalAccessError::new);
-                        } catch (final ClassNotFoundException e) {
-                            throw copy(e, UnknownError::new);
-                        } catch (final InstantiationException e) {
-                            throw copy(e, InstantiationError::new);
-                        }
+                    if (method.isDefault()) {
+                        final List<Object> delegatesPlus = new ArrayList<>(delegates.size() + 1);
+                        delegatesPlus.addAll(delegates);
+                        delegatesPlus.add(InterfaceInstance.newInstance(as));
+                        return delegatesPlus;
+                    }
                 return delegates;
             }
 
@@ -137,15 +132,6 @@ public interface Mixin {
                         format("BUG: Missing implementation for <%s> among %s.", method,
                                 delegates));
             }
-        }
-
-        private static <E extends Throwable> E copy(final Throwable from,
-                final Function<String, E> ctor) {
-            final E to = ctor.apply(from.getMessage());
-            to.setStackTrace(from.getStackTrace());
-            for (final Throwable s : from.getSuppressed())
-                to.addSuppressed(s);
-            return to;
         }
 
         private static class MixedDelegates
