@@ -50,8 +50,9 @@ import static org.junit.contrib.java.lang.system.LogMode.LOG_ONLY;
  * @author <a href="mailto:Brian.Oxley@macquarie.com">Brian Oxley</a>
  * @todo StandardOutputStreamLog still prints to sout/serr
  * @todo StandardOutputStreamLog does not process into List of String
+ * @todo Needs testing on Linux/UNIX and MacOS
  */
-public final class ITOSIJansi {
+public final class OSIJansiIT {
     @Rule
     public final StandardOutputStreamLog sout = new StandardOutputStreamLog(LOG_ONLY);
     @Rule

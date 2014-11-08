@@ -47,7 +47,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * @todo StandardOutputStreamLog still prints to sout/serr
  * @todo StandardOutputStreamLog does not process into List of String
  */
-public final class ITOSIApplicationName {
+public final class OSIApplicationNameIT {
     @Rule
     public final StandardOutputStreamLog sout = new StandardOutputStreamLog(LOG_ONLY);
     @Rule

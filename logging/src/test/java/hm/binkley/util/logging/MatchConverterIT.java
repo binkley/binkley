@@ -37,7 +37,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public final class ITMatchConverter {
+public final class MatchConverterIT {
     @Rule
     public StandardOutputStreamLog sout = new StandardOutputStreamLog(LOG_ONLY);
     @Rule

@@ -21,7 +21,7 @@ import org.junit.rules.ExpectedException;
 import java.util.regex.Pattern;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
-import static hm.binkley.util.logging.osi.ITSupportLoggers.PatternMatcher.pattern;
+import static hm.binkley.util.logging.osi.SupportLoggersIT.PatternMatcher.pattern;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_INCLUDED_RESOURCE;
 import static hm.binkley.util.logging.osi.SupportLoggers.ALERT;
@@ -37,7 +37,7 @@ import static org.junit.rules.ExpectedException.none;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley</a>
  */
-public final class ITSupportLoggers {
+public final class SupportLoggersIT {
     @Rule
     public final ExpectedException thrown = none();
     @Rule
