@@ -21,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>binkley-util</artifactId>
+            <artifactId>binkley-mixin</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
