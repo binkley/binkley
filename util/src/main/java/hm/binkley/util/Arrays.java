@@ -28,12 +28,22 @@
 package hm.binkley.util;
 
 /**
- * {@code Arrays} <b>needs documentation</b>.
+ * {@code Arrays} holds simple functions for working with arrays.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
+ * @todo Replace with OSS solution
  */
 public final class Arrays {
+    /**
+     * Returns the variadic parameter list as an array, relying on <a href="https://docs.oracle
+     * .com/javase/specs/jls/se7/html/jls-15.html#jls-15.12.4.2">the compiler to pack the parameters
+     * into an array</a>.
+     *
+     * @param elements the elements, never missin
+     * @param <T> the element type
+     *
+     * @return the parameters as an array, never missing
+     */
     @SafeVarargs
     public static <T> T[] array(final T... elements) {
         return elements;

@@ -29,13 +29,17 @@ package hm.binkley.junit;
 
 import org.junit.rules.ExternalResource;
 
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 /**
- * {@code ProvidePort} <b>needs documentation</b>.
+ * {@code ProvidePort} us a JUnit Rule to create an available random port number.  There is still a
+ * race condition if ports on the host are allocated quickly enough to cycle through free ports
+ * before the allocated port can be used in the junit test.
+ * <p>
+ * It opens a local server socket on port 0 and captures the allocated local port number.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public class ProvidePort
         extends ExternalResource {
@@ -44,11 +48,18 @@ public class ProvidePort
     @Override
     protected void before()
             throws Throwable {
-        try (final ServerSocket serverSocket = new ServerSocket(0)) {
+        try (final ServerSocket serverSocket = new ServerSocket()) {
+            serverSocket.setReuseAddress(true);
+            serverSocket.bind(new InetSocketAddress(0));
             port = serverSocket.getLocalPort();
         }
     }
 
+    /**
+     * Gets the allocated port.
+     *
+     * @return the allocated port
+     */
     public int port() {
         return port;
     }
