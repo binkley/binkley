@@ -14,12 +14,14 @@ import org.omg.CosNaming.NamingContextPackage.NotFound;
 import org.omg.PortableServer.POAPackage.ServantNotActive;
 import org.omg.PortableServer.POAPackage.WrongPolicy;
 
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.stream.Collectors;
 
 import static hm.binkley.corba.CORBAHelper.jacorb;
-import static hm.binkley.util.Arrays.array;
 import static java.lang.Thread.currentThread;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.ForkJoinPool.commonPool;
@@ -44,40 +46,51 @@ public final class BlockIT {
     public final ProvideSystemProperty sysprops = new ProvideSystemProperty().
             and("org.omg.CORBA.ORBClass", "org.jacorb.orb.ORB").
             and("org.omg.CORBA.ORBSingletonClass", "org.jacorb.orb.ORBSingleton").
-            // TODO: Why is ORB port ignored by server/client?
-                    and("OAPort", String.valueOf(port.port())).
-            and("OAIAddr", "127.0.0.1");
+            and("OAPort", String.valueOf(port.port()));
 
-    private ForkJoinTask<Void> nameServerThread;
     private ForkJoinTask<Object> orbThread;
     private CORBAHelper helper;
+    private Process server;
 
     @Before
-    public void setUp() {
+    public void setUp()
+            throws IOException {
         currentThread().setName("CORBA Block Client");
 
-        nameServerThread = commonPool().submit(() -> {
-            currentThread().setName("CORBA Name Server");
-            Class.forName("org.jacorb.naming.NameServer").getMethod("main", String[].class)
-                    // Funny cast keeps array from being seen as varargs
-                    // TODO: Why is ORB port ignored by server/client?
-                    .invoke(null, (Object) array("-DOAPort=38693" /*"-DOAPort=" + port.port()*/,
-                            "-DOAIAddr=127.0.0.1"));
-            return null;
-        });
+        final ProcessBuilder server = new ProcessBuilder("java", "-cp",
+                System.getProperty("java.class.path"),
+                "-Dorg.omg.CORBA.ORBClass=org.jacorb.orb.ORB",
+                "-Dorg.omg.CORBA.ORBSingletonClass=org.jacorb.orb.ORBSingleton",
+                "-DOAPort=" + port.port(), BlockServer.class.getName()).
+                inheritIO();
+        this.server = server.start();
 
-        helper = new CORBAHelper(jacorb());
+        // Block until name server ready
+        while (true)
+            try {
+                new Socket("localhost", port.port()).close();
+                break;
+            } catch (final ConnectException ignored) {
+                ignored.printStackTrace();
+            }
+
+        helper = new CORBAHelper(jacorb("-DOAPort=" + port.port()));
         orbThread = commonPool().submit(() -> {
             currentThread().setName("CORBA ORB");
-            helper.run();
+            if (false)
+                helper.run();
             return null;
         });
     }
 
     @After
-    public void tearDown() {
+    public void tearDown()
+            throws Throwable {
+        final Throwable orbError = orbThread.getException();
         orbThread.cancel(true);
-        nameServerThread.cancel(true);
+        server.destroy();
+        if (null != orbError)
+            throw orbError;
     }
 
     @Test
