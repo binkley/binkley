@@ -3,11 +3,16 @@ package hm.binkley.corba;
 import hm.binkley.corba.EnhancedBlock.Factory;
 import hm.binkley.junit.ProvidePort;
 import hm.binkley.util.logging.osi.OSI;
+import org.jacorb.naming.NameServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
+import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.omg.CosNaming.NamingContextPackage.CannotProceed;
 import org.omg.CosNaming.NamingContextPackage.InvalidName;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
@@ -15,6 +20,7 @@ import org.omg.PortableServer.POAPackage.ServantNotActive;
 import org.omg.PortableServer.POAPackage.WrongPolicy;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.util.List;
@@ -47,6 +53,22 @@ public final class BlockIT {
             and("org.omg.CORBA.ORBClass", "org.jacorb.orb.ORB").
             and("org.omg.CORBA.ORBSingletonClass", "org.jacorb.orb.ORBSingleton").
             and("OAPort", String.valueOf(port.port()));
+    @Rule
+    public final StandardOutputStreamLog out = new StandardOutputStreamLog();
+    @Rule
+    public final StandardErrorStreamLog err = new StandardErrorStreamLog();
+    // TODO: Only print out/err on failure
+    @Rule
+    public final TestWatcher x = new TestWatcher() {
+        private final PrintStream oout = System.out;
+        private final PrintStream oerr = System.err;
+
+        @Override
+        protected void failed(final Throwable e, final Description description) {
+            oout.print(out.getLog());
+            oerr.print(err.getLog());
+        }
+    };
 
     private ForkJoinTask<Object> orbThread;
     private CORBAHelper helper;
@@ -57,13 +79,12 @@ public final class BlockIT {
             throws IOException {
         currentThread().setName("CORBA Block Client");
 
-        final ProcessBuilder server = new ProcessBuilder("java", "-cp",
-                System.getProperty("java.class.path"),
+        server = new ProcessBuilder("java", "-cp", System.getProperty("java.class.path"),
                 "-Dorg.omg.CORBA.ORBClass=org.jacorb.orb.ORB",
                 "-Dorg.omg.CORBA.ORBSingletonClass=org.jacorb.orb.ORBSingleton",
-                "-DOAPort=" + port.port(), BlockServer.class.getName()).
-                inheritIO();
-        this.server = server.start();
+                "-DOAPort=" + port.port(), NameServer.class.getName()).
+                inheritIO().
+                start();
 
         // Block until name server ready
         while (true)
