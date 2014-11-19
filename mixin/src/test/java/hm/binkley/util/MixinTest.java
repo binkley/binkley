@@ -129,6 +129,11 @@ public class MixinTest {
         newMixin(DefaultMethodNotPublic.class).foo();
     }
 
+    @Test
+    public void shouldWorkWhenTStaticMethodsPresent() {
+        newMixin(WithStaticMethod.class);
+    }
+
     public interface DefaultMethodPublic {
         default void foo() {
         }
@@ -207,6 +212,11 @@ public class MixinTest {
         @Override
         public int throwDown(final String ignored) {
             return 0;
+        }
+    }
+
+    public interface WithStaticMethod {
+        static void staticMethod() {
         }
     }
 }
