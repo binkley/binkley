@@ -23,6 +23,16 @@ Current released version is 0.4.  [View javadoc](//binkley.github.io/binkley/).
 
 ## Changes
 
+### 0.5
+
+* Added corba module.
+* Added `ProvidePort` junit rule.
+* Added `StackTraceFocuser` to simplify traces.
+* Added `LinkedIterable`.
+* Added `ParameterizedHelper` for junit.
+* More Java 8-isms.
+* Taught `Mixin` to handle interface default methods.
+
 ### 0.4
 
 * Dropped finance module: use JSR 354.
