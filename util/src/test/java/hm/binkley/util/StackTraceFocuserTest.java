@@ -53,7 +53,7 @@ public class StackTraceFocuserTest {
         x.setStackTrace(new StackTraceElement[]{
                 new StackTraceElement("java.lang.Frodo", "lives", "Frodo.java", 3), nonJava});
 
-        assertThat(ignoreJavaClasses().apply(x).getStackTrace(), is(arrayContaining(nonJava)));
+        assertFramesRemaining(x, ignoreJavaClasses(), nonJava);
     }
 
     @Test
@@ -64,7 +64,7 @@ public class StackTraceFocuserTest {
         x.setStackTrace(new StackTraceElement[]{
                 new StackTraceElement("javax.lang.Frodo", "lives", "Frodo.java", 3), nonJavax});
 
-        assertThat(ignoreJavaClasses().apply(x).getStackTrace(), is(arrayContaining(nonJavax)));
+        assertFramesRemaining(x, ignoreJavaClasses(), nonJavax);
     }
 
     @Test
@@ -75,7 +75,7 @@ public class StackTraceFocuserTest {
         x.setStackTrace(new StackTraceElement[]{
                 new StackTraceElement("sun.Frodo", "lives", "Frodo.java", 3), nonSun});
 
-        assertThat(ignoreJavaClasses().apply(x).getStackTrace(), is(arrayContaining(nonSun)));
+        assertFramesRemaining(x, ignoreJavaClasses(), nonSun);
     }
 
     @Test
@@ -86,7 +86,7 @@ public class StackTraceFocuserTest {
         x.setStackTrace(new StackTraceElement[]{
                 new StackTraceElement("com.sun.Frodo", "lives", "Frodo.java", 3), nonComSun});
 
-        assertThat(ignoreJavaClasses().apply(x).getStackTrace(), is(arrayContaining(nonComSun)));
+        assertFramesRemaining(x, ignoreJavaClasses(), nonComSun);
     }
 
     @Test
@@ -97,8 +97,8 @@ public class StackTraceFocuserTest {
         x.setStackTrace(new StackTraceElement[]{
                 new StackTraceElement("windfola.Frodo", "lives", "Frodo.java", 3), nonWindfola});
 
-        assertThat(new StackTraceFocuser<>(ignoreClassName(compile("^windfola\\."))).apply(x)
-                .getStackTrace(), is(arrayContaining(nonWindfola)));
+        assertFramesRemaining(x, new StackTraceFocuser<>(ignoreClassName(compile("^windfola\\."))),
+                nonWindfola);
     }
 
     @Test
@@ -109,8 +109,8 @@ public class StackTraceFocuserTest {
         x.setStackTrace(new StackTraceElement[]{
                 new StackTraceElement("windfola.Frodo", "lives", "Frodo.java", 3), nonLives});
 
-        assertThat(new StackTraceFocuser<>(ignoreMethodName(compile("lives"))).apply(x)
-                .getStackTrace(), is(arrayContaining(nonLives)));
+        assertFramesRemaining(x, new StackTraceFocuser<>(ignoreMethodName(compile("lives"))),
+                nonLives);
     }
 
     @Test
@@ -121,8 +121,8 @@ public class StackTraceFocuserTest {
         x.setStackTrace(new StackTraceElement[]{
                 new StackTraceElement("windfola.Frodo", "lives", "Frodo.java", 3), nonFrodo});
 
-        assertThat(new StackTraceFocuser<>(ignoreFileName(compile("Frodo\\.java"))).apply(x)
-                .getStackTrace(), is(arrayContaining(nonFrodo)));
+        assertFramesRemaining(x, new StackTraceFocuser<>(ignoreFileName(compile("Frodo\\.java"))),
+                nonFrodo);
     }
 
     @Test
@@ -133,8 +133,7 @@ public class StackTraceFocuserTest {
         x.setStackTrace(new StackTraceElement[]{
                 new StackTraceElement("windfola.Frodo", "lives", "Frodo.java", 3), nonThree});
 
-        assertThat(new StackTraceFocuser<>(ignoreLineNumber(compile("3"))).apply(x).getStackTrace(),
-                is(arrayContaining(nonThree)));
+        assertFramesRemaining(x, new StackTraceFocuser<>(ignoreLineNumber(compile("3"))), nonThree);
     }
 
     @Test
@@ -146,8 +145,12 @@ public class StackTraceFocuserTest {
                 new StackTraceElement("windfola.Frodo", "lives", "Frodo.java", 3),
                 new StackTraceElement("windfola.Sam", "cooks", "Sam.java", 11), nonFiltered});
 
-        assertThat(new StackTraceFocuser<>(ignoreLineNumber(compile("3")),
-                ignoreFileName(compile("Sam"))).apply(x).getStackTrace(),
-                is(arrayContaining(nonFiltered)));
+        assertFramesRemaining(x, new StackTraceFocuser<>(ignoreLineNumber(compile("3")),
+                ignoreFileName(compile("Sam"))), nonFiltered);
+    }
+
+    private static void assertFramesRemaining(final Throwable x,
+            final StackTraceFocuser<Throwable> focuser, final StackTraceElement... remaining) {
+        assertThat(focuser.apply(x).getStackTrace(), is(arrayContaining(remaining)));
     }
 }
