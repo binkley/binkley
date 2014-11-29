@@ -1,7 +1,6 @@
 package hm.binkley.corba;
 
 import hm.binkley.util.logging.osi.OSI;
-import hm.binkley.corba.CORBAHelper;
 import org.omg.CosNaming.NamingContextPackage.CannotProceed;
 import org.omg.CosNaming.NamingContextPackage.InvalidName;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
@@ -23,7 +22,7 @@ public final class BlockClient {
     public static void main(final String... args)
             throws CannotProceed, NotFound, InvalidName {
         final CORBAHelper helper = new CORBAHelper(jacorb(args));
-        try (final EnhancedBlock block = EnhancedBlock.Factory.from(helper)) {
+        try (final EnhancedBlock block = EnhancedBlock.from(helper)) {
             block.forEach(out::println);
             block.stream().
                     map(String::length).

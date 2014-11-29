@@ -16,12 +16,10 @@ import static hm.binkley.util.Mixin.Factory.newMixin;
  */
 public interface EnhancedBlock
         extends BlockOperations, BlockExtras {
-    final class Factory {
-        public static EnhancedBlock from(@Nonnull final CORBAHelper helper)
-                throws InvalidName, NotFound, CannotProceed {
-            final BlockOperations corba = helper.resolve("Block", BlockHelper::narrow);
-            // Proxy first so we don't interrogate CORBA for methods unless necessary
-            return newMixin(EnhancedBlock.class, new BlockExtras.Default(corba), corba);
-        }
+    static EnhancedBlock from(@Nonnull final CORBAHelper helper)
+            throws InvalidName, NotFound, CannotProceed {
+        final BlockOperations corba = helper.resolve("Block", BlockHelper::narrow);
+        // Proxy first so we don't interrogate CORBA for methods unless necessary
+        return newMixin(EnhancedBlock.class, new Default(corba), corba);
     }
 }

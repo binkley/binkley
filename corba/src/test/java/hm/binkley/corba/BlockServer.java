@@ -8,16 +8,17 @@ package hm.binkley.corba;
  */
 
 import hm.binkley.util.logging.osi.OSI;
-import hm.binkley.corba.CORBAHelper;
 import org.omg.CosNaming.NamingContextPackage.CannotProceed;
 import org.omg.CosNaming.NamingContextPackage.InvalidName;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
 import org.omg.PortableServer.POAPackage.ServantNotActive;
 import org.omg.PortableServer.POAPackage.WrongPolicy;
 
+import java.lang.reflect.InvocationTargetException;
+
+import static hm.binkley.corba.CORBAHelper.jacorb;
 import static java.lang.System.setProperty;
 import static java.util.concurrent.ForkJoinPool.commonPool;
-import static hm.binkley.corba.CORBAHelper.jacorb;
 
 public final class BlockServer {
     public static void main(final String... args)
@@ -28,9 +29,7 @@ public final class BlockServer {
         setProperty("org.omg.CORBA.ORBSingletonClass", "org.jacorb.orb.ORBSingleton");
 
         commonPool().submit(() -> {
-            Class.forName("org.jacorb.naming.NameServer").getMethod("main", String[].class)
-                    // Funny cast keeps array from being seen as varargs
-                    .invoke(null, (Object) new String[]{"-DOAPort=38693"});
+            runNameServer(38693);
             return null;
         });
 
@@ -39,5 +38,15 @@ public final class BlockServer {
         helper.rebind("Block", new BlockService(helper.orb(), "Foo!", "Bar!"), BlockHelper::narrow);
 
         helper.run();
+    }
+
+    /** Package scope for testing. */
+    static void runNameServer(final int port)
+            throws IllegalAccessException, InvocationTargetException, NoSuchMethodException,
+            ClassNotFoundException {
+        // Funny cast keeps array from being seen as varargs
+        Class.forName("org.jacorb.naming.NameServer").
+                getMethod("main", String[].class).
+                invoke(null, (Object) new String[]{"-DOAPort=" + port});
     }
 }
