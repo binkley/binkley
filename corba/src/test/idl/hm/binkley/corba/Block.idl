@@ -1,0 +1,11 @@
+module hm {
+    module binkley {
+        module corba {
+            interface Block {
+                long nElements();
+                string elementAt(in long index);
+                oneway void shutdown();
+            };
+        };
+    };
+};

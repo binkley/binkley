@@ -63,4 +63,9 @@ public class ProvidePort
     public int port() {
         return port;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + "{port=" + port + '}';
+    }
 }

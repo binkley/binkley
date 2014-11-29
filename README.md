@@ -10,6 +10,7 @@ Current released version is 0.4.  [View javadoc](//binkley.github.io/binkley/).
 ## Modules
 
 * [Convert](convert/) - Inverse of `toString()`
+* [CORBA](corba/) - Helpers for CORBA
 * [Guice](guice/) - Sample Guice modules and helper code
 * [Logging](logging/) - Small logging improvements and OSI logback configuration
 * [Mixin](mixin/) - Mixins for Java via JDK proxies and method handles
