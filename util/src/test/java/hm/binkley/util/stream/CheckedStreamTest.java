@@ -53,7 +53,6 @@ import static org.junit.Assert.assertThat;
  * {@code CheckedStreamTest} tests {@link CheckedStream}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- *
  * @todo javac 8u20 says RuntimeExceptions casts needed, IntelliJ says not
  */
 public class CheckedStreamTest {
@@ -149,43 +148,40 @@ public class CheckedStreamTest {
     @Test
     public void shouldTerminateForAnyMatchWhenSequential()
             throws InterruptedException {
-        assertThat(checked(Stream.of(1, 2, 3)).
-                <RuntimeException>anyMatch(isEqual(1)), is(true));
+        assertThat(checked(Stream.of(1, 2, 3)).<RuntimeException>anyMatch(isEqual(1)), is(true));
     }
 
     @Test
     public void shouldTerminateForAllMatchWhenSequential()
             throws InterruptedException {
-        assertThat(checked(Stream.of(1, 2, 3)).
-                <RuntimeException>anyMatch(i -> true), is(true));
+        assertThat(checked(Stream.of(1, 2, 3)).<RuntimeException>anyMatch(i -> true), is(true));
     }
 
     @Test
     public void shouldTerminateForNoneMatchWhenSequential()
             throws InterruptedException {
-        assertThat(checked(Stream.of(1, 2, 3)).
-                <RuntimeException>noneMatch(i -> false), is(true));
+        assertThat(checked(Stream.of(1, 2, 3)).<RuntimeException>noneMatch(i -> false), is(true));
     }
 
     @Test
     public void shouldTerminateForAnyMatchWhenParallel()
             throws InterruptedException {
-        assertThat(checked(Stream.of(1, 2, 3), new ForkJoinPool()).
-                <RuntimeException>anyMatch(isEqual(1)), is(true));
+        assertThat(checked(Stream.of(1, 2, 3), new ForkJoinPool())
+                .<RuntimeException>anyMatch(isEqual(1)), is(true));
     }
 
     @Test
     public void shouldTerminateForAllMatchWhenParallel()
             throws InterruptedException {
-        assertThat(checked(Stream.of(1, 2, 3), new ForkJoinPool()).
-                <RuntimeException>anyMatch(i -> true), is(true));
+        assertThat(checked(Stream.of(1, 2, 3), new ForkJoinPool())
+                .<RuntimeException>anyMatch(i -> true), is(true));
     }
 
     @Test
     public void shouldTerminateForNoneMatchWhenParallel()
             throws InterruptedException {
-        assertThat(checked(Stream.of(1, 2, 3), new ForkJoinPool()).
-                <RuntimeException>noneMatch(i -> false), is(true));
+        assertThat(checked(Stream.of(1, 2, 3), new ForkJoinPool())
+                .<RuntimeException>noneMatch(i -> false), is(true));
     }
 
     @Test
@@ -269,14 +265,14 @@ public class CheckedStreamTest {
     @Test
     public void shouldThrowUserRuntimeExceptionWhenParallelForBoolean()
             throws InterruptedException {
-        thrown.expect(RuntimeException.class);
+        thrown.expect(Testy.class);
         thrown.expectMessage("Foo!");
-        final RuntimeException innerCause = new RuntimeException("Bar!");
+        final Testy innerCause = new Testy("Bar!");
         thrown.expectCause(is(sameInstance(innerCause)));
 
         checked(Stream.of(1, 2, 3), new ForkJoinPool()).
                 filter(i -> {
-                    throw new RuntimeException("Foo!", innerCause);
+                    throw new Testy("Foo!", innerCause);
                 }).
                 anyMatch(isEqual(1));
     }
@@ -284,14 +280,14 @@ public class CheckedStreamTest {
     @Test
     public void shouldThrowUserRuntimeExceptionWhenParallelForLong()
             throws InterruptedException {
-        thrown.expect(RuntimeException.class);
+        thrown.expect(Testy.class);
         thrown.expectMessage("Foo!");
-        final RuntimeException innerCause = new RuntimeException("Bar!");
+        final Testy innerCause = new Testy("Bar!");
         thrown.expectCause(is(sameInstance(innerCause)));
 
         checked(Stream.of(1, 2, 3), new ForkJoinPool()).
                 filter(i -> {
-                    throw new RuntimeException("Foo!", innerCause);
+                    throw new Testy("Foo!", innerCause);
                 }).
                 count();
     }
@@ -299,14 +295,14 @@ public class CheckedStreamTest {
     @Test
     public void shouldThrowUserRuntimeExceptionWhenParallelForObject()
             throws Exception {
-        thrown.expect(RuntimeException.class);
+        thrown.expect(Testy.class);
         thrown.expectMessage("Foo!");
-        final RuntimeException innerCause = new RuntimeException("Bar!");
+        final Testy innerCause = new Testy("Bar!");
         thrown.expectCause(is(sameInstance(innerCause)));
 
         checked(Stream.of(1, 2, 3), new ForkJoinPool()).
                 filter(i -> {
-                    throw new RuntimeException("Foo!", innerCause);
+                    throw new Testy("Foo!", innerCause);
                 }).
                 // TODO: Reduce here throws Exception, not E
                         reduce(0, maxBy(Integer::compare));
@@ -315,15 +311,26 @@ public class CheckedStreamTest {
     @Test
     public void shouldThrowUserRuntimeExceptionWhenParallelForVoid()
             throws InterruptedException {
-        thrown.expect(RuntimeException.class);
+        thrown.expect(Testy.class);
         thrown.expectMessage("Foo!");
-        final RuntimeException innerCause = new RuntimeException("Bar!");
+        final Testy innerCause = new Testy("Bar!");
         thrown.expectCause(is(sameInstance(innerCause)));
 
         checked(Stream.of(1, 2, 3), new ForkJoinPool()).
                 filter(i -> {
-                    throw new RuntimeException("Foo!", innerCause);
+                    throw new Testy("Foo!", innerCause);
                 }).
                 forEach(out::println);
+    }
+
+    private static final class Testy
+            extends RuntimeException {
+        Testy(final String message) {
+            super(message);
+        }
+
+        Testy(final String message, final Throwable cause) {
+            super(message, cause);
+        }
     }
 }
