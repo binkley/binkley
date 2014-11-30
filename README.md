@@ -7,6 +7,8 @@ This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
 
 Current released version is 0.4.  [View javadoc](//binkley.github.io/binkley/).
 
+[![License](http://img.shields.io/badge/license-PD-blue.svg?style=flat)](http://unlicense.org) [![Build Status](http://img.shields.io/travis/binkley/binkley.svg?style=flat)](https://travis-ci.org/binkley/binkley)
+
 ## Modules
 
 * [Convert](convert/) - Inverse of `toString()`
