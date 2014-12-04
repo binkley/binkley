@@ -76,6 +76,7 @@
         <module>spring</module>
         <module>mixin</module>
         <module>util</module>
+        <module>concurrent</module>
         <module>convert</module>
         <module>corba</module>
         <module>lombok</module>
