@@ -56,6 +56,10 @@ import static lombok.javac.handlers.JavacHandlerUtil.setGeneratedBy;
 
 /**
  * Handles the {@code lombok.ThreadNamed} annotation for javac.
+ *
+ * @todo Evaluate constant expressions for thread name, not just string literals
+ * @todo Eclipse processor
+ * @todo Try out {@code String.format} for thread name based on method args
  */
 @MetaInfServices(JavacAnnotationHandler.class)
 @HandlerPriority(value = 1024)
@@ -63,8 +67,8 @@ import static lombok.javac.handlers.JavacHandlerUtil.setGeneratedBy;
 public class HandleThreadNamed
         extends JavacAnnotationHandler<ThreadNamed> {
     /**
-     * lombok configuration: {@code hm.binkley.lombok.threadNamed.flagUsage} = {@code WARNING} | {@code
-     * ERROR}.
+     * lombok configuration: {@code hm.binkley.lombok.threadNamed.flagUsage} = {@code WARNING} |
+     * {@code ERROR}.
      * <p>
      * If set, <em>any</em> usage of {@code @ThreadNamed} results in a warning / error.
      */
@@ -174,8 +178,8 @@ public class HandleThreadNamed
         }
 
         return setGeneratedBy(maker.Block(0,
-                List.of(saveCurrentThread, saveOldThreadName, changeThreadName, wrapMethod)),
-                source, context);
+                        List.of(saveCurrentThread, saveOldThreadName, changeThreadName,
+                                wrapMethod)), source, context);
     }
 
     private static JCVariableDecl createCurrentThreadVar(final JavacNode node,
