@@ -15,6 +15,7 @@ Current released version is 0.4.  [View javadoc](//binkley.github.io/binkley/).
 * [CORBA](corba/) - Helpers for CORBA
 * [Guice](guice/) - Sample Guice modules and helper code
 * [Logging](logging/) - Small logging improvements and OSI logback configuration
+* [Lombok](lombok/) - Lombok annotations
 * [Mixin](mixin/) - Mixins for Java via JDK proxies and method handles
 * [Spring](spring/) - Examples with Spring
 * [Testing](testing/) - Small testing improvements
@@ -34,6 +35,7 @@ Current released version is 0.4.  [View javadoc](//binkley.github.io/binkley/).
 * Added `ParameterizedHelper` for junit.
 * More Java 8-isms.
 * Taught `Mixin` to handle interface default methods.
+* Added lombok module.
 
 ### 0.4
 
