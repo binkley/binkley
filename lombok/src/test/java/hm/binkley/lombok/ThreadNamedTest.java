@@ -62,8 +62,18 @@ public final class ThreadNamedTest {
         assertThat(doLittle(3, "4", true), is(equalTo(format("%1$d %3$b", 3, "4", true))));
     }
 
+    @ThreadNamed("Bob the Builder")
+    @Test
+    public void shouldIgnoreMethodParamsIfNoFormatting() {
+        assertThat(doLess(7), is(equalTo("Bob the Builder")));
+    }
+
     @ThreadNamed("%1$d %3$b")
-    public static String doLittle(final int a, final String b, final boolean c) {
+    private static String doLittle(final int a, final String b, final boolean c) {
+        return currentThread().getName();
+    }
+
+    private static String doLess(final int a) {
         return currentThread().getName();
     }
 }
