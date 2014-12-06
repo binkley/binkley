@@ -73,7 +73,7 @@ public class HandleThreadNamed
      * If set, <em>any</em> usage of {@code @ThreadNamed} results in a warning / error.
      */
     public static final ConfigurationKey<FlagUsageType> THREAD_NAMED_FLAG_USAGE
-            = new ConfigurationKey<FlagUsageType>("lab.lombok.threadNamed.flagUsage",
+            = new ConfigurationKey<FlagUsageType>("hm.binkley.lombok.threadNamed.flagUsage",
             "Emit a warning or error if @ThreadNamed is used.") {
     };
 
