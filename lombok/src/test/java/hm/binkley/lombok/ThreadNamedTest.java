@@ -27,8 +27,10 @@
 
 package hm.binkley.lombok;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+import static java.lang.String.format;
 import static java.lang.Thread.currentThread;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -40,9 +42,28 @@ import static org.junit.Assert.assertThat;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public final class ThreadNamedTest {
+    private static final String newThreadName = "Bob the Builder";
+
     @ThreadNamed("Bob the Builder")
     @Test
-    public void shouldRenameThread() {
+    public void shouldRenameThreadFromLiteral() {
         assertThat(currentThread().getName(), is(equalTo("Bob the Builder")));
+    }
+
+    @Ignore("TODO: This may be unsupported in lombok - investigate")
+    @ThreadNamed(newThreadName)
+    @Test
+    public void shouldRenameThreadFromGlobalConstant() {
+        assertThat(currentThread().getName(), is(equalTo(newThreadName)));
+    }
+
+    @Test
+    public void shouldRenameThreadWithStringFormatting() {
+        assertThat(doLittle(3, "4", true), is(equalTo(format("%1$d %3$b", 3, "4", true))));
+    }
+
+    @ThreadNamed("%1$d %3$b")
+    public static String doLittle(final int a, final String b, final boolean c) {
+        return currentThread().getName();
     }
 }

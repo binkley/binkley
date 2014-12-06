@@ -100,7 +100,7 @@ public class HandleThreadNamed
         }
     }
 
-    public static void handleMethod(final JavacNode annotation, final JCMethodDecl method,
+    private static void handleMethod(final JavacNode annotation, final JCMethodDecl method,
             final String threadName) {
         final JavacNode methodNode = annotation.up();
 
@@ -116,22 +116,23 @@ public class HandleThreadNamed
 
         final JCStatement constructorCall = method.body.stats.get(0);
         final boolean isConstructorCall = isConstructorCall(constructorCall);
-        List<JCStatement> contents = isConstructorCall ? method.body.stats.tail : method.body.stats;
+        final List<JCStatement> contents = isConstructorCall ? method.body.stats.tail
+                : method.body.stats;
 
         if (null == contents || contents.isEmpty()) {
             generateEmptyBlockWarning(annotation, true);
             return;
         }
 
-        contents = List
-                .of(buildTryFinallyBlock(methodNode, contents, threadName, annotation.get()));
-
-        method.body.stats = isConstructorCall ? List.of(constructorCall).appendList(contents)
-                : contents;
+        final List<JCStatement> wrapped = List
+                .of(renameThreadWhileIn(methodNode, contents, threadName, method.params,
+                        annotation.get()));
+        method.body.stats = isConstructorCall ? List.of(constructorCall).appendList(wrapped)
+                : wrapped;
         methodNode.rebuild();
     }
 
-    public static void generateEmptyBlockWarning(final JavacNode annotation,
+    private static void generateEmptyBlockWarning(final JavacNode annotation,
             final boolean hasConstructorCall) {
         if (hasConstructorCall)
             annotation.addWarning(
@@ -143,8 +144,9 @@ public class HandleThreadNamed
                     "This method or constructor is empty; @ThreadNamed has been ignored.");
     }
 
-    public static JCStatement buildTryFinallyBlock(final JavacNode node,
-            final List<JCStatement> contents, final String threadName, final JCTree source) {
+    private static JCStatement renameThreadWhileIn(final JavacNode node,
+            final List<JCStatement> contents, final String threadNameFormat,
+            final List<JCVariableDecl> params, final JCTree source) {
         final String currentThreadVarName = "$currentThread";
         final String oldThreadNameVarName = "$oldThreadName";
 
@@ -156,7 +158,8 @@ public class HandleThreadNamed
         final JCVariableDecl saveOldThreadName = createOldThreadNameVar(node, maker,
                 currentThreadVarName, oldThreadNameVarName);
 
-        final JCStatement changeThreadName = setThreadName(node, maker, maker.Literal(threadName),
+        final JCExpression threadName = threadName(node, maker, threadNameFormat, params);
+        final JCStatement changeThreadName = setThreadName(node, maker, threadName,
                 currentThreadVarName);
         final JCStatement restoreOldThreadName = setThreadName(node, maker,
                 maker.Ident(node.toName(oldThreadNameVarName)), currentThreadVarName);
@@ -195,6 +198,20 @@ public class HandleThreadNamed
         return maker.VarDef(maker.Modifiers(FINAL), node.toName(oldThreadNameVarName),
                 genJavaLangTypeRef(node, "String"),
                 getThreadName(node, maker, currentThreadVarName));
+    }
+
+    private static JCExpression threadName(final JavacNode node, final JavacTreeMaker maker,
+            final String threadNameFormat, final List<JCVariableDecl> params) {
+        if (params.isEmpty())
+            return maker.Literal(threadNameFormat);
+
+        List<JCExpression> formatArgs = List.of(maker.Literal(threadNameFormat));
+        for (final JCVariableDecl param : params)
+            formatArgs = formatArgs.append(maker.Ident(param));
+
+        return maker.Apply(nil(),
+                maker.Select(genJavaLangTypeRef(node, "String"), node.toName("format")),
+                formatArgs);
     }
 
     private static JCMethodInvocation getThreadName(final JavacNode node,
