@@ -23,6 +23,7 @@ package hm.binkley.lombok.javac;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -57,9 +58,7 @@ import static lombok.javac.handlers.JavacHandlerUtil.setGeneratedBy;
 /**
  * Handles the {@code lombok.ThreadNamed} annotation for javac.
  *
- * @todo Evaluate constant expressions for thread name, not just string literals
  * @todo Eclipse processor
- * @todo Try out {@code String.format} for thread name based on method args
  */
 @MetaInfServices(JavacAnnotationHandler.class)
 @HandlerPriority(1024)
@@ -83,11 +82,14 @@ public class HandleThreadNamed
         handleFlagUsage(annotationNode, THREAD_NAMED_FLAG_USAGE, "@ThreadNamed");
 
         deleteAnnotationIfNeccessary(annotationNode, ThreadNamed.class);
-        final String threadName = annotation.getInstance().value();
-        if (threadName.isEmpty()) {
+        if (annotation.getInstance().value().isEmpty()) {
             annotationNode.addError("threadName cannot be the empty string.");
             return;
         }
+
+        final JCAnnotation anno = (JCAnnotation) annotationNode.get();
+        final List<JCExpression> args = anno.args;
+        final JCExpression threadName = ((JCAssign) args.get(0)).getExpression(); // Must be present
 
         final JavacNode owner = annotationNode.up();
         switch (owner.getKind()) {
@@ -101,7 +103,7 @@ public class HandleThreadNamed
     }
 
     private static void handleMethod(final JavacNode annotation, final JCMethodDecl method,
-            final String threadName) {
+            final JCExpression threadName) {
         final JavacNode methodNode = annotation.up();
 
         if (0 != (method.mods.flags & ABSTRACT)) {
@@ -145,7 +147,7 @@ public class HandleThreadNamed
     }
 
     private static JCStatement renameThreadWhileIn(final JavacNode node,
-            final List<JCStatement> contents, final String threadNameFormat,
+            final List<JCStatement> contents, final JCExpression threadNameFormat,
             final List<JCVariableDecl> params, final JCTree source) {
         final String currentThreadVarName = "$currentThread";
         final String oldThreadNameVarName = "$oldThreadName";
@@ -201,11 +203,11 @@ public class HandleThreadNamed
     }
 
     private static JCExpression threadName(final JavacNode node, final JavacTreeMaker maker,
-            final String threadNameFormat, final List<JCVariableDecl> params) {
+            final JCExpression threadNameFormat, final List<JCVariableDecl> params) {
         if (params.isEmpty())
-            return maker.Literal(threadNameFormat);
+            return threadNameFormat;
 
-        List<JCExpression> formatArgs = List.of(maker.Literal(threadNameFormat));
+        List<JCExpression> formatArgs = List.of(threadNameFormat);
         for (final JCVariableDecl param : params)
             formatArgs = formatArgs.append(maker.Ident(param));
 

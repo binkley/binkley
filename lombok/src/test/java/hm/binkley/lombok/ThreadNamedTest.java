@@ -27,7 +27,6 @@
 
 package hm.binkley.lombok;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static java.lang.String.format;
@@ -50,7 +49,6 @@ public final class ThreadNamedTest {
         assertThat(currentThread().getName(), is(equalTo("Bob the Builder")));
     }
 
-    @Ignore("TODO: This may be unsupported in lombok - investigate")
     @ThreadNamed(newThreadName)
     @Test
     public void shouldRenameThreadFromGlobalConstant() {
