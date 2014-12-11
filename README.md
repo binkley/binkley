@@ -1,13 +1,13 @@
 binkley's BLOG
 ==============
 
-[binkley's BLOG](//binkley.blogspot.com)
+[binkley's BLOG](https://binkley.blogspot.com)
 
 This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
 
-Current released version is 0.4.  [View javadoc](//binkley.github.io/binkley/).
+Current released version is 0.4.  [View javadoc](https://binkley.github.io/binkley/).
 
-[![License](//img.shields.io/badge/license-PD-blue.svg?style=flat)](//unlicense.org) [![Build Status](//img.shields.io/travis/binkley/binkley.svg?style=flat)](//travis-ci.org/binkley/binkley)[![issues](//img.shields.io/github/issues/binkley/binkley.svg)](//github.com/binkley/binkley/issues) [![maven-central](//img.shields.io/maven-central/v/hm.binkley/binkley-blog.svg?style=flat)](//search.maven.org/#search%7Cga%7C1%7Cg%3A%22hm.binkley%22)
+[![License](https://img.shields.io/badge/license-PD-blue.svg?style=flat)](https://unlicense.org) [![Build Status](https://img.shields.io/travis/binkley/binkley.svg?style=flat)](https://travis-ci.org/binkley/binkley)[![issues](https://img.shields.io/github/issues/binkley/binkley.svg)](https://github.com/binkley/binkley/issues) [![maven-central](https://img.shields.io/maven-central/v/hm.binkley/binkley-blog.svg?style=flat)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22hm.binkley%22)
 
 ## Modules
 
