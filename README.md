@@ -22,6 +22,7 @@ Current released version is 0.4.  [View javadoc](https://binkley.github.io/binkl
 * [Utility](util/) - `Bug`, `CheckedStream` and friends
 * [Value type](value-type/) - Java annotation and processor for value types
 * [Xio](xio/) - Pulling out interfaces from JDK I/O
+* [XML](xml/) - Experiments in XML
 * [Xproperties](xprops/) - Extended Java properties
 
 ## Changes
