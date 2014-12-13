@@ -49,6 +49,13 @@ public final class ThreadNamedTest {
         assertThat(currentThread().getName(), is(equalTo("Bob the Builder")));
     }
 
+    @Test
+    public void shouldRestoreThreadName() {
+        final String oldThreadName = currentThread().getName();
+        doLittle(0, "b", true);
+        assertThat(currentThread().getName(), is(equalTo(oldThreadName)));
+    }
+
     @ThreadNamed(newThreadName)
     @Test
     public void shouldRenameThreadFromGlobalConstant() {
@@ -57,7 +64,8 @@ public final class ThreadNamedTest {
 
     @Test
     public void shouldRenameThreadWithStringFormatting() {
-        assertThat(doLittle(3, "4", true), is(equalTo(format("%1$d %3$b", 3, "4", true))));
+        assertThat(doLittle(3, "4", true),
+                is(equalTo(format("%1$d %3$b", 3, "4", true))));
     }
 
     @ThreadNamed("Bob the Builder")
@@ -67,7 +75,8 @@ public final class ThreadNamedTest {
     }
 
     @ThreadNamed("%1$d %3$b")
-    private static String doLittle(final int a, final String b, final boolean c) {
+    private static String doLittle(final int a, final String b,
+            final boolean c) {
         return currentThread().getName();
     }
 

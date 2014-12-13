@@ -7,17 +7,23 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * {@code XByteArrayInputOutputStream} <b>needs documentation</b>.
+ * {@code XByteArrayInputOutputStream} is a blend of {@link XInputOutputStream}
+ * and {@link XSeekable} over a byte buffer.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public class XByteBufferInputOutputStream
         implements XInputOutputStream, XSeekable {
     private final ByteBuffer buf;
     private int mark;
 
-    public XByteBufferInputOutputStream(final ByteBuffer buf) {
+    /**
+     * Constructs a new {@code XByteBufferInputOutputStream} for the given byte
+     * buffer.
+     *
+     * @param buf the byte buffer, never missing
+     */
+    public XByteBufferInputOutputStream(@Nonnull final ByteBuffer buf) {
         this.buf = buf;
     }
 

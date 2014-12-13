@@ -35,10 +35,11 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * {@code BlockIT} <b>needs documentation</b>.
+ * {@code BlockIT} is an integration test of the {@link BlockClient sample
+ * client} and {@link BlockServer sample server}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
+ * @todo Only print out/err on failure - next version of system-rules
  */
 @Ignore("Unable to get ORB wired to a random port")
 public final class BlockIT {
@@ -51,11 +52,12 @@ public final class BlockIT {
     @Rule
     public final ProvideSystemProperty sysprops = new ProvideSystemProperty().
             and("org.omg.CORBA.ORBClass", "org.jacorb.orb.ORB").
-            and("org.omg.CORBA.ORBSingletonClass", "org.jacorb.orb.ORBSingleton").
-            and("ORBInitRef.NameService", format("corbaloc::localhost:%d/NameService", port.port())).
+            and("org.omg.CORBA.ORBSingletonClass",
+                    "org.jacorb.orb.ORBSingleton").
+            and("ORBInitRef.NameService",
+                    format("corbaloc::localhost:%d/NameService", port.port())).
             and("OAPort", String.valueOf(port.port()));
 
-    // TODO: Only print out/err on failure
     @Rule
     public final StandardOutputStreamLog out = new StandardOutputStreamLog();
     @Rule
@@ -99,10 +101,12 @@ public final class BlockIT {
 
     @Test(timeout = 10000)
     public void shouldRoundtrip()
-            throws InvalidName, CannotProceed, NotFound, ServantNotActive, WrongPolicy {
+            throws InvalidName, CannotProceed, NotFound, ServantNotActive,
+            WrongPolicy {
         final List<String> elements = asList("Foo!", "Bar!");
 
-        helper.rebind("Block", new BlockService(helper.orb(), elements), BlockHelper::narrow);
+        helper.rebind("Block", new BlockService(helper.orb(), elements),
+                BlockHelper::narrow);
 
         try (final EnhancedBlock block = EnhancedBlock.from(helper)) {
             assertThat(stream(block.spliterator(), false).

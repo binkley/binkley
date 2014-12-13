@@ -28,6 +28,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,38 +41,44 @@ import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
 
 /**
- * {@code XProperties} is a {@code java.util.Properties} supporting inclusion of other properties
- * files, parameter substition and typed return values.  Key order is preserved; keys from included
- * properties are prior to those from the current properties.
+ * {@code XProperties} is a {@code java.util.Properties} supporting inclusion of
+ * other properties files, parameter substition and typed return values.  Key
+ * order is preserved; keys from included properties are prior to those from the
+ * current properties.
  * <p>
  * Keys are restricted to {@code String}s.
  * <p>
  * Loading processes lines of the form: <pre>
- * #include <var>Spring style resource path</var></pre> for inclusion.  Looks up <var>resource
- * path</var> with a {@link ResourcePatternResolver}; loading found resources in turn. Similarly
- * processes resource recursively for further inclusion.  Includes multiple resources separated by
- * comma (",") in the same "#include" statement.
+ * #include <var>Spring style resource path</var></pre> for inclusion.  Looks
+ * up <var>resource path</var> with a {@link ResourcePatternResolver}; loading
+ * found resources in turn. Similarly processes resource recursively for further
+ * inclusion. Includes multiple resources separated by comma (",") in the same
+ * "#include" statement.
  * <p>
  * Substitutes in resource paths of the
  * form: <pre>
- * #include ${<var>variable</var>}</pre> or portions thereof.  Looks up <var>variable</var> in
- * the current properties, and if not found, in the system properties.  If found, replaces the text
- * with the variable value, including "${" and trailing "}".
+ * #include ${<var>variable</var>}</pre> or portions thereof.  Looks up
+ * <var>variable</var> in the current properties, and if not found, in the
+ * system properties.  If found, replaces the text with the variable value,
+ * including "${" and trailing "}".
  * <p>
- * Use forward slashes ("/") only for path separators; <strong>do not</strong> use back slashes
- * ("\").
+ * Use forward slashes ("/") only for path separators; <strong>do not</strong>
+ * use back slashes ("\").
  * <p>
- * Examples: <table><tr><th>Text</th> <th>Result</th></tr> <tr><td>{@code #include
- * foo/file.properties}</td> <td>Includes {@code foo.properties} found in the classpath</td></tr>
- * <tr><td>{@code #include foo.properties, bar.properties}</td> <td>Includes both {@code
- * foo.properties} and {@code bar.properties}</td></tr> <tr><td>{@code #include
- * file:/var/tmp/${user.name }/foo.properties}</td> <td>Includes {@code foo.properties} found in a
+ * Examples: <table><tr><th>Text</th> <th>Result</th></tr> <tr><td>{@code
+ * #include foo/file.properties}</td> <td>Includes {@code foo.properties} found
+ * in the classpath</td></tr> <tr><td>{@code #include foo.properties,
+ * bar.properties}</td> <td>Includes both {@code foo.properties} and {@code
+ * bar.properties}</td></tr> <tr><td>{@code #include file:/var/tmp/${user.name
+ * }/foo.properties}</td> <td>Includes {@code foo.properties} found in a
  * directory named after the current user</td></tr> <tr><td>{@code #include
- * classpath*:**&#47;foo.properties}</td> <td>Includes all {@code foo.properties}</tr> files found
- * subdirectories of the classpath</td></tr> </table>
+ * classpath*:**&#47;foo.properties}</td> <td>Includes all {@code
+ * foo.properties}</tr> files found subdirectories of the classpath</td></tr>
+ * </table>
  *
  * @todo Implement defaults
  * @todo Converter assumes cacheable keys; is this correct?
+ * @todo Inclusion requires "#include" in the first column - reasonable?
  * @see PathMatchingResourcePatternResolver
  * @see StrSubstitutor
  * @see XPropsConverter
@@ -89,17 +96,19 @@ public class XProperties
     private final XPropsConverter converter = new XPropsConverter();
     private final Map<Key, Object> converted = new ConcurrentHashMap<>();
 
-    private final StrSubstitutor substitutor = new StrSubstitutor(new FindValue());
+    private final StrSubstitutor substitutor = new StrSubstitutor(
+            new FindValue());
 
     {
         substitutor.setEnableSubstitutionInVariables(true);
     }
 
     /**
-     * Creates a new {@code XProperties} for the given <var>absolutePath</var> found in the
-     * classpath.
+     * Creates a new {@code XProperties} for the given <var>absolutePath</var>
+     * found in the classpath.
      *
-     * @param absolutePath the absolute path to search on the classpath, never missing
+     * @param absolutePath the absolute path to search on the classpath, never
+     * missing
      *
      * @throws IOException if <var>absolutePath</var> cannot be loaded
      */
@@ -116,20 +125,29 @@ public class XProperties
         }
     }
 
-    /** @todo Documentation */
+    /**
+     * Constructs a new, default {@code XProperties} with no properties.
+     */
     public XProperties() {
     }
 
-    /** @todo Documentation */
+    /**
+     * Constructs a new {@code XProperties} containing the given
+     * <var>initial</var> properties.
+     *
+     * @param initial the initial property pairs, never missing
+     */
     public XProperties(@Nonnull final Map<String, String> initial) {
         putAll(initial);
     }
 
     /**
+     * Registers the given property converter with key <var>prefix</var> and
+     * typed-value <var>factory</var>.
+     *
      * @param prefix the alias prefix, never missing
      * @param factory the factory, never missing
      *
-     * @todo Documentation
      * @see XPropsConverter#register(String, Conversion)
      */
     public void register(@Nonnull final String prefix,
@@ -138,28 +156,34 @@ public class XProperties
     }
 
     /**
-     * Note {@code XProperties} description for additional features over plain properties loading.
-     * {@inheritDoc}
+     * Note {@code XProperties} description for additional features over plain
+     * properties loading. {@inheritDoc}
      *
-     * @throws IOException if the properties cannot be loaded or if included resources cannot be
-     * read
+     * @throws IOException if the properties cannot be loaded or if included
+     * resources cannot be read
      */
     @Override
     public synchronized void load(@Nonnull final Reader reader)
             throws IOException {
-        final ResourcePatternResolver loader = new PathMatchingResourcePatternResolver();
+        final ResourcePatternResolver loader
+                = new PathMatchingResourcePatternResolver();
         try (final CharArrayWriter writer = new CharArrayWriter()) {
             try (final BufferedReader lines = new BufferedReader(reader)) {
-                for (String line = lines.readLine(); null != line; line = lines.readLine()) {
+                for (String line = lines.readLine(); null != line;
+                        line = lines.readLine()) {
                     writer.append(line).append('\n');
                     final Matcher matcher = include.matcher(line);
                     if (matcher.matches())
-                        for (final String x : comma.split(substitutor.replace(matcher.group(1))))
-                            for (final Resource resource : loader.getResources(x)) {
+                        for (final String x : comma
+                                .split(substitutor.replace(matcher.group(1))))
+                            for (final Resource resource : loader
+                                    .getResources(x)) {
                                 final URI uri = resource.getURI();
                                 if (!included.add(uri))
-                                    throw new RecursiveIncludeException(uri, included);
-                                try (final InputStream in = resource.getInputStream()) {
+                                    throw new RecursiveIncludeException(uri,
+                                            included);
+                                try (final InputStream in = resource
+                                        .getInputStream()) {
                                     load(in);
                                 }
                             }
@@ -172,11 +196,11 @@ public class XProperties
     }
 
     /**
-     * Note {@code XProperties} description for additional features over plain properties loading.
-     * {@inheritDoc}
+     * Note {@code XProperties} description for additional features over plain
+     * properties loading. {@inheritDoc}
      *
-     * @throws IOException if the properties cannot be loaded or if included resources cannot be
-     * read
+     * @throws IOException if the properties cannot be loaded or if included
+     * resources cannot be read
      */
     @Override
     public synchronized void load(final InputStream inStream)
@@ -187,11 +211,13 @@ public class XProperties
     /**
      * {@inheritDoc} <p/>
      * Substitutes in property values sequences of the form: <pre>
-     * ${<var>variable</var>}</pre>.  Looks up <var>variable</var> in the current properties, and
-     * if not found, in the system properties.  If found, replaces the text with the variable value,
-     * including "${" and trailing "}".
+     * ${<var>variable</var>}</pre>.  Looks up <var>variable</var> in the
+     * current properties, and if not found, in the system properties.  If
+     * found, replaces the text with the variable value, including "${" and
+     * trailing "}".
      *
-     * @throws MissingPropertyException if substitution refers to a missing property
+     * @throws MissingPropertyException if substitution refers to a missing
+     * property
      * @see StrSubstitutor
      */
     @Nullable
@@ -206,9 +232,10 @@ public class XProperties
     /**
      * {@inheritDoc} <p/>
      * Substitutes in string values sequences of the form: <pre>
-     * ${<var>variable</var>}</pre> for substition.  Looks up <var>variable</var> in the current
-     * properties, and if not found, in the system properties.  If found, replaces the text with the
-     * variable value, including "${" and trailing "}".
+     * ${<var>variable</var>}</pre> for substition.  Looks up
+     * <var>variable</var> in the current properties, and if not found, in the
+     * system properties.  If found, replaces the text with the variable value,
+     * including "${" and trailing "}".
      *
      * @see StrSubstitutor
      */
@@ -222,21 +249,23 @@ public class XProperties
     }
 
     /**
-     * Gets a typed property value.  <strong>Responsibility is the caller's</strong> to assign the
-     * return to a correct type; failure to do so will cause a {@code ClassCastException} at
-     * run-time.
+     * Gets a typed property value.  <strong>Responsibility is the
+     * caller's</strong> to assign the return to a correct type; failure to do
+     * so will cause a {@code ClassCastException} at run-time.
      * <p>
-     * Typed keys are of the form: {@code <var>type</var>:<var>key</var>}.  The <var>key</var> is
-     * the same key as {@link System#getProperty(String) System.getProperty}.  See {@link
-     * XPropsConverter#register(String, Conversion) register} for built-in <var>type</var> key
-     * prefixes.
+     * Typed keys are of the form: {@code <var>type</var>:<var>key</var>}.  The
+     * <var>key</var> is the same key as {@link System#getProperty(String)
+     * System.getProperty}.  See {@link XPropsConverter#register(String,
+     * Conversion) register} for built-in <var>type</var> key prefixes.
      * <p>
-     * Examples: <table><tr><th>Code</th> <th>Comment</th></tr> <tr><td>{@code Integer foo =
-     * xprops.getObject("int:foo");}</td> <td>Gets the "foo" property as an possibly {@code null}
-     * integer</td></tr> <tr><td>{@code int foo = xprops.getObject("int:foo");}</td> <td>Gets the
-     * "foo" property as a primitive integer, throwing {@code NullPointerException} if
-     * missing</td></tr> <tr><td>{@code Long foo = xprops.getObject("long:foo");}</td> <td>Gets the
-     * "foo" property as an possibly {@code null} long; this is the same property as the previous
+     * Examples: <table><tr><th>Code</th> <th>Comment</th></tr> <tr><td>{@code
+     * Integer foo = xprops.getObject("int:foo");}</td> <td>Gets the "foo"
+     * property as an possibly {@code null} integer</td></tr> <tr><td>{@code int
+     * foo = xprops.getObject("int:foo");}</td> <td>Gets the "foo" property as a
+     * primitive integer, throwing {@code NullPointerException} if
+     * missing</td></tr> <tr><td>{@code Long foo = xprops.getObject
+     * ("long:foo");}</td> <td>Gets the "foo" property as an possibly {@code
+     * null} long; this is the same property as the previous
      * examples</td></tr></table>
      *
      * @param key the type-prefixed key, never missing
@@ -252,11 +281,21 @@ public class XProperties
         return getObjectOrDefault(key, null);
     }
 
-    /** @todo Javadoc */
+    /**
+     * Gets the typed value of the given property <var>key</var>.
+     *
+     * @param key the type-prefixed key, never missing
+     * @param defaultValue the fallback value if <var>key</var> is not present
+     * @param <T> the value type
+     *
+     * @return the typed value for <var>key</var>
+     */
     @Nullable
     @SuppressWarnings("unchecked")
-    public <T> T getObjectOrDefault(@Nonnull final String key, final T defaultValue) {
-        return (T) converted.computeIfAbsent(new Key(key, defaultValue), this::convert);
+    public <T> T getObjectOrDefault(@Nonnull final String key,
+            @Nullable final T defaultValue) {
+        return (T) converted
+                .computeIfAbsent(new Key(key, defaultValue), this::convert);
     }
 
     private Object convert(final Key key) {
@@ -271,8 +310,7 @@ public class XProperties
         try {
             return converter.convert(parts[0], value);
         } catch (final Exception e) {
-            final String[] x = colon.split(property, 2);
-            throw new FailedConversionException(property, getProperty(x[1]), e.getCause());
+            throw new FailedConversionException(property, value, e.getCause());
         }
     }
 
@@ -280,7 +318,8 @@ public class XProperties
             extends StrLookup {
         @Override
         public String lookup(final String key) {
-            return asList((Function<String, String>) XProperties.this::getProperty,
+            return asList(
+                    (Function<String, String>) XProperties.this::getProperty,
                     System::getProperty, System::getenv).stream().
                     map(f -> f.apply(key)).
                     filter(v -> null != v).
@@ -289,34 +328,60 @@ public class XProperties
         }
     }
 
-    /** @todo Documentation */
+    /**
+     * Thrown if a set of x-properties recursively includes itself by incusion
+     * of another set of properties.
+     */
     public static final class RecursiveIncludeException
             extends RuntimeException {
-        public RecursiveIncludeException(final URI duplicate, final Collection<URI> included) {
+        /**
+         * Constructs a new {@code RecursiveIncludeException} for the given
+         * parameters.
+         *
+         * @param duplicate the recursive inclusion, never missing
+         * @param included the history of included property sets, never missing
+         */
+        public RecursiveIncludeException(@Nonnull final URI duplicate,
+                @Nonnull final Collection<URI> included) {
             super(message(duplicate, included));
         }
 
-        private static String message(final URI duplicate, final Collection<URI> included) {
-            final ArrayList<URI> x = new ArrayList<>(included.size() + 1);
+        private static String message(final URI duplicate,
+                final Collection<URI> included) {
+            final List<URI> x = new ArrayList<>(included.size() + 1);
             x.addAll(included);
             x.add(duplicate);
             return x.toString();
         }
     }
 
-    /** @todo Documentation */
+    /** Thrown if a property value cannot be converted to a typed instance. */
     public static final class FailedConversionException
             extends RuntimeException {
-        public FailedConversionException(final String key, final String value,
-                final Throwable cause) {
+        /**
+         * Constructs a new {@code FailedConversionException} for the given
+         * parameters.
+         *
+         * @param key the property key, never missng
+         * @param value the unconverted property value, never missing
+         * @param cause the factory exception, never missing
+         */
+        public FailedConversionException(@Nonnull final String key,
+                @Nonnull final String value, @Nonnull final Throwable cause) {
             super(format("%s = %s", key, value), cause);
         }
     }
 
-    /** @todo Documentation */
+    /** Thrown if a property cannot be found. */
     public static class MissingPropertyException
             extends IllegalArgumentException {
-        public MissingPropertyException(final String key) {
+        /**
+         * Constructs a new {@code MissingPropertyException} for the given
+         * property <var>key</var>.
+         *
+         * @param key the property key, never missing
+         */
+        public MissingPropertyException(@Nonnull final String key) {
             super(key);
         }
     }

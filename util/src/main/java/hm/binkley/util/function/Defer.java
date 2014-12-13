@@ -33,7 +33,8 @@ import java.util.function.Function;
 import static java.lang.Thread.currentThread;
 
 /**
- * {@code ExceptionTranslator} <b>needs documentation</b>.
+ * {@code Defer} evaluates deferred execution for throwing versions of types for
+ * Java 8 stream.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
@@ -42,7 +43,8 @@ import static java.lang.Thread.currentThread;
 @FunctionalInterface
 public interface Defer<D extends RuntimeException>
         extends Function<Exception, D> {
-    default <T, E extends Exception> T as(final ThrowingSupplier<? extends T, E> throwing) {
+    default <T, E extends Exception> T as(
+            final ThrowingSupplier<? extends T, E> throwing) {
         try {
             return throwing.get();
         } catch (final CancellationException e) {
@@ -57,7 +59,8 @@ public interface Defer<D extends RuntimeException>
         }
     }
 
-    default <E extends Exception> boolean as(final ThrowingBooleanSupplier<E> throwing) {
+    default <E extends Exception> boolean as(
+            final ThrowingBooleanSupplier<E> throwing) {
         try {
             return throwing.getAsBoolean();
         } catch (final CancellationException e) {
@@ -72,7 +75,8 @@ public interface Defer<D extends RuntimeException>
         }
     }
 
-    default <E extends Exception> long as(final ThrowingLongSupplier<E> throwing) {
+    default <E extends Exception> long as(
+            final ThrowingLongSupplier<E> throwing) {
         try {
             return throwing.getAsLong();
         } catch (final CancellationException e) {

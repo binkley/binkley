@@ -46,7 +46,8 @@
 
     <scm>
         <connection>scm:git:git://github.com/binkley/binkley.git</connection>
-        <developerConnection>scm:git:git@github.com:binkley/binkley.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:binkley/binkley.git
+        </developerConnection>
         <url>https://github.com/binkley/binkley</url>
     </scm>
 
@@ -96,6 +97,7 @@
         <jacorb.version>3.5</jacorb.version>
         <janino.version>2.7.6</janino.version>
         <jansi.version>1.11</jansi.version>
+        <java.charset>UTF-8</java.charset>
         <java.version>8</java.version>
         <jgitflow-maven-plugin.version>1.0-m4.3</jgitflow-maven-plugin.version>
         <jmockit.version>1.7</jmockit.version>
@@ -119,10 +121,14 @@
         <metainf-services.version>1.5</metainf-services.version>
         <owner.version>1.0.5.1</owner.version>
         <pojo-mbean.version>1.1</pojo-mbean.version>
-        <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <project.reporting.sourceEncoding>UTF-8</project.reporting.sourceEncoding>
+        <project.build.outputEncoding>${java.charset}
+        </project.build.outputEncoding>
+        <project.build.sourceEncoding>${java.charset}
+        </project.build.sourceEncoding>
+        <project.reporting.outputEncoding>${java.charset}
+        </project.reporting.outputEncoding>
+        <project.reporting.sourceEncoding>${java.charset}
+        </project.reporting.sourceEncoding>
         <service-binder.version>0.3</service-binder.version>
         <slf4j.version>1.7.7</slf4j.version>
         <spring.version>4.1.1.RELEASE</spring.version>
@@ -503,8 +509,10 @@
                         <compress>true</compress>
                         <index>true</index>
                         <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addDefaultImplementationEntries>true
+                            </addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true
+                            </addDefaultSpecificationEntries>
                             <addExtensions>true</addExtensions>
                         </manifest>
                     </archive>
@@ -537,8 +545,10 @@
                         <compress>true</compress>
                         <index>true</index>
                         <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addDefaultImplementationEntries>true
+                            </addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true
+                            </addDefaultSpecificationEntries>
                             <addExtensions>true</addExtensions>
                         </manifest>
                     </archive>
@@ -565,13 +575,15 @@
                         <compress>true</compress>
                         <index>true</index>
                         <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addDefaultImplementationEntries>true
+                            </addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true
+                            </addDefaultSpecificationEntries>
                             <addExtensions>true</addExtensions>
                         </manifest>
                     </archive>
                     <author>true</author>
-                    <charset>UTF-8</charset>
+                    <charset>${java.charset}</charset>
                     <detectLinks>true</detectLinks>
                     <keywords>true</keywords>
                     <linksource>true</linksource>
@@ -580,11 +592,17 @@
                             http://docs.guava-libraries.googlecode.com/git-history/v${guava.version}/javadoc/
                         </link>
                         <link>http://findbugs.sourceforge.net/api/</link>
-                        <link>http://google.github.io/guice/api-docs/${guice.version}/javadoc/
+                        <link>
+                            http://google.github.io/guice/api-docs/${guice.version}/javadoc/
                         </link>
-                        <link>http://hamcrest.org/JavaHamcrest/javadoc/${hamcrest.version}/</link>
-                        <link>http://owner.newinstance.it/${owner.version}/apidocs/</link>
-                        <link>http://pholser.github.io/jopt-simple/apidocs/</link>
+                        <link>
+                            http://hamcrest.org/JavaHamcrest/javadoc/${hamcrest.version}/
+                        </link>
+                        <link>
+                            http://owner.newinstance.it/${owner.version}/apidocs/
+                        </link>
+                        <link>http://pholser.github.io/jopt-simple/apidocs/
+                        </link>
                         <link>http://projectlombok.org/api/</link>
                         <link>http://slf4j.org/api/</link>
                     </links>
@@ -628,7 +646,9 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>${maven-release-plugin.version}</version>
                 <configuration>
-                    <arguments>-Psonatype-oss-release -Dgpg.passphrase=${gpg.passphrase}</arguments>
+                    <arguments>-Psonatype-oss-release
+                        -Dgpg.passphrase=${gpg.passphrase}
+                    </arguments>
                     <mavenExecutorId>forked-path</mavenExecutorId>
                     <useReleaseProfile>false</useReleaseProfile>
                 </configuration>

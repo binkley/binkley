@@ -41,15 +41,18 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
- * {@code FuzzyTest} tests {@link XMLFuzzyProcessor}
+ * {@code FuzzyTest} tests {@link XMLFuzzyProcessor}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public class XMLFuzzyProessorTest {
     @Language("XML")
     public static final String WAS_HE
-            = "<wasHe><needsNoConversion>abc</needsNoConversion><isAPrimitive>3</isAPrimitive><usesParse>1970-01-01T00:00:00Z</usesParse><usesConstructor>1.234</usesConstructor><throwsAnException>not:a-uri</throwsAnException></wasHe>";
+            = "<wasHe><needsNoConversion>abc</needsNoConversion><isAPrimitive"
+            + ">3</isAPrimitive><usesParse>1970-01-01T00:00:00Z</usesParse"
+            + "><usesConstructor>1"
+            + ".234</usesConstructor><throwsAnException>not:a-uri"
+            + "</throwsAnException></wasHe>";
     private WasHe wasHe;
 
     @Before
@@ -58,7 +61,8 @@ public class XMLFuzzyProessorTest {
         final InputSource source = new InputSource(new StringReader(WAS_HE));
         source.setEncoding("UTF-8");
         wasHe = WasHeFactory
-                .of(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(source));
+                .of(DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                        .parse(source));
     }
 
     @Test
