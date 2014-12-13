@@ -37,6 +37,7 @@ Current released version is 0.4.  [View javadoc](https://binkley.github.io/binkl
 * More Java 8-isms.
 * Taught `Mixin` to handle interface default methods.
 * Added lombok module.
+* Added xml module.
 
 ### 0.4
 
