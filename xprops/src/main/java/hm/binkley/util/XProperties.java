@@ -75,6 +75,10 @@ import static java.util.regex.Pattern.compile;
  * classpath*:**&#47;foo.properties}</td> <td>Includes all {@code
  * foo.properties}</tr> files found subdirectories of the classpath</td></tr>
  * </table>
+ * <p>
+ * Note {@code equals} and {@code hashCode} are from {@code Properties}, not
+ * overriden.  Generally JDK properties should not be compared or used as map
+ * keys.
  *
  * @todo Implement defaults
  * @todo Converter assumes cacheable keys; is this correct?
