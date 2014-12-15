@@ -13,12 +13,15 @@ import java.io.IOException;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 
 import static hm.binkley.util.Mixin.Factory.newMixin;
 import static hm.binkley.util.MixinTest.Duck.QUACKERS;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.is;
@@ -45,21 +48,23 @@ public class MixinTest {
     public void shouldStaticType()
             throws IOException {
         final int roll = 13;
-        assertThat(newMixin(Testy.class, (Bob) ignored -> roll).throwDown("Hoe down!"),
-                is(equalTo(roll)));
+        assertThat(newMixin(Testy.class, (Bob) ignored -> roll)
+                .throwDown("Hoe down!"), is(equalTo(roll)));
     }
 
     @Test
     public void shouldPickFirstMatch()
             throws IOException {
         final int firstRoll = 14;
-        assertThat(newMixin(Testy.class, (Bob) ignored -> firstRoll, (Bob) ignored -> firstRoll - 1)
-                .throwDown("Hoe down!"), is(equalTo(firstRoll)));
+        assertThat(newMixin(Testy.class, (Bob) ignored -> firstRoll,
+                (Bob) ignored -> firstRoll - 1).throwDown("Hoe down!"),
+                is(equalTo(firstRoll)));
     }
 
     @Test
     public void shouldDuckType() {
-        assertThat(newMixin(Testy.class, new Duck()).quack(3), is(equalTo(QUACKERS)));
+        assertThat(newMixin(Testy.class, new Duck()).quack(3),
+                is(equalTo(QUACKERS)));
     }
 
     @Test(expected = IOException.class)
@@ -93,7 +98,8 @@ public class MixinTest {
     @Test
     public void shouldPassThroughClassAnnotationsOnDelegates()
             throws NoSuchMethodException {
-        for (final Object object : newMixin(Testy.class, new UnBob()).mixinDelegates())
+        for (final Object object : newMixin(Testy.class, new UnBob())
+                .mixinDelegates())
             if (null != object.getClass().getAnnotation(Beans.class))
                 return;
         fail("No @Beans on Bob proxy");
@@ -102,8 +108,10 @@ public class MixinTest {
     @Test
     public void shouldPassThroughMethodAnnotationsOnInterfaces()
             throws NoSuchMethodException {
-        for (final Class<?> itf : newMixin(Testy.class, new UnBob()).getClass().getInterfaces())
-            if (null != itf.getMethod("throwDown", String.class).getAnnotation(Cool.class))
+        for (final Class<?> itf : newMixin(Testy.class, new UnBob()).getClass()
+                .getInterfaces())
+            if (null != itf.getMethod("throwDown", String.class)
+                    .getAnnotation(Cool.class))
                 return;
         fail("No @Cool on Bob.throwDown(String) proxy");
     }
@@ -134,6 +142,16 @@ public class MixinTest {
         newMixin(WithStaticMethod.class);
     }
 
+    @Test
+    public void shouldWorkAgainstInternalStaticsFromAnotherPackage()
+            throws ExecutionException, InterruptedException {
+        final ExecutorService threads = newMixin(ExecutorService.class,
+                newSingleThreadExecutor());
+        // Check twice - once lookup, second cached
+        assertThat(threads.submit(() -> 3).get(), is(equalTo(3)));
+        assertThat(threads.submit(() -> 3).get(), is(equalTo(3)));
+    }
+
     public interface DefaultMethodPublic {
         default void foo() {
         }
@@ -150,8 +168,7 @@ public class MixinTest {
     }
 
     public interface DescendantWithDefaultMethod
-            extends DefaultMethodPublic, DefaultMethodOther {
-    }
+            extends DefaultMethodPublic, DefaultMethodOther {}
 
     interface Testy
             extends Bob, Mixin {
@@ -163,14 +180,12 @@ public class MixinTest {
 
     @Retention(RUNTIME)
     @Target(METHOD)
-    @interface Cool {
-    }
+    @interface Cool {}
 
     @Retention(RUNTIME)
     @Target(TYPE)
     @Inherited
-    @interface Beans {
-    }
+    @interface Beans {}
 
     interface Bob {
         @Cool
@@ -203,8 +218,7 @@ public class MixinTest {
     }
 
     @Beans
-    private static class PreBob {
-    }
+    private static class PreBob {}
 
     private static final class UnBob
             extends PreBob

@@ -25,14 +25,15 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 
 /**
- * {@code Mixin} implements concrete class mixins via JDK proxies.  Proxy handler strategy tries:
- * <ol><li>Previously matched methods</li> <li>Exact static match by enclosing type</li> <li>"Duck"
- * matches by name and parameter type</li></ol>  Mixins expose a single, <em>composite
- * interface</em> of all supported interfaces.
+ * {@code Mixin} implements concrete class mixins via JDK proxies.  Proxy
+ * handler strategy tries: <ol><li>Previously matched methods</li> <li>Exact
+ * static match by enclosing type</li> <li>"Duck" matches by name and parameter
+ * type</li></ol>  Mixins expose a single, <em>composite interface</em> of all
+ * supported interfaces.
  * <p>
- * Mixins may optionally include {@code Mixin} as port of the <em>composite interface</em>.  This
- * exposes {@link #mixinDelegates()} providing public access to the mixed in object delegated to by
- * this proxy.
+ * Mixins may optionally include {@code Mixin} as port of the <em>composite
+ * interface</em>.  This exposes {@link #mixinDelegates()} providing public
+ * access to the mixed in object delegated to by this proxy.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
@@ -47,20 +48,24 @@ public interface Mixin {
 
     final class Factory {
         /**
-         * Creates a new mixin.  If <var>as</var> extends {@code Mixin}, provides a supporting
-         * {@link #mixinDelegates()} method to give public access to <var>delegates</var>.
+         * Creates a new mixin.  If <var>as</var> extends {@code Mixin},
+         * provides a supporting {@link #mixinDelegates()} method to give public
+         * access to <var>delegates</var>.
          *
-         * @param as a superinterface of visible public methods implemented by <var>delegates</var>,
-         * never missing
+         * @param as a superinterface of visible public methods implemented by
+         * <var>delegates</var>, never missing
          * @param delegates the mixed-in delegates (implementations)
          * @param <T> the mixin proxy type (type of <var>as</var>)
          *
          * @return the mixed-in proxy, never missing
          */
         @Nonnull
-        public static <T> T newMixin(@Nonnull final Class<T> as, final Object... delegates) {
-            return as.cast(newProxyInstance(as.getClassLoader(), new Class[]{as},
-                    new Handler<>(as, new MixedDelegates(delegates).mixinDelegates())));
+        public static <T> T newMixin(@Nonnull final Class<T> as,
+                final Object... delegates) {
+            return as
+                    .cast(newProxyInstance(as.getClassLoader(), new Class[]{as},
+                            new Handler<>(as, new MixedDelegates(delegates)
+                                    .mixinDelegates())));
         }
 
         private Factory() {
@@ -77,12 +82,15 @@ public interface Mixin {
                 matches = new ConcurrentHashMap<>(as.getMethods().length);
             }
 
-            @SneakyThrows({IllegalAccessException.class, ClassNotFoundException.class,
-                    InstantiationException.class})
-            private List<Object> delegates(final Class<T> as, final List<Object> delegates) {
+            @SneakyThrows(
+                    {IllegalAccessException.class, ClassNotFoundException.class,
+                            InstantiationException.class})
+            private List<Object> delegates(final Class<T> as,
+                    final List<Object> delegates) {
                 for (final Method method : as.getMethods())
                     if (method.isDefault()) {
-                        final List<Object> delegatesPlus = new ArrayList<>(delegates.size() + 1);
+                        final List<Object> delegatesPlus = new ArrayList<>(
+                                delegates.size() + 1);
                         delegatesPlus.addAll(delegates);
                         delegatesPlus.add(InterfaceInstance.newInstance(as));
                         return delegatesPlus;
@@ -91,20 +99,31 @@ public interface Mixin {
             }
 
             @Override
-            public Object invoke(@Nonnull final Object proxy, @Nonnull final Method method,
-                    final Object[] args)
+            public Object invoke(@Nonnull final Object proxy,
+                    @Nonnull final Method method, final Object[] args)
                     throws Throwable {
                 // Try as previous found - method match memoized
                 final MethodHandle handle = matches.get(method);
                 if (null != handle)
-                    return handle.invoke(args);
+                    return handle.invokeWithArguments(args);
                 final MethodHandle unreflected = LOOKUP.unreflect(method);
                 // Try as an implementation - static typing
                 for (final Object delegate : delegates)
                     try {
-                        final MethodHandle bound = LOOKUP
-                                .findVirtual(delegate.getClass(), method.getName(),
-                                        unreflected.type()).bindTo(delegate);
+                        final MethodHandle bound = LOOKUP.
+                                findVirtual(delegate.getClass(),
+                                        method.getName(), unreflected.type()).
+                                bindTo(delegate);
+                        final Object value = bound.invokeWithArguments(args);
+                        matches.put(method, bound);
+                        return value;
+                    } catch (final IllegalAccessException e) {
+                        if (!method.getDeclaringClass().
+                                isAssignableFrom(delegate.getClass()))
+                            continue;
+                        // Try reflection, less efficient but more general
+                        method.setAccessible(true);
+                        final MethodHandle bound = unreflected.bindTo(delegate);
                         final Object value = bound.invokeWithArguments(args);
                         matches.put(method, bound);
                         return value;
@@ -118,9 +137,11 @@ public interface Mixin {
                     final Class<?> duck = delegate.getClass();
                     try {
                         final Method quack = duck.getMethod(name, types);
-                        if (!method.getReturnType().isAssignableFrom(quack.getReturnType()))
+                        if (!method.getReturnType().
+                                isAssignableFrom(quack.getReturnType()))
                             continue;
-                        final MethodHandle bound = LOOKUP.unreflect(quack).bindTo(delegate);
+                        final MethodHandle bound = LOOKUP.unreflect(quack).
+                                bindTo(delegate);
                         final Object value = bound.invokeWithArguments(args);
                         matches.put(method, bound);
                         return value;
@@ -129,8 +150,8 @@ public interface Mixin {
                     }
                 }
                 throw new AbstractMethodError(
-                        format("BUG: Missing implementation for <%s> among %s.", method,
-                                delegates));
+                        format("BUG: Missing implementation for <%s> among %s.",
+                                method, delegates));
             }
         }
 
@@ -139,7 +160,8 @@ public interface Mixin {
             private final List<Object> mixed;
 
             public MixedDelegates(final Object... delegates) {
-                final List<Object> mixed = new ArrayList<>(delegates.length + 1);
+                final List<Object> mixed = new ArrayList<>(
+                        delegates.length + 1);
                 mixed.addAll(asList(delegates));
                 mixed.add(this);
                 this.mixed = unmodifiableList(mixed);
