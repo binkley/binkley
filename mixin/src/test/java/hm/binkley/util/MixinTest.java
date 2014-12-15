@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
-import static hm.binkley.util.Mixin.Factory.newMixin;
+import static hm.binkley.util.Mixin.newMixin;
 import static hm.binkley.util.MixinTest.Duck.QUACKERS;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;

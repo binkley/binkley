@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import static hm.binkley.util.Mixin.Factory.newMixin;
+import static hm.binkley.util.Mixin.newMixin;
 import static java.util.concurrent.Executors.callable;
 
 /**
@@ -97,8 +97,7 @@ public final class CompletableExecutors {
 
     /**
      * Implements the overriden methods of {@link CompletableExecutorService}
-     * making the usable in a mixin.  {@link Mixin.Factory#newMixin(Class,
-     * Object...) Mixins} currently require public delegates.
+     * making the usable in a mixin.  {@link Mixin#newMixin(Class, Object...) Mixins} currently require public delegates.
      */
     public static final class Overrides {
         private final ExecutorService threads;

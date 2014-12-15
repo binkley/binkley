@@ -6,7 +6,7 @@ import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 import javax.annotation.Nonnull;
 
-import static hm.binkley.util.Mixin.Factory.newMixin;
+import static hm.binkley.util.Mixin.newMixin;
 
 /**
  * {@code EnhancedBlock} mixes {@link BlockOperations} and {@link BlockExtras}.
