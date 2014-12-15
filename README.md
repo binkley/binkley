@@ -11,6 +11,7 @@ Current released version is 0.4.  [View javadoc](https://binkley.github.io/binkl
 
 ## Modules
 
+* [Concurrent](concurrent/) - Completable executor services
 * [Convert](convert/) - Inverse of `toString()`
 * [CORBA](corba/) - Helpers for CORBA
 * [Guice](guice/) - Sample Guice modules and helper code
