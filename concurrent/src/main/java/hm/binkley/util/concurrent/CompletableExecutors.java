@@ -31,7 +31,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -39,15 +38,18 @@ import static hm.binkley.util.Mixin.Factory.newMixin;
 import static java.util.concurrent.Executors.callable;
 
 /**
- * {@code CompleteableExecutors} <b>needs documentation</b>.
+ * {@code CompleteableExecutors} are executors returning {@link
+ * CompletableFuture} rather than plain {@link Future}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  * @todo Think through completable for scheduled
  */
 public final class CompletableExecutors {
-    public static CompletableExecutorService completable(@Nonnull final ExecutorService threads) {
-        return newMixin(CompletableExecutorService.class, new Completable(threads), threads);
+    public static CompletableExecutorService completable(
+            @Nonnull final ExecutorService threads) {
+        return newMixin(CompletableExecutorService.class,
+                new Completable(threads), threads);
     }
 
     public interface CompletableExecutorService
@@ -58,31 +60,32 @@ public final class CompletableExecutors {
 
         @Nonnull
         @Override
-        <T> CompletableFuture<T> submit(@Nonnull final Runnable task, @Nullable final T result);
+        <T> CompletableFuture<T> submit(@Nonnull final Runnable task,
+                @Nullable final T result);
 
         @Nonnull
         @Override
         CompletableFuture<?> submit(@Nonnull final Runnable task);
     }
 
-    private static class Completable {
-        protected final ExecutorService threads;
+    public static final class Completable {
+        private final ExecutorService threads;
 
-        protected Completable(final ExecutorService threads) {
+        private Completable(final ExecutorService threads) {
             this.threads = threads;
         }
 
         @Nonnull
-        public <T> CompletableFuture<T> submit(@Nonnull final Callable<T> task) {
+        public <T> CompletableFuture<T> submit(
+                @Nonnull final Callable<T> task) {
             final CompletableFuture<T> cf = new CompletableFuture<>();
-            final Future<T> f = threads.submit(task);
-            try {
-                cf.complete(f.get());
-            } catch (final InterruptedException | RuntimeException e) {
-                cf.completeExceptionally(e);
-            } catch (final ExecutionException e) {
-                cf.completeExceptionally(e.getCause());
-            }
+            threads.submit(() -> {
+                try {
+                    cf.complete(task.call());
+                } catch (final Exception e) {
+                    cf.completeExceptionally(e);
+                }
+            });
             return cf;
         }
 

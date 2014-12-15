@@ -105,7 +105,7 @@
         <jnr.version>3.0.6</jnr.version>
         <jopt-simple.version>4.7</jopt-simple.version>
         <jsr305.version>3.0.0</jsr305.version>
-        <junit.version>4.11</junit.version>
+        <junit.version>4.12</junit.version>
         <logback.version>1.1.2</logback.version>
         <lombok.version>1.14.8</lombok.version>
         <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
