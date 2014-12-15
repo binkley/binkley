@@ -27,19 +27,27 @@
 
 package hm.binkley.util.concurrent;
 
-import org.junit.ClassRule;
+import hm.binkley.util.concurrent.CompletableExecutors
+        .CompletableExecutorService;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static hm.binkley.util.concurrent.CompletableExecutors.completable;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.rules.Timeout.seconds;
 
 /**
  * {@code CompleteableExecutorsTest} tests {@link CompletableFuture}.
@@ -47,13 +55,65 @@ import static org.junit.rules.Timeout.seconds;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public class CompletableExecutorsTest {
-    @ClassRule
-    public static final Timeout timeout = seconds(1000000000);
+    @Rule
+    public final Timeout timeout = Timeout.builder().
+            withTimeout(1, SECONDS).
+            withLookingForStuckThread(true).
+            build();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
+
+    private CompletableExecutorService threads;
+
+    @Before
+    public void setUp() {
+        threads = completable(newSingleThreadExecutor());
+    }
 
     @Test
     public void shouldCompleteNormally()
             throws ExecutionException, InterruptedException {
-        assertThat(completable(newSingleThreadExecutor()).submit(() -> 3).get(),
+        assertThat(threads.submit(() -> 3).get(), is(equalTo(3)));
+    }
+
+    @Test
+    public void shouldCompleteExceptionally()
+            throws ExecutionException, InterruptedException {
+        thrown.expect(ExecutionException.class);
+        thrown.expectCause(is(instanceOf(Foobar.class)));
+
+        assertThat(threads.
+                        submit(() -> {throw new Foobar();}).get(),
                 is(equalTo(3)));
     }
+
+    @Test
+    public void shouldCancel()
+            throws InterruptedException, ExecutionException {
+        thrown.expect(CancellationException.class);
+
+        final CompletableFuture<Object> future = threads.submit(() -> {
+            MILLISECONDS.sleep(100);
+            return null;
+        });
+        future.cancel(true);
+        future.get();
+    }
+
+    @Test
+    @Ignore("Completeable future stuffs interrupt into execution exception "
+            + "for get, completion exception for join")
+    public void shouldInterrupt()
+            throws InterruptedException, ExecutionException {
+        thrown.expect(InterruptedException.class);
+
+        final CompletableFuture<Object> future = threads.submit(() -> {
+            throw new InterruptedException();
+        });
+        MILLISECONDS.sleep(100);
+        future.get();
+    }
+
+    public static final class Foobar
+            extends Exception {}
 }

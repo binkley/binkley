@@ -27,9 +27,12 @@
 
 package hm.binkley.util.concurrent;
 
+import hm.binkley.util.Mixin;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -42,36 +45,65 @@ import static java.util.concurrent.Executors.callable;
  * CompletableFuture} rather than plain {@link Future}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  * @todo Think through completable for scheduled
  */
 public final class CompletableExecutors {
+    /**
+     * Mixes the given <var>threads</var> (execution service) with overrides to
+     * provide a completable exection service.
+     *
+     * @param threads the execution service, never missin
+     *
+     * @return the completable execution service, never missing
+     */
+    @Nonnull
     public static CompletableExecutorService completable(
             @Nonnull final ExecutorService threads) {
         return newMixin(CompletableExecutorService.class,
-                new Completable(threads), threads);
+                new Overrides(threads), threads);
     }
 
+    /**
+     * Overrides {@code ExecutorService} to covariantly return {@code
+     * CompletableFuture} in place of {@code Future}.
+     */
     public interface CompletableExecutorService
             extends ExecutorService {
+        /**
+         * @return a completable future representing pending completion of the
+         * task, never missing
+         */
         @Nonnull
         @Override
         <T> CompletableFuture<T> submit(@Nonnull final Callable<T> task);
 
+        /**
+         * @return a completable future representing pending completion of the
+         * task, never missing
+         */
         @Nonnull
         @Override
         <T> CompletableFuture<T> submit(@Nonnull final Runnable task,
                 @Nullable final T result);
 
+        /**
+         * @return a completable future representing pending completion of the
+         * task, never missing
+         */
         @Nonnull
         @Override
         CompletableFuture<?> submit(@Nonnull final Runnable task);
     }
 
-    public static final class Completable {
+    /**
+     * Implements the overriden methods of {@link CompletableExecutorService}
+     * making the usable in a mixin.  {@link Mixin.Factory#newMixin(Class,
+     * Object...) Mixins} currently require public delegates.
+     */
+    public static final class Overrides {
         private final ExecutorService threads;
 
-        private Completable(final ExecutorService threads) {
+        private Overrides(final ExecutorService threads) {
             this.threads = threads;
         }
 
@@ -82,6 +114,8 @@ public final class CompletableExecutors {
             threads.submit(() -> {
                 try {
                     cf.complete(task.call());
+                } catch (final CancellationException e) {
+                    cf.cancel(true);
                 } catch (final Exception e) {
                     cf.completeExceptionally(e);
                 }
