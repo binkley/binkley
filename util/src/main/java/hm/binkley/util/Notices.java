@@ -1,5 +1,7 @@
 package hm.binkley.util;
 
+import org.intellij.lang.annotations.PrintFormat;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -40,6 +42,9 @@ import static java.util.stream.Collectors.joining;
  * @param <E> the top-level exception type for notices
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @see <a href="http://binkley.blogspot.com/2014/12/java-validation.html"
+ * title="Java validation">An earlier version</a>
+ * @todo I18N for summary
  */
 public final class Notices<E extends Exception>
         implements Iterable<Exception> {
@@ -136,7 +141,8 @@ public final class Notices<E extends Exception>
      * @param reason the notice reason, never missing
      * @param args formatting args to <var>reason</var>, if any
      */
-    public void add(@Nonnull final String reason, final Object... args) {
+    public void add(@Nonnull @PrintFormat final String reason,
+            final Object... args) {
         final E cause = ctor.apply(format(reason, args), null);
         discard(cause, 2); // 2 is the magic number: lambda, current
         notices.add(cause);
@@ -215,13 +221,13 @@ public final class Notices<E extends Exception>
     @Nonnull
     public String summary() {
         if (notices.isEmpty())
-            return "0 notices";
+            return "0 notice(s)";
         final String sep = lineSeparator() + "- ";
         return notices.stream().
                 map(Throwable::getMessage).
                 filter(Objects::nonNull).
                 collect(joining(sep,
-                        format("%d notices:" + sep, notices.size()), ""));
+                        format("%d notice(s):" + sep, notices.size()), ""));
     }
 
     @Nonnull
@@ -244,7 +250,7 @@ public final class Notices<E extends Exception>
     }
 
     private static void enhance(final Exception cause, final int off,
-            final int n, final StackTraceElement[] extras) {
+            final int n, final StackTraceElement... extras) {
         final List<StackTraceElement> frames = new ArrayList<>(
                 asList(cause.getStackTrace()));
         frames.addAll(0, asList(extras).subList(off, off + n));
