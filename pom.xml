@@ -585,28 +585,8 @@
                     </archive>
                     <author>true</author>
                     <charset>${java.charset}</charset>
-                    <detectLinks>true</detectLinks>
                     <keywords>true</keywords>
                     <linksource>true</linksource>
-                    <links>
-                        <link>
-                            http://docs.guava-libraries.googlecode.com/git-history/v${guava.version}/javadoc/
-                        </link>
-                        <link>http://findbugs.sourceforge.net/api/</link>
-                        <link>
-                            http://google.github.io/guice/api-docs/${guice.version}/javadoc/
-                        </link>
-                        <link>
-                            http://hamcrest.org/JavaHamcrest/javadoc/${hamcrest.version}/
-                        </link>
-                        <link>
-                            http://owner.newinstance.it/${owner.version}/apidocs/
-                        </link>
-                        <link>http://pholser.github.io/jopt-simple/apidocs/
-                        </link>
-                        <link>http://projectlombok.org/api/</link>
-                        <link>http://slf4j.org/api/</link>
-                    </links>
                     <tags>
                         <tag>
                             <name>todo</name>
