@@ -47,5 +47,11 @@
             <artifactId>binkley-logging</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>hm.binkley</groupId>
+            <artifactId>binkley-testing</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

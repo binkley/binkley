@@ -32,6 +32,7 @@ Current released version is 0.4.  [View javadoc](https://binkley.github.io/binkl
 
 * Added corba module.
 * Added `ProvidePort` junit rule.
+* Added several Hamcrest matchers (in support of other code).
 * Added `StackTraceFocuser` to simplify traces.
 * Added `LinkedIterable`.
 * Added `ParameterizedHelper` for junit.
