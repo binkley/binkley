@@ -21,7 +21,7 @@ import org.junit.rules.ExpectedException;
 import java.util.regex.Pattern;
 
 import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
-import static hm.binkley.util.logging.osi.ITSupportLoggers.PatternMatcher.pattern;
+import static hm.binkley.util.logging.osi.SupportLoggersIT.PatternMatcher.pattern;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_INCLUDED_RESOURCE;
 import static hm.binkley.util.logging.osi.SupportLoggers.ALERT;
@@ -29,6 +29,7 @@ import static hm.binkley.util.logging.osi.SupportLoggers.APPLICATION;
 import static hm.binkley.util.logging.osi.SupportLoggers.AUDIT;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.junit.Assert.assertThat;
+import static org.junit.contrib.java.lang.system.LogMode.LOG_ONLY;
 import static org.junit.rules.ExpectedException.none;
 
 /**
@@ -36,13 +37,13 @@ import static org.junit.rules.ExpectedException.none;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley</a>
  */
-public final class ITSupportLoggers {
+public final class SupportLoggersIT {
     @Rule
     public final ExpectedException thrown = none();
     @Rule
-    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    public final StandardOutputStreamLog sout = new StandardOutputStreamLog(LOG_ONLY);
     @Rule
-    public final StandardErrorStreamLog serr = new StandardErrorStreamLog();
+    public final StandardErrorStreamLog serr = new StandardErrorStreamLog(LOG_ONLY);
     @Rule
     public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
 

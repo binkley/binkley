@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static hm.binkley.junit.PredicateMatcher.tests;
 import static java.lang.String.format;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.delete;
 import static java.nio.file.Files.newOutputStream;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -263,8 +263,20 @@ public final class XPropertiesTest {
 
         //noinspection ConstantConditions
         assertThat(resources.size(), is(equalTo(2)));
-        assertThat(resources.get(0).getFilename(), endsWith("included.properties"));
-        assertThat(resources.get(1).getFilename(), endsWith("included2.properties"));
+        assertThat(resources, tests(
+                "contains resource filename ending with 'included"
+                        + ".properties'", r -> r.stream().
+                        map(Resource::getFilename).
+                        filter(f -> f.endsWith("included.properties")).
+                        findFirst().
+                        isPresent()));
+        assertThat(resources, tests(
+                "contains resource filename ending with 'included2.properties'",
+                r -> r.stream().
+                        map(Resource::getFilename).
+                        filter(f -> f.endsWith("included2.properties")).
+                        findFirst().
+                        isPresent()));
     }
 
     @Test
@@ -302,4 +314,5 @@ public final class XPropertiesTest {
             fail(format("Cannot find first path component of '%s'", path));
         return matcher.group(1);
     }
+
 }

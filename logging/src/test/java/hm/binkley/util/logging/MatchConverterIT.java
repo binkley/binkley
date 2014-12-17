@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.contrib.java.lang.system.LogMode.LOG_ONLY;
 import static org.slf4j.LoggerFactory.getILoggerFactory;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -36,11 +37,11 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public final class ITMatchConverter {
+public final class MatchConverterIT {
     @Rule
-    public StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    public StandardOutputStreamLog sout = new StandardOutputStreamLog(LOG_ONLY);
     @Rule
-    public StandardErrorStreamLog serr = new StandardErrorStreamLog();
+    public StandardErrorStreamLog serr = new StandardErrorStreamLog(LOG_ONLY);
     @Rule
     public RestoreSystemProperties pattern = new RestoreSystemProperties("logback.pattern");
     @Rule

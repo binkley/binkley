@@ -4,7 +4,7 @@
  * Please see https://github.com/binkley/binkley/blob/master/LICENSE.md.
  */
 
-package hm.binkley.util;
+package hm.binkley.junit;
 
 import org.ini4j.Config;
 import org.ini4j.Ini;

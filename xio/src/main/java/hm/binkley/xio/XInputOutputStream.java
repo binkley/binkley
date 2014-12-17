@@ -3,10 +3,10 @@ package hm.binkley.xio;
 import java.io.IOException;
 
 /**
- * {@code XInputOutputStream} <b>needs documentation</b>.
+ * {@code XInputOutputStream} is a blending of {@link XInputStream} and {@link
+ * XOutputStream}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public interface XInputOutputStream
         extends XInputStream, XOutputStream {

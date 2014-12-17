@@ -40,9 +40,9 @@ public final class OSI {
      * <p>
      * Do not show status of the logging system.
      */
-    @SuppressWarnings("ConstantConditions")
+    @SuppressWarnings({"ConstantConditions", "Annotator"})
     public static void enable() {
-        enable(null, false);
+        enable(null, false); // Publically applicationName is non-null
     }
 
     /**
@@ -55,9 +55,9 @@ public final class OSI {
      * @param showDetail if {@code true} log the status of the logging system including setup
      * details.
      */
-    @SuppressWarnings("ConstantConditions")
+    @SuppressWarnings({"ConstantConditions", "Annotator"})
     public static void enable(final boolean showDetail) {
-        enable(null, showDetail);
+        enable(null, showDetail); // Publically applicationName is non-null
     }
 
     /**

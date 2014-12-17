@@ -25,43 +25,32 @@
  * For more information, please refer to <http://unlicense.org/>.
  */
 
-package hm.binkley.util.logging.osi;
+package hm.binkley.junit;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
-import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
 
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONTEXT_NAME;
-import static org.hamcrest.Matchers.containsString;
+import java.io.IOException;
+import java.net.ServerSocket;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * {@code OSIIT} tests {@link OSI}.
+ * {@code ProvidePortTest} tests {@link ProvidePort}.
  *
- * @author <a href="mailto:Brian.Oxley@macquarie.com">Brian Oxley</a>
- * @todo StandardOutputStreamLog still prints to sout/serr
- * @todo StandardOutputStreamLog does not process into List of String
+ * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public final class ITOSIApplicationName {
+public class ProvidePortTest {
     @Rule
-    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
-    @Rule
-    public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
-
-    @Before
-    public void setUp() {
-        sysprops.setProperty(LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml");
-        sysprops.setProperty(LOGBACK_CONTEXT_NAME.key(), null);
-    }
+    public final ProvidePort port = new ProvidePort();
 
     @Test
-    public void shouldIncludeApplicationName() {
-        OSI.enable("MyApp");
-        getLogger("bob").info("Ignored");
-        assertThat(sout.getLog(), containsString("MyApp"));
+    public void shouldBind()
+            throws IOException {
+        try (final ServerSocket serverSocket = new ServerSocket(port.port())) {
+            assertThat(serverSocket.getLocalPort(), is(equalTo(port.port())));
+        }
     }
 }

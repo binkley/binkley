@@ -11,6 +11,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 import static java.lang.reflect.Modifier.isStatic;
+import static java.security.AccessController.doPrivileged;
 
 /**
  * {@code InterfaceInstance} <b>needs documentation</b>.
@@ -30,7 +32,7 @@ import static java.lang.reflect.Modifier.isStatic;
  */
 public final class InterfaceInstance {
     private static final AtomicLong uniq = new AtomicLong();
-    private final Loader loader = new Loader();
+    private final Loader loader;
     private final Class<?> base;
 
     public static <T> T newInstance(final Class<T> itfClass)
@@ -40,6 +42,7 @@ public final class InterfaceInstance {
 
     public InterfaceInstance(final Class<?> base)
             throws IllegalArgumentException {
+        loader = doPrivileged((PrivilegedAction<Loader>) Loader::new);
         for (final Method m : base.getMethods())
             if (isStatic(m.getModifiers()) && !m.isDefault())
                 throw new IllegalArgumentException(

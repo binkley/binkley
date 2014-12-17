@@ -25,25 +25,36 @@ import static hm.binkley.util.OrderedProperties.Ordering.DEFINED;
 import static java.util.Collections.enumeration;
 
 /**
- * {@code OrderedProperties} <b>needs documentation</b>.
+ * {@code OrderedProperties} is a JDK {@code Properties} with a defined ordering.
+ * <p>
+ * Note {@code equals} and {@code hashCode} are from {@code Properties}, not
+ * overriden.  Generally JDK properties should not be compared or used as map
+ * keys.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
+ * @todo Get Ordering to be Comparator and get Java 8 methods for free
  */
 public class OrderedProperties
         extends Properties {
+    /** Key ordering for JDK properties. */
     public enum Ordering {
+        /** Orders keys by the encounter order as properties are defined. */
         DEFINED {
             @Override
             protected Set<Object> from() {
                 return new LinkedHashSet<>();
             }
-        }, UPDATED {
+        },
+        /** Orders keys by update order as properties are modified. */
+        UPDATED {
             @Override
             protected Set<Object> from() {
                 return new UpdatedSet<>();
             }
-        }, NATURAL {
+        },
+        /** Orders keys by their natural sorting order. */
+        NATURAL {
             @Override
             protected Set<Object> from() {
                 return new TreeSet<>();
@@ -51,9 +62,13 @@ public class OrderedProperties
         };
 
         protected abstract Set<Object> from();
-
     }
 
+    /**
+     * Maintains key order.  This should be a {@code SortedSet}, however {@code
+     * LinkedHashSet} provides an ordering without implementing {@code
+     * SortedSet} so fall back on the superinterface.
+     */
     private final Set<Object> keys;
 
     public OrderedProperties() {

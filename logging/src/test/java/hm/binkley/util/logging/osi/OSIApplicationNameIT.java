@@ -28,20 +28,17 @@
 package hm.binkley.util.logging.osi;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
-import org.slf4j.LoggerFactory;
 
-import static hm.binkley.util.logging.LoggerUtil.refreshLogback;
 import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONFIGURATION_FILE;
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_JANSI;
-import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_STYLES_RESOURCE;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static hm.binkley.util.logging.osi.OSI.SystemProperty.LOGBACK_CONTEXT_NAME;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
+import static org.junit.contrib.java.lang.system.LogMode.LOG_ONLY;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * {@code OSIIT} tests {@link OSI}.
@@ -50,25 +47,22 @@ import static org.junit.Assert.assertThat;
  * @todo StandardOutputStreamLog still prints to sout/serr
  * @todo StandardOutputStreamLog does not process into List of String
  */
-public final class ITOSIJansi {
+public final class OSIApplicationNameIT {
     @Rule
-    public final StandardOutputStreamLog sout = new StandardOutputStreamLog();
+    public final StandardOutputStreamLog sout = new StandardOutputStreamLog(LOG_ONLY);
     @Rule
     public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
 
     @Before
     public void setUp() {
         sysprops.setProperty(LOGBACK_CONFIGURATION_FILE.key(), "osi-logback.xml");
-        sysprops.setProperty(LOGBACK_JANSI.key(), null);
+        sysprops.setProperty(LOGBACK_CONTEXT_NAME.key(), null);
     }
 
-    @Ignore("How to test? Jansi cannot setup up terminal on wrapped stream")
     @Test
-    public void shouldIncludeAnsiEscapes() {
-        LOGBACK_JANSI.set("true");
-        LOGBACK_STYLES_RESOURCE.set("osi-logback-jansi-styles.properties");
-        refreshLogback();
-        LoggerFactory.getLogger("bob").error("Ignored");
-        assertThat(sout.getLog(), is(equalTo("Ignored")));
+    public void shouldIncludeApplicationName() {
+        OSI.enable("MyApp");
+        getLogger("bob").info("Ignored");
+        assertThat(sout.getLog(), containsString("MyApp"));
     }
 }
