@@ -7,7 +7,7 @@ This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
 
 Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkley/).
 
-[![License](https://img.shields.io/badge/license-PD-blue.svg?style=flat)](http://unlicense.org) [![Build Status](https://img.shields.io/travis/binkley/binkley.svg?style=flat)](https://travis-ci.org/binkley/binkley) [![Coverage](https://img.shields.io/coveralls/binkley/binkley.svg?style=flat)](https://coveralls.io/r/binkley/binkley) [![Issues](https://img.shields.io/github/issues/binkley/binkley.svg?style=flat)](https://github.com/binkley/binkley/issues) [![maven-central](https://img.shields.io/maven-central/v/hm.binkley/binkley-blog.svg?style=flat)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22hm.binkley%22)
+[![License](https://img.shields.io/badge/license-PD-blue.svg?style=flat)](http://unlicense.org) [![Build Status](https://img.shields.io/travis/binkley/binkley.svg?style=flat)](https://travis-ci.org/binkley/binkley) [![Issues](https://img.shields.io/github/issues/binkley/binkley.svg?style=flat)](https://github.com/binkley/binkley/issues) [![maven-central](https://img.shields.io/maven-central/v/hm.binkley/binkley-blog.svg?style=flat)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22hm.binkley%22)
 
 ## Modules
 
