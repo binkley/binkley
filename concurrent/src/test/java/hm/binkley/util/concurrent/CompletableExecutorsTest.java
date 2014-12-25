@@ -30,7 +30,6 @@ package hm.binkley.util.concurrent;
 import hm.binkley.util.concurrent.CompletableExecutors
         .CompletableExecutorService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -101,9 +100,20 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    @Ignore("Completeable future stuffs interrupt into execution exception "
-            + "for get, completion exception for join")
-    public void shouldInterrupt()
+    public void shouldInterruptExternally()
+            throws InterruptedException, ExecutionException {
+        thrown.expect(InterruptedException.class);
+
+        final CompletableFuture<Object> future = threads.submit(() -> {
+            MILLISECONDS.sleep(100);
+            return null;
+        });
+        threads.shutdownNow();
+        future.get();
+    }
+
+    @Test
+    public void shouldInterruptInternally()
             throws InterruptedException, ExecutionException {
         thrown.expect(InterruptedException.class);
 

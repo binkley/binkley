@@ -34,8 +34,11 @@ import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static hm.binkley.util.Mixin.newMixin;
 import static java.util.concurrent.Executors.callable;
@@ -43,9 +46,14 @@ import static java.util.concurrent.Executors.callable;
 /**
  * {@code CompleteableExecutors} are executors returning {@link
  * CompletableFuture} rather than plain {@link Future}.
+ * <p>
+ * Additionally, JDK completable futures wrap {@code InterruptedException} with
+ * {@code ExecutionException}; these are unwrapped.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Think through completable for scheduled
+ * @todo InterruptedException wrapped by ExecutionException - unwrap?
+ * @todo Is CompletionException handled ok?
  */
 public final class CompletableExecutors {
     /**
@@ -97,7 +105,8 @@ public final class CompletableExecutors {
 
     /**
      * Implements the overriden methods of {@link CompletableExecutorService}
-     * making the usable in a mixin.  {@link Mixin#newMixin(Class, Object...) Mixins} currently require public delegates.
+     * making the usable in a mixin.  {@link Mixin#newMixin(Class, Object...)
+     * Mixins} currently require public delegates.
      */
     public static final class Overrides {
         private final ExecutorService threads;
@@ -109,7 +118,7 @@ public final class CompletableExecutors {
         @Nonnull
         public <T> CompletableFuture<T> submit(
                 @Nonnull final Callable<T> task) {
-            final CompletableFuture<T> cf = new CompletableFuture<>();
+            final CompletableFuture<T> cf = new UnwrappedCompletableFuture<>();
             threads.submit(() -> {
                 try {
                     cf.complete(task.call());
@@ -131,6 +140,48 @@ public final class CompletableExecutors {
         @Nonnull
         public CompletableFuture<?> submit(@Nonnull final Runnable task) {
             return submit(callable(task));
+        }
+
+        private static final class UnwrappedCompletableFuture<T>
+                extends CompletableFuture<T> {
+            @Override
+            public T get()
+                    throws InterruptedException, ExecutionException {
+                return UnwrappedInterrupts
+                        .<T, RuntimeException>unwrap(super::get);
+            }
+
+            @Override
+            public T get(final long timeout, final TimeUnit unit)
+                    throws InterruptedException, ExecutionException,
+                    TimeoutException {
+                return UnwrappedInterrupts.<T, TimeoutException>unwrap(
+                        () -> super.get(timeout, unit));
+            }
+
+            @Override
+            public T join() {
+                return super.join();
+            }
+
+            @FunctionalInterface
+            private interface UnwrappedInterrupts<T, E extends Exception> {
+                T get()
+                        throws InterruptedException, ExecutionException, E;
+
+                static <T, E extends Exception> T unwrap(
+                        final UnwrappedInterrupts<T, E> wrapped)
+                        throws InterruptedException, ExecutionException, E {
+                    try {
+                        return wrapped.get();
+                    } catch (final ExecutionException e) {
+                        final Throwable cause = e.getCause();
+                        if (cause instanceof InterruptedException)
+                            throw (InterruptedException) cause;
+                        throw e;
+                    }
+                }
+            }
         }
     }
 }
