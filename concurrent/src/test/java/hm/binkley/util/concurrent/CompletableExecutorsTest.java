@@ -40,6 +40,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import static hm.binkley.util.concurrent.CompletableExecutors.completable;
 import static hm.binkley.util.concurrent.CompletableExecutors
@@ -177,6 +178,21 @@ public class CompletableExecutorsTest {
     }
 
     @Test
+    public void shouldInterruptTimedGetExternallyWhenUnwrapped()
+            throws InterruptedException, ExecutionException, TimeoutException {
+        thrown.expect(InterruptedException.class);
+
+        threads.shutdownNow();
+        threads = unwrappedCompletable(newSingleThreadExecutor());
+        final CompletableFuture<Object> future = threads.submit(() -> {
+            MILLISECONDS.sleep(100);
+            return null;
+        });
+        threads.shutdownNow();
+        future.get(1, SECONDS);
+    }
+
+    @Test
     public void shouldInterruptJoinExternallyWhenUnwrapped() {
         thrown.expect(CompletionException.class);
 
@@ -224,6 +240,19 @@ public class CompletableExecutorsTest {
             throw new InterruptedException();
         });
         future.get();
+    }
+
+    @Test
+    public void shouldInterruptTimedGetInternallyWhenUnwrapped()
+            throws InterruptedException, ExecutionException, TimeoutException {
+        thrown.expect(InterruptedException.class);
+
+        threads.shutdownNow();
+        threads = unwrappedCompletable(newSingleThreadExecutor());
+        final CompletableFuture<Object> future = threads.submit(() -> {
+            throw new InterruptedException();
+        });
+        future.get(1, SECONDS);
     }
 
     @Test
