@@ -57,7 +57,6 @@ import static java.util.concurrent.Executors.callable;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Think through completable for scheduled
- * @todo Is CompletionException handled ok?
  */
 public final class CompletableExecutors {
     /**
