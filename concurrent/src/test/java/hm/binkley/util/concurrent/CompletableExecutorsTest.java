@@ -195,6 +195,7 @@ public class CompletableExecutorsTest {
     @Test
     public void shouldInterruptJoinExternallyWhenUnwrapped() {
         thrown.expect(CompletionException.class);
+        thrown.expectCause(is(instanceOf(InterruptedException.class)));
 
         threads.shutdownNow();
         threads = unwrappedCompletable(newSingleThreadExecutor());
