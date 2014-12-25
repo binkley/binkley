@@ -29,6 +29,7 @@ package hm.binkley.util.concurrent;
 
 import hm.binkley.util.concurrent.CompletableExecutors
         .CompletableExecutorService;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,6 +41,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static hm.binkley.util.concurrent.CompletableExecutors.completable;
+import static hm.binkley.util.concurrent.CompletableExecutors
+        .unwrappedCompletable;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -67,6 +70,11 @@ public class CompletableExecutorsTest {
     @Before
     public void setUp() {
         threads = completable(newSingleThreadExecutor());
+    }
+
+    @After
+    public void tearDown() {
+        threads.shutdownNow();
     }
 
     @Test
@@ -100,9 +108,10 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldInterruptExternally()
+    public void shouldInterruptExternallyWhenWrapped()
             throws InterruptedException, ExecutionException {
-        thrown.expect(InterruptedException.class);
+        thrown.expect(ExecutionException.class);
+        thrown.expectCause(is(instanceOf(InterruptedException.class)));
 
         final CompletableFuture<Object> future = threads.submit(() -> {
             MILLISECONDS.sleep(100);
@@ -113,15 +122,52 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldInterruptInternally()
+    public void shouldInterruptExternallyWhenUnwrapped()
             throws InterruptedException, ExecutionException {
         thrown.expect(InterruptedException.class);
+
+        threads.shutdownNow();
+        threads = unwrappedCompletable(newSingleThreadExecutor());
+        final CompletableFuture<Object> future = threads.submit(() -> {
+            MILLISECONDS.sleep(100);
+            return null;
+        });
+        threads.shutdownNow();
+        future.get();
+    }
+
+    @Test
+    public void shouldInterruptInternallyWhenWrapped()
+            throws InterruptedException, ExecutionException {
+        thrown.expect(ExecutionException.class);
+        thrown.expectCause(is(instanceOf(InterruptedException.class)));
 
         final CompletableFuture<Object> future = threads.submit(() -> {
             throw new InterruptedException();
         });
         MILLISECONDS.sleep(100);
         future.get();
+    }
+
+    @Test
+    public void shouldInterruptInternallyWhenUnwrapped()
+            throws InterruptedException, ExecutionException {
+        thrown.expect(InterruptedException.class);
+
+        threads.shutdownNow();
+        threads = unwrappedCompletable(newSingleThreadExecutor());
+        final CompletableFuture<Object> future = threads.submit(() -> {
+            throw new InterruptedException();
+        });
+        MILLISECONDS.sleep(100);
+        future.get();
+    }
+
+    @Test
+    public void shouldClose()
+            throws InterruptedException {
+        threads.close();
+        threads.awaitTermination(1, SECONDS);
     }
 
     public static final class Foobar

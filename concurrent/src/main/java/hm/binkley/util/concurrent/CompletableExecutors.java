@@ -31,6 +31,7 @@ import hm.binkley.util.Mixin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -39,20 +40,23 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import static hm.binkley.util.Mixin.newMixin;
 import static java.util.concurrent.Executors.callable;
 
 /**
  * {@code CompleteableExecutors} are executors returning {@link
- * CompletableFuture} rather than plain {@link Future}.
+ * CompletableFuture} rather than plain {@link Future}.  They also support
+ * {@code Closeable.close()} to shutdown the thread pool.
  * <p>
  * Additionally, JDK completable futures wrap {@code InterruptedException} with
- * {@code ExecutionException}; these are unwrapped.
+ * {@code ExecutionException}.  Use {@link #completable(ExecutorService)} to
+ * preserve this behavior, {@link #unwrappedCompletable(ExecutorService)} to
+ * have the {@code InterruptedException} thrown on {@code get()}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Think through completable for scheduled
- * @todo InterruptedException wrapped by ExecutionException - unwrap?
  * @todo Is CompletionException handled ok?
  */
 public final class CompletableExecutors {
@@ -68,7 +72,23 @@ public final class CompletableExecutors {
     public static CompletableExecutorService completable(
             @Nonnull final ExecutorService threads) {
         return newMixin(CompletableExecutorService.class,
-                new Overrides(threads), threads);
+                new Overrides(threads, CompletableFuture::new), threads);
+    }
+
+    /**
+     * Mixes the given <var>threads</var> (execution service) with overrides to
+     * provide a completable exection service.
+     *
+     * @param threads the execution service, never missin
+     *
+     * @return the completable execution service, never missing
+     */
+    @Nonnull
+    public static CompletableExecutorService unwrappedCompletable(
+            @Nonnull final ExecutorService threads) {
+        return newMixin(CompletableExecutorService.class,
+                new Overrides(threads, UnwrappedCompletableFuture::new),
+                threads);
     }
 
     /**
@@ -76,7 +96,7 @@ public final class CompletableExecutors {
      * CompletableFuture} in place of {@code Future}.
      */
     public interface CompletableExecutorService
-            extends ExecutorService {
+            extends ExecutorService, Closeable {
         /**
          * @return a completable future representing pending completion of the
          * task, never missing
@@ -101,6 +121,10 @@ public final class CompletableExecutors {
         @Nonnull
         @Override
         CompletableFuture<?> submit(@Nonnull final Runnable task);
+
+        /** Invokes {@link #shutdown()}. */
+        @Override
+        void close();
     }
 
     /**
@@ -110,15 +134,19 @@ public final class CompletableExecutors {
      */
     public static final class Overrides {
         private final ExecutorService threads;
+        private final Supplier<CompletableFuture<?>> ctor;
 
-        private Overrides(final ExecutorService threads) {
+        private Overrides(final ExecutorService threads,
+                final Supplier<CompletableFuture<?>> ctor) {
             this.threads = threads;
+            this.ctor = ctor;
         }
 
         @Nonnull
         public <T> CompletableFuture<T> submit(
                 @Nonnull final Callable<T> task) {
-            final CompletableFuture<T> cf = new UnwrappedCompletableFuture<>();
+            @SuppressWarnings("unchecked") final CompletableFuture<T> cf
+                    = (CompletableFuture<T>) ctor.get();
             threads.submit(() -> {
                 try {
                     cf.complete(task.call());
@@ -142,44 +170,47 @@ public final class CompletableExecutors {
             return submit(callable(task));
         }
 
-        private static final class UnwrappedCompletableFuture<T>
-                extends CompletableFuture<T> {
-            @Override
-            public T get()
-                    throws InterruptedException, ExecutionException {
-                return UnwrappedInterrupts
-                        .<T, RuntimeException>unwrap(super::get);
-            }
+        public void close() {
+            threads.shutdown();
+        }
+    }
 
-            @Override
-            public T get(final long timeout, final TimeUnit unit)
-                    throws InterruptedException, ExecutionException,
-                    TimeoutException {
-                return UnwrappedInterrupts.<T, TimeoutException>unwrap(
-                        () -> super.get(timeout, unit));
-            }
+    private static final class UnwrappedCompletableFuture<T>
+            extends CompletableFuture<T> {
+        @Override
+        public T get()
+                throws InterruptedException, ExecutionException {
+            return UnwrappedInterrupts.<T, RuntimeException>unwrap(super::get);
+        }
 
-            @Override
-            public T join() {
-                return super.join();
-            }
+        @Override
+        public T get(final long timeout, final TimeUnit unit)
+                throws InterruptedException, ExecutionException,
+                TimeoutException {
+            return UnwrappedInterrupts.<T, TimeoutException>unwrap(
+                    () -> super.get(timeout, unit));
+        }
 
-            @FunctionalInterface
-            private interface UnwrappedInterrupts<T, E extends Exception> {
-                T get()
-                        throws InterruptedException, ExecutionException, E;
+        @Override
+        public T join() {
+            return super.join();
+        }
 
-                static <T, E extends Exception> T unwrap(
-                        final UnwrappedInterrupts<T, E> wrapped)
-                        throws InterruptedException, ExecutionException, E {
-                    try {
-                        return wrapped.get();
-                    } catch (final ExecutionException e) {
-                        final Throwable cause = e.getCause();
-                        if (cause instanceof InterruptedException)
-                            throw (InterruptedException) cause;
-                        throw e;
-                    }
+        @FunctionalInterface
+        private interface UnwrappedInterrupts<T, E extends Exception> {
+            T get()
+                    throws InterruptedException, ExecutionException, E;
+
+            static <T, E extends Exception> T unwrap(
+                    final UnwrappedInterrupts<T, E> wrapped)
+                    throws InterruptedException, ExecutionException, E {
+                try {
+                    return wrapped.get();
+                } catch (final ExecutionException e) {
+                    final Throwable cause = e.getCause();
+                    if (cause instanceof InterruptedException)
+                        throw (InterruptedException) cause;
+                    throw e;
                 }
             }
         }
