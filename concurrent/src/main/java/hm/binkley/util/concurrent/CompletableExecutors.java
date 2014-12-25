@@ -191,11 +191,6 @@ public final class CompletableExecutors {
                     () -> super.get(timeout, unit));
         }
 
-        @Override
-        public T join() {
-            return super.join();
-        }
-
         @FunctionalInterface
         private interface UnwrappedInterrupts<T, E extends Exception> {
             T get()
