@@ -20,7 +20,6 @@ import joptsimple.OptionSpecBuilder;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.collect.Lists.asList;
@@ -103,12 +102,12 @@ public final class JOptSimpleModule
     }
 
     @Override
-    public OptionSpecBuilder acceptsAll(final Collection<String> options) {
+    public OptionSpecBuilder acceptsAll(final List<String> options) {
         return parser.acceptsAll(options);
     }
 
     @Override
-    public OptionSpecBuilder acceptsAll(final Collection<String> options,
+    public OptionSpecBuilder acceptsAll(final List<String> options,
             final String description) {
         return parser.acceptsAll(options, description);
     }
