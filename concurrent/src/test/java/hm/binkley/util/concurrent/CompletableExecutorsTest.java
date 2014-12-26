@@ -33,18 +33,27 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.DisableOnDebug;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static hm.binkley.util.concurrent.CompletableExecutors.completable;
 import static hm.binkley.util.concurrent.CompletableExecutors
         .unwrappedCompletable;
+import static java.util.Arrays.asList;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -58,20 +67,42 @@ import static org.junit.Assert.assertThat;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public class CompletableExecutorsTest {
+@RunWith(Parameterized.class)
+public final class CompletableExecutorsTest {
     @Rule
-    public final Timeout timeout = Timeout.builder().
+    public final TestRule timeout = new DisableOnDebug(Timeout.builder().
             withTimeout(1, SECONDS).
             withLookingForStuckThread(true).
-            build();
+            build());
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
+    @Parameter(0)
+    public String name;
+    @Parameter(1)
+    public Supplier<CompletableExecutorService> ctor;
+    @Parameter(2)
+    public Consumer<ExpectedException> whenInterrupted;
+
     private CompletableExecutorService threads;
+
+    @Parameters(name = "{0}")
+    public static Iterable<Object[]> parameters() {
+        final Object[] jdk = args("JDK",
+                () -> completable(newSingleThreadExecutor()), t -> {
+                    t.expect(ExecutionException.class);
+                    t.expectCause(is(instanceOf(InterruptedException.class)));
+                });
+        final Object[] unwrapped = args("Unwrapped",
+                () -> unwrappedCompletable(newSingleThreadExecutor()),
+                t -> t.expect(InterruptedException.class));
+
+        return asList(jdk, unwrapped);
+    }
 
     @Before
     public void setUp() {
-        threads = completable(newSingleThreadExecutor());
+        threads = ctor.get();
     }
 
     @After
@@ -86,8 +117,7 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldJoinNormally()
-            throws ExecutionException, InterruptedException {
+    public void shouldJoinNormally() {
         assertThat(threads.submit(() -> 3).join(), is(equalTo(3)));
     }
 
@@ -101,8 +131,7 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldJoinExceptionally()
-            throws ExecutionException, InterruptedException {
+    public void shouldJoinExceptionally() {
         thrown.expect(CompletionException.class);
         thrown.expectCause(is(instanceOf(Foobar.class)));
 
@@ -115,7 +144,7 @@ public class CompletableExecutorsTest {
         thrown.expect(CancellationException.class);
 
         final CompletableFuture<Object> future = threads.submit(() -> {
-            MILLISECONDS.sleep(100);
+            pause();
             return null;
         });
         future.cancel(true);
@@ -123,12 +152,11 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldCancelForJoin()
-            throws InterruptedException, ExecutionException {
+    public void shouldCancelForJoin() {
         thrown.expect(CancellationException.class);
 
         final CompletableFuture<Object> future = threads.submit(() -> {
-            MILLISECONDS.sleep(100);
+            pause();
             return null;
         });
         future.cancel(true);
@@ -136,13 +164,12 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldInterruptGetExternallyWhenWrapped()
+    public void shouldInterruptGetExternally()
             throws InterruptedException, ExecutionException {
-        thrown.expect(ExecutionException.class);
-        thrown.expectCause(is(instanceOf(InterruptedException.class)));
+        whenInterrupted.accept(thrown);
 
         final CompletableFuture<Object> future = threads.submit(() -> {
-            MILLISECONDS.sleep(100);
+            pause();
             return null;
         });
         threads.shutdownNow();
@@ -150,42 +177,12 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldInterruptJoinExternallyWhenWrapped() {
-        thrown.expect(CompletionException.class);
-        thrown.expectCause(is(instanceOf(InterruptedException.class)));
-
-        final CompletableFuture<Object> future = threads.submit(() -> {
-            MILLISECONDS.sleep(100);
-            return null;
-        });
-        threads.shutdownNow();
-        future.join();
-    }
-
-    @Test
-    public void shouldInterruptGetExternallyWhenUnwrapped()
-            throws InterruptedException, ExecutionException {
-        thrown.expect(InterruptedException.class);
-
-        threads.shutdownNow();
-        threads = unwrappedCompletable(newSingleThreadExecutor());
-        final CompletableFuture<Object> future = threads.submit(() -> {
-            MILLISECONDS.sleep(100);
-            return null;
-        });
-        threads.shutdownNow();
-        future.get();
-    }
-
-    @Test
-    public void shouldInterruptTimedGetExternallyWhenUnwrapped()
+    public void shouldInterruptTimedGetExternally()
             throws InterruptedException, ExecutionException, TimeoutException {
-        thrown.expect(InterruptedException.class);
+        whenInterrupted.accept(thrown);
 
-        threads.shutdownNow();
-        threads = unwrappedCompletable(newSingleThreadExecutor());
         final CompletableFuture<Object> future = threads.submit(() -> {
-            MILLISECONDS.sleep(100);
+            pause();
             return null;
         });
         threads.shutdownNow();
@@ -193,14 +190,12 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldInterruptJoinExternallyWhenUnwrapped() {
+    public void shouldInterruptJoinExternally() {
         thrown.expect(CompletionException.class);
         thrown.expectCause(is(instanceOf(InterruptedException.class)));
 
-        threads.shutdownNow();
-        threads = unwrappedCompletable(newSingleThreadExecutor());
         final CompletableFuture<Object> future = threads.submit(() -> {
-            MILLISECONDS.sleep(100);
+            pause();
             return null;
         });
         threads.shutdownNow();
@@ -208,10 +203,9 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldInterruptGetInternallyWhenWrapped()
+    public void shouldInterruptGetInternally()
             throws InterruptedException, ExecutionException {
-        thrown.expect(ExecutionException.class);
-        thrown.expectCause(is(instanceOf(InterruptedException.class)));
+        whenInterrupted.accept(thrown);
 
         final CompletableFuture<Object> future = threads.submit(() -> {
             throw new InterruptedException();
@@ -220,7 +214,18 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldInterruptJoinInternallyWhenWrapped() {
+    public void shouldInterruptTimedGetInternally()
+            throws InterruptedException, ExecutionException, TimeoutException {
+        whenInterrupted.accept(thrown);
+
+        final CompletableFuture<Object> future = threads.submit(() -> {
+            throw new InterruptedException();
+        });
+        future.get(1, SECONDS);
+    }
+
+    @Test
+    public void shouldInterruptJoinInternally() {
         thrown.expect(CompletionException.class);
         thrown.expectCause(is(instanceOf(InterruptedException.class)));
 
@@ -231,42 +236,15 @@ public class CompletableExecutorsTest {
     }
 
     @Test
-    public void shouldInterruptGetInternallyWhenUnwrapped()
-            throws InterruptedException, ExecutionException {
-        thrown.expect(InterruptedException.class);
-
-        threads.shutdownNow();
-        threads = unwrappedCompletable(newSingleThreadExecutor());
-        final CompletableFuture<Object> future = threads.submit(() -> {
-            throw new InterruptedException();
-        });
-        future.get();
-    }
-
-    @Test
-    public void shouldInterruptTimedGetInternallyWhenUnwrapped()
+    public void shouldTimeout()
             throws InterruptedException, ExecutionException, TimeoutException {
-        thrown.expect(InterruptedException.class);
+        thrown.expect(TimeoutException.class);
 
-        threads.shutdownNow();
-        threads = unwrappedCompletable(newSingleThreadExecutor());
         final CompletableFuture<Object> future = threads.submit(() -> {
-            throw new InterruptedException();
+            pause();
+            return null;
         });
-        future.get(1, SECONDS);
-    }
-
-    @Test
-    public void shouldInterruptJoinInternallyWhenUnwrapped() {
-        thrown.expect(CompletionException.class); // Join should be wrapped
-        thrown.expectCause(is(instanceOf(InterruptedException.class)));
-
-        threads.shutdownNow();
-        threads = unwrappedCompletable(newSingleThreadExecutor());
-        final CompletableFuture<Object> future = threads.submit(() -> {
-            throw new InterruptedException();
-        });
-        future.join();
+        future.get(1, MILLISECONDS);
     }
 
     @Test
@@ -274,6 +252,17 @@ public class CompletableExecutorsTest {
             throws InterruptedException {
         threads.close();
         threads.awaitTermination(1, SECONDS);
+    }
+
+    private static void pause()
+            throws InterruptedException {
+        MILLISECONDS.sleep(100);
+    }
+
+    private static Object[] args(final String name,
+            final Supplier<CompletableExecutorService> threads,
+            final Consumer<ExpectedException> whenInterrupted) {
+        return new Object[]{name, threads, whenInterrupted};
     }
 
     public static final class Foobar
