@@ -27,8 +27,7 @@
 
 package hm.binkley.util.concurrent;
 
-import hm.binkley.util.concurrent.CompletableExecutors
-        .CompletableExecutorService;
+import hm.binkley.util.concurrent.CompletableExecutors.CompletableExecutorService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -37,23 +36,14 @@ import org.junit.rules.DisableOnDebug;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static hm.binkley.util.concurrent.CompletableExecutors.completable;
-import static hm.binkley.util.concurrent.CompletableExecutors
-        .unwrappedCompletable;
-import static java.util.Arrays.asList;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -67,7 +57,6 @@ import static org.junit.Assert.assertThat;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-@RunWith(Parameterized.class)
 public final class CompletableExecutorsTest {
     @Rule
     public final TestRule timeout = new DisableOnDebug(Timeout.builder().
@@ -77,32 +66,11 @@ public final class CompletableExecutorsTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    @Parameter(0)
-    public String name;
-    @Parameter(1)
-    public Supplier<CompletableExecutorService> ctor;
-    @Parameter(2)
-    public Consumer<ExpectedException> whenInterrupted;
-
     private CompletableExecutorService threads;
-
-    @Parameters(name = "{0}")
-    public static Iterable<Object[]> parameters() {
-        final Object[] jdk = args("JDK",
-                () -> completable(newSingleThreadExecutor()), t -> {
-                    t.expect(ExecutionException.class);
-                    t.expectCause(is(instanceOf(InterruptedException.class)));
-                });
-        final Object[] unwrapped = args("Unwrapped",
-                () -> unwrappedCompletable(newSingleThreadExecutor()),
-                t -> t.expect(InterruptedException.class));
-
-        return asList(jdk, unwrapped);
-    }
 
     @Before
     public void setUp() {
-        threads = ctor.get();
+        threads = completable(newSingleThreadExecutor());
     }
 
     @After
@@ -166,7 +134,7 @@ public final class CompletableExecutorsTest {
     @Test
     public void shouldInterruptGetExternally()
             throws InterruptedException, ExecutionException {
-        whenInterrupted.accept(thrown);
+        thrown.expect(InterruptedException.class);
 
         final CompletableFuture<Object> future = threads.submit(() -> {
             pause();
@@ -179,7 +147,7 @@ public final class CompletableExecutorsTest {
     @Test
     public void shouldInterruptTimedGetExternally()
             throws InterruptedException, ExecutionException, TimeoutException {
-        whenInterrupted.accept(thrown);
+        thrown.expect(InterruptedException.class);
 
         final CompletableFuture<Object> future = threads.submit(() -> {
             pause();
@@ -205,7 +173,7 @@ public final class CompletableExecutorsTest {
     @Test
     public void shouldInterruptGetInternally()
             throws InterruptedException, ExecutionException {
-        whenInterrupted.accept(thrown);
+        thrown.expect(InterruptedException.class);
 
         final CompletableFuture<Object> future = threads.submit(() -> {
             throw new InterruptedException();
@@ -216,7 +184,7 @@ public final class CompletableExecutorsTest {
     @Test
     public void shouldInterruptTimedGetInternally()
             throws InterruptedException, ExecutionException, TimeoutException {
-        whenInterrupted.accept(thrown);
+        thrown.expect(InterruptedException.class);
 
         final CompletableFuture<Object> future = threads.submit(() -> {
             throw new InterruptedException();
@@ -257,12 +225,6 @@ public final class CompletableExecutorsTest {
     private static void pause()
             throws InterruptedException {
         MILLISECONDS.sleep(100);
-    }
-
-    private static Object[] args(final String name,
-            final Supplier<CompletableExecutorService> threads,
-            final Consumer<ExpectedException> whenInterrupted) {
-        return new Object[]{name, threads, whenInterrupted};
     }
 
     public static final class Foobar
