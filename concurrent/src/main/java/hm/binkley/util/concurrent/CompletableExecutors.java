@@ -112,8 +112,9 @@ public final class CompletableExecutors {
 
     /**
      * Implements the overriden methods of {@link CompletableExecutorService}
-     * making the usable in a mixin.  {@link Mixin#newMixin(Class, Object...)
-     * Mixins} currently require public delegates.
+     * making it usable in a mixin.  {@link Mixin#newMixin(Class, Object...)
+     * Mixins} currently require public delegates, otherwise this class would
+     * be {@code private}.
      */
     public static final class Overrides {
         private final ExecutorService threads;
