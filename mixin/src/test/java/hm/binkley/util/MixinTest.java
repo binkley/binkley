@@ -152,6 +152,11 @@ public class MixinTest {
         assertThat(threads.submit(() -> 3).get(), is(equalTo(3)));
     }
 
+    @Test
+    public void shouldPassThrough() {
+        newMixin(PassesThrough.class, new DoPassesThrough()).thatOtherDoStuff();
+    }
+
     public interface DefaultMethodPublic {
         default void foo() {
         }
@@ -232,5 +237,24 @@ public class MixinTest {
     public interface WithStaticMethod {
         static void staticMethod() {
         }
+    }
+
+    public interface RealOne {
+        void doStuff();
+    }
+
+    public interface Alias {
+        void thatOtherDoStuff();
+    }
+
+    public interface PassesThrough extends RealOne, Alias {
+        default void thatOtherDoStuff() {
+            doStuff();
+        }
+    }
+
+    private static final class DoPassesThrough implements RealOne {
+        @Override
+        public void doStuff() {}
     }
 }

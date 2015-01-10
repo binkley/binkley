@@ -27,22 +27,30 @@
 
 package hm.binkley.util.concurrent;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import hm.binkley.util.Mixin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
+import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static hm.binkley.util.Mixin.newMixin;
 import static java.util.concurrent.Executors.callable;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static java.util.function.Function.identity;
 
 /**
  * {@code CompleteableExecutors} are executors returning {@link
@@ -57,6 +65,10 @@ import static java.util.concurrent.Executors.callable;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Think through completable for scheduled
+ * @todo What about durations which overflow nanos?
+ * @see <a href="http://www.nurkiewicz.com/2014/12/asynchronous-timeouts-with
+ * .html"><cite>Asynchronous
+ * timeouts with CompletableFuture</cite></a>
  */
 public final class CompletableExecutors {
     /**
@@ -107,14 +119,55 @@ public final class CompletableExecutors {
 
         /** Invokes {@link #shutdown()}. */
         @Override
-        void close();
+        default void close() {
+            shutdown();
+        }
+    }
+
+    public interface CompletableScheduledExecutorService
+            extends ScheduledExecutorService, CompletableExecutorService,
+            Closeable {
+        @Nonnull
+        @Override
+        ScheduledFuture<?> schedule(@Nonnull final Runnable command,
+                final long delay, @Nonnull final TimeUnit unit);
+
+        @Nonnull
+        default ScheduledFuture<?> schedule(@Nonnull final Runnable command,
+                @Nonnull final Duration delay) {
+            return schedule(command, delay.toNanos(), NANOSECONDS);
+        }
+
+        @Nonnull
+        @Override
+        <V> ScheduledFuture<V> schedule(@Nonnull final Callable<V> callable,
+                final long delay, @Nonnull final TimeUnit unit);
+
+        @Nonnull
+        default <V> ScheduledFuture<V> schedule(
+                @Nonnull final Callable<V> callable,
+                @Nonnull final Duration delay) {
+            return schedule(callable, delay.toNanos(), NANOSECONDS);
+        }
+
+        @Nonnull
+        @Override
+        ScheduledFuture<?> scheduleAtFixedRate(@Nonnull final Runnable command,
+                final long initialDelay, final long period,
+                @Nonnull final TimeUnit unit);
+
+        @Nonnull
+        @Override
+        ScheduledFuture<?> scheduleWithFixedDelay(@Nonnull Runnable command,
+                final long initialDelay, final long delay,
+                @Nonnull final TimeUnit unit);
     }
 
     /**
      * Implements the overriden methods of {@link CompletableExecutorService}
      * making it usable in a mixin.  {@link Mixin#newMixin(Class, Object...)
-     * Mixins} currently require public delegates, otherwise this class would
-     * be {@code private}.
+     * Mixins} currently require public delegates, otherwise this class would be
+     * {@code private}.
      */
     public static final class Overrides {
         private final ExecutorService threads;
@@ -148,10 +201,6 @@ public final class CompletableExecutors {
         @Nonnull
         public CompletableFuture<?> submit(@Nonnull final Runnable task) {
             return submit(callable(task));
-        }
-
-        public void close() {
-            threads.shutdown();
         }
     }
 
@@ -190,4 +239,25 @@ public final class CompletableExecutors {
             }
         }
     }
+
+    public static <T> CompletableFuture<T> within(
+            final CompletableFuture<T> future, final Duration duration) {
+        return future.applyToEither(failAfter(duration), identity());
+    }
+
+    public static <T> CompletableFuture<T> failAfter(final Duration duration) {
+        final CompletableFuture<T> promise = new CompletableFuture<>();
+        scheduler.schedule(() -> {
+            final TimeoutException ex = new TimeoutException(
+                    "Timeout after " + duration);
+            return promise.completeExceptionally(ex);
+        }, duration.toMillis(), MILLISECONDS);
+        return promise;
+    }
+
+    private static final ScheduledExecutorService scheduler
+            = newScheduledThreadPool(1, new ThreadFactoryBuilder().
+            setDaemon(true).
+            setNameFormat("failAfter-%d").
+            build());
 }
