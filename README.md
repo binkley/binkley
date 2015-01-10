@@ -30,6 +30,7 @@ Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkl
 
 ### 0.6
 
+* Add `YamlHelper`.
 * Completable executors can unwrap interrupts.
 
 ### 0.5
