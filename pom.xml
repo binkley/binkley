@@ -85,6 +85,7 @@
         <module>xml</module>
         <module>xprops</module>
         <module>yaml</module>
+        <module>yaml-test-data</module>
     </modules>
 
     <properties>
@@ -244,6 +245,12 @@
                 <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-yaml</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-yaml-test-data</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
