@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
-import static freemarker.template.TemplateExceptionHandler.RETHROW_HANDLER;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
@@ -51,13 +50,13 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
+ * @todo Parse "freemarker.version" from Maven to construct latest Version
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
 @MetaInfServices(Processor.class)
 public final class YamlGenerateProcessor
         extends AbstractProcessor {
-    private static final boolean debug = true;
     private static final Pattern space = compile("\\s+");
     // In context, system class loader does not have maven class path
     private final ResourcePatternResolver loader
@@ -73,10 +72,8 @@ public final class YamlGenerateProcessor
         freemarker.setTemplateLoader(
                 new ClassTemplateLoader(YamlGenerateProcessor.class, "/"));
         freemarker.setDefaultEncoding(UTF_8.name());
-        if (debug)
-            freemarker.setTemplateExceptionHandler(DEBUG_HANDLER);
-        else
-            freemarker.setTemplateExceptionHandler(RETHROW_HANDLER);
+        // Dump stacktrace as only called during compilation, not runtime
+        freemarker.setTemplateExceptionHandler(DEBUG_HANDLER);
     }
 
     @Override
