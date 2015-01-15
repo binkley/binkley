@@ -24,13 +24,14 @@ Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkl
 * [Value type](value-type/) - Java annotation and processor for value types
 * [Xio](xio/) - Pulling out interfaces from JDK I/O
 * [XML](xml/) - Experiments in XML
-* [Xproperties](xprops/) - Extended Java properties
+* [XProperties](xprops/) - Extended Java properties
+* [YAML](yaml/) - Java code generation from YAML
 
 ## Changes
 
 ### 0.6
 
-* Add `YamlHelper`.
+* Added yaml module.
 * Completable executors can unwrap interrupts.
 
 ### 0.5

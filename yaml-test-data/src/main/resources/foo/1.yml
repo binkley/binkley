@@ -1,0 +1,18 @@
+Duck:
+- Bill
+- Feathers
+
+Foo:
+  bar:
+    doc: I am bar
+    value: 0
+  baz:
+    doc: I am baz
+    value: stringy!
+  burb:
+    doc: Rather quackers
+    type: Duck
+
+Howard Foo:
+  sixtyish:
+    value: 60.00001

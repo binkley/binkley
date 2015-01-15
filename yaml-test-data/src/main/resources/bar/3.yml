@@ -1,0 +1,7 @@
+Baz:
+  apple:
+    doc: The apple falls near the tree
+    type: map
+  pear:
+    doc: Pear of my eye
+    type: list
