@@ -90,7 +90,6 @@
 
     <properties>
         <commons-lang3.version>3.3.2</commons-lang3.version>
-        <corn-cps.version>1.1.7</corn-cps.version>
         <freemarker.version>2.3.21</freemarker.version>
         <guava.version>18.0</guava.version>
         <guice.version>3.0</guice.version>
@@ -391,12 +390,6 @@
                 <version>${ini4j.version}</version>
             </dependency>
 
-            <!-- Lighter than Spring Core -->
-            <dependency>
-                <groupId>net.sf.corn</groupId>
-                <artifactId>corn-cps</artifactId>
-                <version>${corn-cps.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-core</artifactId>
