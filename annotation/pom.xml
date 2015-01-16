@@ -16,17 +16,12 @@
         <version>0.6-SNAPSHOT</version>
     </parent>
 
-    <artifactId>binkley-util</artifactId>
+    <artifactId>binkley-annotation</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>hm.binkley</groupId>
-            <artifactId>binkley-testing</artifactId>
-            <scope>test</scope>
+            <groupId>org.kohsuke.metainf-services</groupId>
+            <artifactId>metainf-services</artifactId>
         </dependency>
     </dependencies>
 </project>

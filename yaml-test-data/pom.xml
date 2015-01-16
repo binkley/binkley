@@ -16,17 +16,5 @@
         <version>0.6-SNAPSHOT</version>
     </parent>
 
-    <artifactId>binkley-util</artifactId>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>hm.binkley</groupId>
-            <artifactId>binkley-testing</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <artifactId>binkley-yaml-test-data</artifactId>
 </project>

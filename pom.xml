@@ -76,6 +76,7 @@
         <module>spring</module>
         <module>mixin</module>
         <module>util</module>
+        <module>annotation</module>
         <module>concurrent</module>
         <module>convert</module>
         <module>corba</module>
@@ -84,6 +85,8 @@
         <module>xio</module>
         <module>xml</module>
         <module>xprops</module>
+        <module>yaml</module>
+        <module>yaml-test-data</module>
     </modules>
 
     <properties>
@@ -100,7 +103,8 @@
         <jansi.version>1.11</jansi.version>
         <java.charset>UTF-8</java.charset>
         <java.version>8</java.version>
-        <jgitflow-maven-plugin.version>1.0-m4.3</jgitflow-maven-plugin.version>
+        <jgitflow-maven-plugin.version>1.0-m4.3
+        </jgitflow-maven-plugin.version>
         <jmockit.version>1.7</jmockit.version>
         <jnr.version>3.0.9</jnr.version>
         <jopt-simple.version>4.8</jopt-simple.version>
@@ -196,6 +200,11 @@
         <dependencies>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-annotation</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-guice</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -238,6 +247,17 @@
                 <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-xprops</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-yaml</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-yaml-test-data</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
