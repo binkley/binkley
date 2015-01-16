@@ -11,6 +11,7 @@ Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkl
 
 ## Modules
 
+* [Annotation](annotation/) - Help for Java annotation processors
 * [Concurrent](concurrent/) - Completable executor services
 * [Convert](convert/) - Inverse of `toString()`
 * [CORBA](corba/) - Helpers for CORBA
@@ -31,6 +32,7 @@ Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkl
 
 ### 0.6
 
+* Added annotation module.
 * Added yaml module.
 * Completable executors can unwrap interrupts.
 

@@ -27,8 +27,6 @@
 
 package hm.binkley.annotation.processing;
 
-import hm.binkley.annotation.YamlGenerate;
-
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -115,7 +113,7 @@ public abstract class SingleAnnotationProcessor<A extends Annotation, M extends 
                 getAnnotationMirrors().stream().
                 filter(m -> m.getAnnotationType().
                         toString().
-                        equals(YamlGenerate.class.getCanonicalName())).
+                        equals(annoType.getCanonicalName())).
                 collect(Collectors.<AnnotationMirror>toList());
 
         switch (found.size()) {
