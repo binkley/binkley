@@ -7,7 +7,7 @@
 <#if type == "Enum">public enum ${name} {
     ${values?join(", ")};
 }<#else>public class ${name}<#if parent??> extends ${parent}</#if> {
-// TODO: Remove blank line from first method when no fields
+    // TODO: Remove blank line from first method when no fields
 <#list data?keys as key>
     <#if data[key].value??><#if data[key].value?is_sequence>private final java.util.List<Object> ${key} = new java.util.ArrayList<>(${data[key].value?size});
     {
