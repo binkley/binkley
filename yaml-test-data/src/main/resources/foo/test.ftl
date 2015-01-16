@@ -15,7 +15,7 @@
         ${key}.add(<#if each?is_string>"${each}"<#elseif each?is_boolean || each?is_number>${each?c}<#if "double" == data[key].type>d</#if><#else>${data[key].type}.valueOf("${each}")</#if>);
         </#list>
     }
-    <#elseif data[key].value?is_hash>private final java.util.Map<String, Object> ${key} = new java.util.HashMap(${data[key].value?size});
+    <#elseif data[key].value?is_hash>private final java.util.Map<String, Object> ${key} = new java.util.HashMap<>(${data[key].value?size});
     {
         <#list data[key].value?keys as each>
         ${key}.put("${each}", <#if data[key].value[each]?is_string>"${data[key].value[each]}"<#elseif data[key].value[each]?is_boolean || data[key].value[each]?is_number>${data[key].value[each]?c}<#if "double" == data[key].type>d</#if><#else>${data[key].type}.valueOf("${data[key].value[each]}")</#if>);

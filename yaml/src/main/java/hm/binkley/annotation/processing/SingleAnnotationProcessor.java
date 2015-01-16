@@ -27,6 +27,8 @@
 
 package hm.binkley.annotation.processing;
 
+import hm.binkley.annotation.YamlGenerate;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -98,10 +100,12 @@ public abstract class SingleAnnotationProcessor<A extends Annotation, M extends 
     }
 
     private AnnotationMirror oneOnly(final Element element) {
+        // TODO: How to do this without resorting to toString()?
         final List<AnnotationMirror> found = element.
                 getAnnotationMirrors().stream().
-                filter(m -> null != m.getAnnotationType()
-                        .getAnnotation(annoType)).
+                filter(m -> m.getAnnotationType().
+                        toString().
+                        equals(YamlGenerate.class.getCanonicalName())).
                 collect(Collectors.<AnnotationMirror>toList());
 
         switch (found.size()) {
