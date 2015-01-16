@@ -12,16 +12,12 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.yaml.snakeyaml.Yaml;
 
-import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.Processor;
-import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
-import javax.lang.model.element.TypeElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -34,9 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
@@ -54,12 +48,14 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  * @todo Parse "freemarker.version" from Maven to construct latest Version
+ * @todo Remember class methods to define a base layer defining all
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
 @MetaInfServices(Processor.class)
 public final class YamlGenerateProcessor
-        extends AbstractProcessor {
+        extends
+        SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {
     private static final Pattern space = compile("\\s+");
     // In context, system class loader does not have maven class path
     private final ResourcePatternResolver loader
@@ -69,10 +65,8 @@ public final class YamlGenerateProcessor
     private final Yaml yaml = YamlHelper.builder().build();
     private final Configuration freemarker;
 
-    // TODO: Rework to avoid writeable state
-    private YamlGenerateMesseger out;
-
     public YamlGenerateProcessor() {
+        super(YamlGenerate.class);
         freemarker = new Configuration(VERSION_2_3_21);
         freemarker.setTemplateLoader(new ResourceTemplateLoader());
         freemarker.setDefaultEncoding(UTF_8.name());
@@ -81,90 +75,54 @@ public final class YamlGenerateProcessor
     }
 
     @Override
-    public boolean process(final Set<? extends TypeElement> annotations,
-            final RoundEnvironment roundEnv) {
-        for (final Element element : roundEnv
-                .getElementsAnnotatedWith(YamlGenerate.class)) {
-            out = YamlGenerateMesseger
-                    .from(processingEnv.getMessager(), element);
+    protected YamlGenerateMesseger newMesseger(
+            final Class<YamlGenerate> annoType, final Messager messager,
+            final Element element) {
+        return YamlGenerateMesseger.from(messager, element);
+    }
 
-            if (INTERFACE != element.getKind()) {
-                out.error("%@ only supported on interfaces");
-                continue;
-            }
+    @Override
+    protected boolean preValidate(final Element element) {
+        if (INTERFACE != element.getKind()) {
+            out.error("%@ only supported on interfaces");
+            return false;
+        }
 
-            if (PACKAGE != element.getEnclosingElement().getKind()) {
-                out.error("%@ only supports top-level interfaces");
-                continue;
-            }
+        if (PACKAGE != element.getEnclosingElement().getKind()) {
+            out.error("%@ only supports top-level interfaces");
+            return false;
+        }
 
-            // Use both annotation and mirror:
-            // - Annotation is easier for accessing members
-            // - Mirror is needed for messenger
+        return super.preValidate(element);
+    }
 
-            final AnnotationMirror aMirror = oneOnly(element);
-            if (null == aMirror)
-                continue;
+    @Override
+    protected String withAnnotationValue() {
+        return "template";
+    }
 
-            out = out.withAnnotation(aMirror,
-                    annotationValue(aMirror, "template"));
+    @Override
+    protected void process(final Element element, final YamlGenerate anno) {
+        final String[] inputs = anno.inputs();
+        final String namespace = anno.namespace();
 
-            final YamlGenerate anno = element
-                    .getAnnotation(YamlGenerate.class);
-            final String[] inputs = anno.inputs();
-            final String namespace = anno.namespace();
+        try {
+            final Resource ftl = loader.getResource(anno.template());
+            out = out.withTemplate(ftl);
+            final Template template = freemarker.getTemplate(anno.template());
 
             try {
-                final Resource ftl = loader.getResource(anno.template());
-                out = out.withTemplate(ftl);
-                final Template template = freemarker
-                        .getTemplate(anno.template());
+                final Name packaj = processingEnv.getElementUtils()
+                        .getName(namespace);
 
-                try {
-                    final Name packaj = processingEnv.getElementUtils()
-                            .getName(namespace);
-
-                    for (final String input : inputs)
-                        process(element, template, packaj, input);
-                } catch (final Exception e) {
-                    out.error(e, "Cannot process");
-                }
+                for (final String input : inputs)
+                    process(element, template, packaj, input);
             } catch (final Exception e) {
-                out.error(e, "Cannot create template");
+                out.error(e, "Cannot process");
             }
+        } catch (final Exception e) {
+            out.error(e, "Cannot create template");
         }
-
-        return true;
-    }
-
-    private AnnotationMirror oneOnly(final Element element) {
-        // TODO: How to do this without resorting to toString()?
-        final List<AnnotationMirror> found = element.
-                getAnnotationMirrors().stream().
-                filter(m -> m.getAnnotationType().
-                        toString().
-                        equals(YamlGenerate.class.getCanonicalName())).
-                collect(Collectors.<AnnotationMirror>toList());
-
-        switch (found.size()) {
-        case 1:
-            return found.get(0);
-        case 0:
-            out.error("%@ missing from element");
-            return null;
-        default:
-            out.error("%@ only supports 1 occurrence");
-            return null;
-        }
-    }
-
-    private static AnnotationValue annotationValue(
-            final AnnotationMirror aMirror, final String param) {
-        return aMirror.getElementValues().entrySet().stream().
-                filter(e -> e.getKey().getSimpleName().contentEquals(param)).
-                map(Map.Entry::getValue).
-                findAny().
-                orElse(null);
     }
 
     private void process(final Element cause, final Template template,
