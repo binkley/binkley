@@ -19,7 +19,7 @@ public final class YamlGenerateProcessorTest {
     }
 }
 
-@YamlGenerate(template = "/foo/test.ftl",
+@YamlGenerate(template = "/generate-java.ftl",
         inputs = {"/foo/*.yml", "/bar/3.yml"}, namespace = "fooby")
 @Deprecated // Check that unrelated annos do not croak the processor
 interface YamlGenerateTestClasses {}
