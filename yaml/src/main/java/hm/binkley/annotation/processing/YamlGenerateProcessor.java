@@ -1,6 +1,6 @@
 package hm.binkley.annotation.processing;
 
-import freemarker.cache.ClassTemplateLoader;
+import freemarker.cache.URLTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -18,13 +18,16 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,8 +72,7 @@ public final class YamlGenerateProcessor
 
     public YamlGenerateProcessor() {
         freemarker = new Configuration(VERSION_2_3_21);
-        freemarker.setTemplateLoader(
-                new ClassTemplateLoader(YamlGenerateProcessor.class, "/"));
+        freemarker.setTemplateLoader(new ResourceTemplateLoader());
         freemarker.setDefaultEncoding(UTF_8.name());
         // Dump stacktrace as only called during compilation, not runtime
         freemarker.setTemplateExceptionHandler(DEBUG_HANDLER);
@@ -81,6 +83,10 @@ public final class YamlGenerateProcessor
             final RoundEnvironment roundEnv) {
         for (final Element element : roundEnv
                 .getElementsAnnotatedWith(YamlGenerate.class)) {
+            // TODO: Yes, gets overwritten - clean up
+            YamlGenerateMessenger out = YamlGenerateMessenger
+                    .from(processingEnv.getMessager(), element);
+
             // USe both annotation and mirror:
             // - Annotation is easier for accessing members
             // - Mirror is needed for messenger
@@ -89,15 +95,24 @@ public final class YamlGenerateProcessor
             final String[] inputs = anno.inputs();
             final String namespace = anno.namespace();
 
-            try {
-                final Template template = freemarker
-                        .getTemplate(anno.template());
+            final List<? extends AnnotationMirror> x = element
+                    .getAnnotationMirrors();
+            if (1 != x.size()) {
+                out.error("%@ only supports 1 occurrence");
+                continue;
+            }
 
-                for (final AnnotationMirror aMirror : element
-                        .getAnnotationMirrors()) {
-                    final YamlGenerateMessenger out
-                            = new YamlGenerateMessenger(getClass(),
-                            processingEnv.getMessager(), element, aMirror);
+            try {
+                final Resource ftl = loader.getResource(anno.template());
+                final Template template = freemarker
+                        .getTemplate(ftl.getFile().getAbsolutePath());
+
+                for (final AnnotationMirror aMirror : x) {
+                    final Map<? extends ExecutableElement, ? extends AnnotationValue>
+                            values = aMirror.getElementValues();
+                    System.err.println("values = " + values);
+                    out = out.withAnnotation(aMirror, null).withTemplate(ftl);
+
                     try {
                         if (INTERFACE != element.getKind()) {
                             out.error("%@ only supported on interfaces");
@@ -115,16 +130,13 @@ public final class YamlGenerateProcessor
                                 .getName(namespace);
 
                         for (final String input : inputs)
-                            process(element, template, packaj, input,
-                                    out.with(template.getName(), input));
+                            process(element, template, packaj, input, out);
                     } catch (final Exception e) {
                         out.error(e, "Cannot process");
                     }
                 }
             } catch (final IOException e) {
-                new YamlGenerateMessenger(getClass(),
-                        processingEnv.getMessager(), element, null)
-                        .error(e, "Cannot create template");
+                out.error(e, "Cannot create template");
             }
         }
 
@@ -136,8 +148,7 @@ public final class YamlGenerateProcessor
             final YamlGenerateMessenger outer)
             throws IOException {
         for (final Loaded loaded : loadAll(input, outer)) {
-            final YamlGenerateMessenger out = outer
-                    .with(loaded.whence.getDescription());
+            final YamlGenerateMessenger out = outer.withYaml(loaded.whence);
             for (final Entry<String, Object> each : loaded.doc.entrySet()) {
                 final String key = each.getKey();
                 final String[] names = space.split(key);
@@ -162,21 +173,19 @@ public final class YamlGenerateProcessor
                 try {
                     if (value instanceof List) {
                         if (null != parent) {
-                            out.error("Enums cannot have a parent for '%s' in"
-                                            + " %s",
-
+                            out.error(
+                                    "Enums cannot have a parent for '%s' in %s",
                                     key, loaded.whence.getURI());
                             return;
                         }
                         buildEnum(cause, template, loaded.whence, packaj,
-                                name, (List<String>) value, out);
+                                name, cast(value), out);
                     } else if (value instanceof Map)
                         buildClass(cause, template, loaded.whence, packaj,
-                                name, parent,
-                                (Map<String, Map<String, Object>>) value);
+                                name, parent, cast(value));
                     else
-                        out.error("%@ only supports list (enum) and map "
-                                        + "(class), " + "not (%s) %s",
+                        out.error(
+                                "%@ only supports list (enum) and map (class), not (%s) %s",
                                 value.getClass(), value);
                 } catch (final Exception e) {
                     out.error(e, "Failed for %s -> %s", name, value);
@@ -282,8 +291,8 @@ public final class YamlGenerateProcessor
         } else if (null != type)
             // TODO: Actually should be OK for implicit UDT (e.g., Dice)
             throw new IllegalStateException(
-                    format("TODO: Both value and type are "
-                            + "provided for '%s'", key));
+                    format("TODO: Both value and type are provided for '%s'",
+                            key));
         else if (value instanceof String)
             return new TypedValue("text", value);
         else if (value instanceof Integer)
@@ -314,23 +323,27 @@ public final class YamlGenerateProcessor
     }
 
     private static String fullName(final Name packaj, final String name) {
-        return 0 == packaj.length() ? name : (packaj + "." + name);
+        return 0 == packaj.length() ? name : packaj + "." + name;
     }
 
     private List<Loaded> loadAll(final String pattern,
-            final YamlGenerateMessenger outer) {
+            final YamlGenerateMessenger out) {
         final List<Loaded> docs = new ArrayList<>();
         try {
             for (final Resource resource : loader.getResources(pattern))
                 try (final InputStream in = resource.getInputStream()) {
                     for (final Object doc : yaml.loadAll(in))
-                        docs.add(new Loaded(resource,
-                                (Map<String, Object>) doc));
+                        docs.add(new Loaded(resource, cast(doc)));
                 }
         } catch (final IOException e) {
-            outer.error(e, "Cannot load");
+            out.error(e, "Cannot load");
         }
         return docs;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T cast(final Object o) {
+        return (T) o;
     }
 
     private static final class Loaded {
@@ -340,6 +353,32 @@ public final class YamlGenerateProcessor
         private Loaded(final Resource whence, final Map<String, Object> doc) {
             this.whence = whence;
             this.doc = doc;
+        }
+
+        @Override
+        public String toString() {
+            return whence.getDescription() + ": " + doc;
+        }
+    }
+
+    private class ResourceTemplateLoader
+            extends URLTemplateLoader {
+        private YamlGenerateMessenger out;
+
+        @Override
+        protected URL getURL(final String name) {
+            final Resource resource = loader.getResource(name);
+            try {
+                return resource.getURL();
+            } catch (final IOException e) {
+                out.error(e, "Cannot load FTL template from '%s'",
+                        resource.getDescription());
+                return null;
+            }
+        }
+
+        void setMessenger(final YamlGenerateMessenger out) {
+            this.out = out;
         }
     }
 }
