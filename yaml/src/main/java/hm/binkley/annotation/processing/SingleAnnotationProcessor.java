@@ -61,45 +61,55 @@ public abstract class SingleAnnotationProcessor<A extends Annotation, M extends 
     protected abstract M newMesseger(final Class<A> annoType,
             final Messager messager, final Element element);
 
-    protected boolean validateElement(final Element element) {
+    protected boolean preValidate(final Element element) {
         return true;
     }
 
-    protected abstract void process(final Element element,
-            final A annotation);
+    protected abstract void process(final Element element, final A annno);
+
+    protected String withAnnotationValue() {
+        return null;
+    }
+
+    protected boolean postValidate() {
+        return true;
+    }
 
     @Override
-    public boolean process(final Set<? extends TypeElement> annotations,
+    public final boolean process(final Set<? extends TypeElement> annotations,
             final RoundEnvironment roundEnv) {
         for (final Element element : roundEnv
                 .getElementsAnnotatedWith(annoType)) {
             out = newMesseger(annoType, processingEnv.getMessager(), element);
 
-            if (!validateElement(element))
+            if (!preValidate(element))
                 continue;
 
             // Use both annotation and mirror:
             // - Annotation is easier for accessing members
             // - Mirror is needed for messenger
 
-            final AnnotationMirror aMirror = oneOnly(element);
+            final AnnotationMirror aMirror = annotationMirror(element);
             if (null == aMirror)
                 continue;
 
-            out = out.withAnnotation(aMirror,
-                    annotationValue(aMirror, "template"));
+            // Optionally narrow down logging to specific anno value
+            final String annotationValue = withAnnotationValue();
+            if (null != annotationValue)
+                out = out.withAnnotation(aMirror,
+                        annotationValue(aMirror, annotationValue));
 
             try {
                 process(element, element.getAnnotation(annoType));
             } catch (final Exception e) {
-                out.error(e, "Cannot process");
+                out.error(e, "Cannot process %@ on '%s'", element);
             }
         }
 
-        return true;
+        return postValidate();
     }
 
-    private AnnotationMirror oneOnly(final Element element) {
+    private AnnotationMirror annotationMirror(final Element element) {
         // TODO: How to do this without resorting to toString()?
         final List<AnnotationMirror> found = element.
                 getAnnotationMirrors().stream().
@@ -120,7 +130,7 @@ public abstract class SingleAnnotationProcessor<A extends Annotation, M extends 
         }
     }
 
-    private static AnnotationValue annotationValue(
+    protected static AnnotationValue annotationValue(
             final AnnotationMirror aMirror, final String param) {
         return aMirror.getElementValues().entrySet().stream().
                 filter(e -> e.getKey().getSimpleName().contentEquals(param)).
