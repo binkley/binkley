@@ -36,8 +36,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collector;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
@@ -45,7 +44,6 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static java.util.regex.Pattern.compile;
-import static java.util.stream.Collectors.toList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.PACKAGE;
@@ -140,16 +138,13 @@ public final class YamlGenerateProcessor
     }
 
     private AnnotationMirror oneOnly(final Element element) {
-        final List<? extends AnnotationMirror> x = element.
-                getAnnotationMirrors();
-        final Stream<? extends AnnotationMirror> x2 = x.stream();
-        final Stream<? extends AnnotationMirror> x3 = x2.
-                filter(m -> null != m.getAnnotationType()
-                        .getAnnotation(YamlGenerate.class));
-        final Collector<AnnotationMirror, ?, List<AnnotationMirror>> x4
-                = toList();
-        final List<AnnotationMirror> found = x3.
-                collect(x4);
+        // TODO: How to do this without resorting to toString()?
+        final List<AnnotationMirror> found = element.
+                getAnnotationMirrors().stream().
+                filter(m -> m.getAnnotationType().
+                        toString().
+                        equals(YamlGenerate.class.getCanonicalName())).
+                collect(Collectors.<AnnotationMirror>toList());
 
         switch (found.size()) {
         case 1:
