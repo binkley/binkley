@@ -52,30 +52,44 @@ public class NamesTest {
     @Parameter(1)
     public String nameIn;
     @Parameter(2)
-    public String fullName;
+    public String parentIn;
     @Parameter(3)
-    public String packaj;
+    public String fullName;
     @Parameter(4)
+    public String packaj;
+    @Parameter(5)
     public String name;
+    @Parameter(6)
+    public String relativeTo;
 
-    @Parameters(name = "{index}: ({0}, {1}) -> ({2}, {3}, [4})")
+    @Parameters(name = "{index}: ({0}, {1}, {2}) -> ({3}, {4}, {5}): {6}")
     public static Collection parameters() {
-        return asList(args("", "Foo", "Foo", "", "Foo"),
-                args("", "flarb.Foo", "flarb.Foo", "flarb", "Foo"),
-                args("flarb", "Foo", "flarb.Foo", "flarb", "Foo"),
-                args("flarb", "mumble.Foo", "flarb.mumble.Foo",
-                        "flarb.mumble", "Foo"));
+        return asList(args("", "Foo", "Bar", "Foo", "", "Foo", "Bar"),
+                args("", "flarb.Foo", "flarb.Bar", "flarb.Foo", "flarb",
+                        "Foo", "Bar"),
+                args("flarb", "Foo", "Bar", "flarb.Foo", "flarb", "Foo",
+                        "Bar"),
+                args("flarb", "mumble.Foo", "mumble.Bar", "flarb.mumble.Foo",
+                        "flarb.mumble", "Foo", "Bar"),
+                args("flarb", "mumble.Foo", "mumble.Bar", "flarb.mumble.Foo",
+                        "flarb.mumble", "Foo", "Bar"));
     }
 
     @Test
     public void shouldWork() {
         final Names zis = Names.from(packajIn, nameIn);
-        assertThat(zis.fullName, is(equalTo(fullName)));
-        assertThat(zis.packaj, is(equalTo(packaj)));
-        assertThat(zis.name, is(equalTo(name)));
+        final Names zuper = Names.from(packajIn, parentIn);
+        assertThat("fullname", zis.fullName, is(equalTo(fullName)));
+        assertThat("packaj", zis.packaj, is(equalTo(packaj)));
+        assertThat("name", zis.name, is(equalTo(name)));
+        assertThat("relativeTo", zuper.nameRelativeTo(zis),
+                is(equalTo(relativeTo)));
     }
 
-    private static Object[] args(final Object... args) {
-        return args;
+    private static Object[] args(final String packajIn, final String nameIn,
+            final String parentIn, final String fullName, final String packaj,
+            final String name, final String relativeTo) {
+        return new Object[]{packajIn, nameIn, parentIn, fullName, packaj,
+                name, relativeTo};
     }
 }

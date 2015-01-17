@@ -27,18 +27,39 @@
 
 package hm.binkley.annotation.processing;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
- * {@code Names} <b>needs documentation</b>.
+ * {@code Names} finds the final full name, package name and simple class name
+ * for a root package and candidate class name, including a relative package
+ * portion.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
+@EqualsAndHashCode
+@ToString
 public final class Names {
     public final String fullName;
     public final String packaj;
     public final String name;
 
-    public static Names from(final CharSequence packaj, final String name) {
+    /**
+     * Creates a new {@code Names} from the given <var>packaj</var> and
+     * relative <var>name</var>.
+     *
+     * @param packaj the package, never missing
+     * @param name the relative name, possibly missing
+     *
+     * @return the new {@code Names} or {@code null} if <var>name</var> is
+     * {@code null}
+     */
+    @Nullable
+    public static Names from(@Nonnull final CharSequence packaj,
+            @Nullable final String name) {
         return null == name ? null : new Names(packaj, name);
     }
 
@@ -59,5 +80,17 @@ public final class Names {
             }
             this.name = name.substring(x + 1);
         }
+    }
+
+    /**
+     * Finds the simplest superclass name relative to a subclass.
+     *
+     * @param zis the subclass, never missing
+     *
+     * @return the superclas name, never missing
+     */
+    @Nonnull
+    public String nameRelativeTo(@Nonnull final Names zis) {
+        return packaj.equals(zis.packaj) ? name : fullName;
     }
 }
