@@ -16,3 +16,5 @@ Foo:
 Howard Foo:
   sixtyish:
     value: 60.00001
+  bar:
+    value: 2

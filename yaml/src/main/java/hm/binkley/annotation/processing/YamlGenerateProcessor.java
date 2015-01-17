@@ -1,5 +1,7 @@
 package hm.binkley.annotation.processing;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import freemarker.cache.URLTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -53,7 +55,7 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
 @MetaInfServices(Processor.class)
-public final class YamlGenerateProcessor
+public class YamlGenerateProcessor
         extends
         SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {
     private static final Pattern space = compile("\\s+");
@@ -63,6 +65,7 @@ public final class YamlGenerateProcessor
             YamlGenerateProcessor.class.getClassLoader());
     // TODO: How to configure the builder with implicits?
     private final Yaml yaml = YamlHelper.builder().build();
+    private final Multimap<String, String> methods = HashMultimap.create();
     private final Configuration freemarker;
 
     public YamlGenerateProcessor() {
@@ -207,6 +210,8 @@ public final class YamlGenerateProcessor
             final String parent, final Map<String, Map<String, Object>> data)
             throws IOException, TemplateException {
         final String fullName = fullName(packaj, name);
+        methods.get(fullName).addAll(data.keySet());
+
         try (final Writer writer = new OutputStreamWriter(
                 processingEnv.getFiler().createSourceFile(fullName, cause)
                         .openOutputStream())) {
@@ -217,9 +222,8 @@ public final class YamlGenerateProcessor
     }
 
     /** @todo Yucky code */
-    private static Map<String, Object> modelClass(final String ftl,
-            final String yml, final String packaj, final String name,
-            final String parent,
+    private Map<String, Object> modelClass(final String ftl, final String yml,
+            final String packaj, final String name, final String parent,
             final Map<String, Map<String, Object>> data) {
         final Map<String, Object> model = commonModel(ftl, yml, packaj, name,
                 parent);
@@ -229,15 +233,26 @@ public final class YamlGenerateProcessor
         else {
             for (final Entry<String, Map<String, Object>> datum : data
                     .entrySet()) {
+                final String method = datum.getKey();
                 final Map<String, Object> props = datum.getValue();
-                final TypedValue pair = model(datum.getKey(),
+                final TypedValue pair = model(method,
                         (String) props.get("type"), props.get("value"));
                 props.put("type", pair.type);
                 props.put("value", pair.value);
+                props.put("override", overridden(packaj, parent, method));
             }
             model.put("data", data);
         }
         return model;
+    }
+
+    private boolean overridden(final CharSequence packaj, final String parent,
+            final String method) {
+        if (null == parent)
+            return false;
+        final String zuper = parent.contains(".") ? parent
+                : fullName(packaj, parent);
+        return methods.get(zuper).contains(method);
     }
 
     private static final class TypedValue {
@@ -302,7 +317,8 @@ public final class YamlGenerateProcessor
         }};
     }
 
-    private static String fullName(final Name packaj, final String name) {
+    private static String fullName(final CharSequence packaj,
+            final String name) {
         return 0 == packaj.length() ? name : packaj + "." + name;
     }
 
