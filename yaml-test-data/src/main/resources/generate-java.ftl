@@ -1,3 +1,16 @@
+<#--
+TODO: FreeMarker template fixes
+    * Whitespace
+    * Condense with macros
+    * Recurive data types
+    * Get rid of "type" for builtin types
+-->
+<#macro jvalue type value="\n">
+    <#if value?is_string>
+        <#if "\n" == value>null<#else>"${value}"</#if>
+    <#elseif value?is_boolean || value?is_number>${value?c}<#if "double" == type>d</#if>
+    <#else>${type}.valueOf("${value}")</#if>
+</#macro>
 <#if package?has_content>package ${package};
 
 </#if>@javax.annotation.Generated(
@@ -12,13 +25,13 @@
     <#if data[key].value??><#if data[key].value?is_sequence>private final java.util.List<Object> ${key} = new java.util.ArrayList<>(${data[key].value?size});
     {
         <#list data[key].value as each>
-        ${key}.add(<#if each?is_string>"${each}"<#elseif each?is_boolean || each?is_number>${each?c}<#if "double" == data[key].type>d</#if><#else>${data[key].type}.valueOf("${each}")</#if>);
+        ${key}.add(<@jvalue type=data[key].type value=each/>);
         </#list>
     }
     <#elseif data[key].value?is_hash>private final java.util.Map<String, Object> ${key} = new java.util.HashMap<>(${data[key].value?size});
     {
         <#list data[key].value?keys as each>
-        ${key}.put("${each}", <#if data[key].value[each]?is_string>"${data[key].value[each]}"<#elseif data[key].value[each]?is_boolean || data[key].value[each]?is_number>${data[key].value[each]?c}<#if "double" == data[key].type>d</#if><#else>${data[key].type}.valueOf("${data[key].value[each]}")</#if>);
+        ${key}.put("${each}", <@jvalue type=data[key].type value=data[key].value[each]/>);
         </#list>
     }</#if></#if>
 </#list>
@@ -29,10 +42,8 @@
     @hm.binkley.annotation.YamlGenerate.Doc("${data[key].doc}")</#if><#if data[key].override>
     @Override</#if>
     public <#if "text" == data[key].type>String<#elseif "list" == data[key].type>java.util.List<Object><#elseif "map" == data[key].type>java.util.Map<String, Object><#else>${data[key].type}</#if> ${key}() {
-        <#if !data[key].value??>return null;
-        <#elseif data[key].value?is_string>return "${data[key].value}";
-        <#elseif data[key].value?is_sequence || data[key].value?is_hash>return ${key};
-        <#else>return ${data[key].value?c}<#if "double" = data[key].type>d</#if>;</#if>
+        return <#if data[key].value?? && (data[key].value?is_sequence || data[key].value?is_hash)>${key}
+        <#else><@jvalue type=data[key].type value=data[key].value/></#if>;
     }
 </#list>
 }</#if>
