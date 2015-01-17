@@ -12,6 +12,8 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.yaml.snakeyaml.Yaml;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -30,6 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
@@ -48,9 +51,11 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
+ * @todo Much better, less hacky APi for extension
  * @todo Parse "freemarker.version" from Maven to construct latest Version
  * @todo Remember class methods to define a base layer defining all
  * @todo Docstrings on enum values
+ * @todo Custom configuration of Freemarker
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
@@ -79,9 +84,13 @@ public class YamlGenerateProcessor
         freemarker.setTemplateExceptionHandler(DEBUG_HANDLER);
     }
 
-    /** Configures YAML, for example, add implicits. */
-    protected YamlHelper.Builder setupYaml(final YamlHelper.Builder builder) {
-        return builder;
+    /**
+     * Configures YAML, for example, add implicits.  Default implementation
+     * returns a plain builder.  When overriding capture {@code
+     * super.newYamlBuilder()} and return that after configuring it.
+     */
+    protected YamlHelper.Builder newYamlBuilder() {
+        return YamlHelper.builder();
     }
 
     @Override
@@ -119,6 +128,22 @@ public class YamlGenerateProcessor
         return "template";
     }
 
+    /**
+     * Checks the completed processing for sanity.  Default implementation
+     * returns {@code true}.  When overriding, return {@code
+     * super.postValidate(methods)} after your own checks.
+     * <p>
+     * Passes in <var>methods</var>, an immutable map of generated full class
+     * names to method descriptions in processing order.  Supports
+     * post-processing generation of additional sources.
+     *
+     * @param methods the processed class/methods, never missing
+     *
+     * @return {@code false} to fail the Javac build
+     *
+     * @todo Should it pass in enums also?
+     */
+    @SuppressWarnings("UnusedParameters")
     protected boolean postValidate(
             final Map<String, Map<String, Map<String, Object>>> methods) {
         return true;
@@ -136,7 +161,7 @@ public class YamlGenerateProcessor
         final String namespace = anno.namespace();
 
         try {
-            yaml = setupYaml(YamlHelper.builder()).build();
+            yaml = newYamlBuilder().build();
             final Resource ftl = loader.getResource(anno.template());
             out = out.withTemplate(ftl);
             template = freemarker.getTemplate(anno.template());
@@ -155,101 +180,166 @@ public class YamlGenerateProcessor
         }
     }
 
+    private enum Generate {
+        ENUM, CLASS;
+
+        @Nullable
+        private static Generate from(@Nonnull final Object value) {
+            if (value instanceof List)
+                return ENUM;
+            else if (value instanceof Map)
+                return CLASS;
+            else
+                return null;
+        }
+    }
+
     private void process(final Element cause, final Name packaj,
             final String input) {
         for (final Loaded loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
-            for (final Entry<String, Object> each : loaded.doc.entrySet()) {
+            for (final Entry<String, Object> each : loaded.yaml.entrySet()) {
                 final String key = each.getKey();
-                final NameParent nameParent = NameParent.from(key);
-                if (null == nameParent) {
+                final ZisZuper names = ZisZuper.from(packaj, key);
+                if (null == names) {
+                    // TODO: Use fail()
                     out.error(
                             "Classes have at most one parent for '%s' in %s",
                             key, loaded);
                     continue;
                 }
 
-                final Names zis = Names.from(packaj, nameParent.name);
-                final Names zuper = Names.from(packaj, nameParent.parent);
                 final Object value = each.getValue();
-                final boolean isEnum = value instanceof List;
+                final Generate generate = Generate.from(value);
+                if (null == generate) {
+                    out.error(
+                            "%@ only supports list (enum) and map (class), not (%s) %s in %s",
+                            value.getClass(), value, loaded);
+                    continue;
+                }
 
                 try {
-                    if (isEnum) {
-                        if (null != zuper) {
+                    switch (generate) {
+                    case ENUM:
+                        if (null != names.zuper) {
+                            // TODO: Use fail()
                             out.error(
                                     "Enums cannot have parent for '%s' in %s",
                                     key, loaded);
-                            return;
+                            continue;
                         }
-                        buildEnum(cause, loaded.whence, zis, cast(value),
+                        buildEnum(cause, names.zis, cast(value), loaded);
+                        break;
+                    case CLASS:
+                        buildClass(cause, names.zis, names.zuper, cast(value),
                                 loaded);
-                    } else if (value instanceof Map)
-                        buildClass(cause, loaded.whence, zis, zuper,
-                                cast(value), loaded);
-                    else
-                        out.error(
-                                "%@ only supports list (enum) and map (class), not (%s) %s in %s",
-                                value.getClass(), value, loaded);
-                } catch (final Exception e) {
-                    fail(e, zis, value, loaded);
+                        break;
+                    }
+                } catch (final RuntimeException e) {
+                    fail(e, names.zis, value, loaded);
                 }
             }
         }
     }
 
-    protected final void fail(final Exception e, final Names zis,
-            final Object value, final Loaded loaded) {
-        final boolean isEnum = value instanceof List;
-        out.error(e, "Failed building %s '%s' with '%s' in %s",
-                isEnum ? "enum" : "class", zis.fullName, value, loaded);
+    /**
+     * Fails the Javac build with details specific to YAML-to-Java code
+     * generation after an internal exception.
+     *
+     * @param e the exception failing the build, never missing
+     * @param zis the details for the processed class name, never missing
+     * @param value the data details for the class (list for enums, map for
+     * classes), never missing
+     * @param loaded the loading details for the YAML defining the class,
+     * never missing
+     *
+     * @todo Use more widely
+     */
+    protected final void fail(@Nonnull final Exception e,
+            @Nonnull final Names zis, @Nonnull final Object value,
+            @Nonnull final Loaded loaded) {
+        final boolean enumish = value instanceof List;
+        out.error(e, "%s: Failed building %s '%s' with '%s' in %s", e,
+                enumish ? "enum" : "class", zis.fullName, value, loaded);
     }
 
-    protected final void buildEnum(final Element cause, final Resource whence,
-            final Names zis, final List<String> values, final Loaded loaded) {
+    /**
+     * Builds a FreeMarker model for writing source files.  Essentially the
+     * same as {@link Supplier} but throws {@code IOException}.
+     */
+    @FunctionalInterface
+    public interface ModelSupplier {
+        @Nonnull
+        Map<String, Object> get()
+                throws IOException;
+    }
+
+    /**
+     * Generates source for an {@code enum} from YAML.
+     *
+     * @param cause the element annotated with {@code &64;YamlGenerate}, never
+     * missing
+     * @param zis the defails of the processed enum name, never missing
+     * @param values the data details for the enum, never missing
+     * @param loaded the loading details for the YAML defining the class,
+     */
+    protected final void buildEnum(@Nonnull final Element cause,
+            @Nonnull final Names zis, @Nonnull final List<String> values,
+            @Nonnull final Loaded loaded) {
+        writeSource(cause, zis, values, loaded,
+                () -> modelEnum(zis, values, loaded));
+    }
+
+    /**
+     * Generates source for a {@code class} from YAML.
+     *
+     * @param cause the element annotated with {@code &64;YamlGenerate}, never
+     * missing
+     * @param zis the defails of the processed class name, never missing
+     * @param zuper the defails of the processed super class, {@code null} if
+     * none
+     * @param methods the data details for the class, never missing
+     * @param loaded the loading details for the YAML defining the class,
+     */
+    protected final void buildClass(@Nonnull final Element cause,
+            @Nonnull final Names zis, @Nullable final Names zuper,
+            @Nonnull final Map<String, Map<String, Object>> methods,
+            @Nonnull final Loaded loaded) {
+        this.methods.put(zis.fullName, immutable(methods));
+
+        writeSource(cause, zis, methods, loaded,
+                () -> modelClass(zis, zuper, methods, loaded));
+    }
+
+    private void writeSource(final Element cause, final Names zis,
+            final Object values, final Loaded loaded,
+            final ModelSupplier model) {
+        // "Inside out" to keep exception handling in this method
         try (final Writer writer = new OutputStreamWriter(
                 processingEnv.getFiler().createSourceFile(zis.fullName, cause)
                         .openOutputStream())) {
-            template.process(
-                    modelEnum(template.getName(), whence.getURI().toString(),
-                            zis, values), writer);
+            template.process(model.get(), writer);
         } catch (final IOException | TemplateException e) {
             fail(e, zis, values, loaded);
         }
     }
 
-    private static Map<String, Object> modelEnum(final String ftl,
-            final String yml, final Names zis, final List<?> values) {
-        final Map<String, Object> model = commonModel(ftl, yml, zis, null);
+    private Map<String, Object> modelEnum(final Names zis,
+            final List<?> values, final Loaded loaded)
+            throws IOException {
+        final Map<String, Object> model = commonModel(loaded, zis, null);
         model.put("type", Enum.class.getSimpleName());
         model.put("values", values);
         return model;
     }
 
-    protected final void buildClass(final Element cause,
-            final Resource whence, final Names zis, final Names zuper,
-            final Map<String, Map<String, Object>> methods,
-            final Loaded loaded) {
-        this.methods.put(zis.fullName, immutable(methods));
-
-        try (final Writer writer = new OutputStreamWriter(
-                processingEnv.getFiler().
-                        createSourceFile(zis.fullName, cause).
-                        openOutputStream())) {
-            template.process(
-                    modelClass(template.getName(), whence.getURI().toString(),
-                            zis, zuper, methods), writer);
-        } catch (final IOException | TemplateException e) {
-            fail(e, zis, methods, loaded);
-        }
-    }
-
     /** @todo Yucky code */
-    private Map<String, Object> modelClass(final String ftl, final String yml,
-            final Names zis, final Names zuper,
-            final Map<String, Map<String, Object>> methods) {
-        final Map<String, Object> model = commonModel(ftl, yml, zis, zuper);
+    private Map<String, Object> modelClass(final Names zis, final Names zuper,
+            final Map<String, Map<String, Object>> methods,
+            final Loaded loaded)
+            throws IOException {
+        final Map<String, Object> model = commonModel(loaded, zis, zuper);
         model.put("type", Class.class.getSimpleName());
         if (null == methods)
             model.put("data", emptyMap());
@@ -328,12 +418,14 @@ public class YamlGenerateProcessor
                             value.getClass().getName(), key));
     }
 
-    private static Map<String, Object> commonModel(final String ftl,
-            final String yml, final Names zis, final Names zuper) {
+    private Map<String, Object> commonModel(final Loaded loaded,
+            final Names zis, final Names zuper)
+            throws IOException {
         return new HashMap<String, Object>() {{
             put("generator", YamlGenerateProcessor.class.getName());
             put("now", Instant.now().toString());
-            put("comments", format("From '%s' using '%s'", yml, ftl));
+            put("comments", format("From '%s' using '%s'",
+                    loaded.whence.getURI().toString(), template.getName()));
             put("package", zis.packaj);
             put("name", zis.name);
             put("parent", null == zuper ? null : zuper.nameRelativeTo(zis));
@@ -354,25 +446,52 @@ public class YamlGenerateProcessor
         return docs;
     }
 
-    private static final class NameParent {
-        private final String name;
-        private final String parent;
+    public static final class Loaded {
+        private final Resource whence;
+        private final Map<String, Object> yaml;
 
-        private NameParent(final String name, final String parent) {
-            this.name = name;
-            this.parent = parent;
+        private Loaded(final Resource whence,
+                final Map<String, Object> yaml) {
+            this.whence = whence;
+            this.yaml = yaml;
         }
 
-        private static NameParent from(final String key) {
+        @Override
+        public String toString() {
+            return whence.getDescription() + ": " + yaml;
+        }
+    }
+
+    private static final class ZisZuper {
+        @Nonnull
+        private final Names zis;
+        @Nullable
+        private final Names zuper;
+
+        private static ZisZuper from(final Name packaj, final String key) {
+            final String name;
+            final String parent;
             final String[] names = space.split(key);
             switch (names.length) {
             case 1:
-                return new NameParent(names[0], null);
+                name = names[0];
+                parent = null;
+                break;
             case 2:
-                return new NameParent(names[0], names[1]);
+                name = names[0];
+                parent = names[1];
+                break;
             default:
                 return null;
             }
+            return new ZisZuper(Names.from(packaj, name),
+                    Names.from(packaj, parent));
+        }
+
+        private ZisZuper(@Nonnull final Names zis,
+                @Nullable final Names zuper) {
+            this.zis = zis;
+            this.zuper = zuper;
         }
     }
 
@@ -383,21 +502,6 @@ public class YamlGenerateProcessor
         private TypedValue(final String type, final Object value) {
             this.type = type;
             this.value = value;
-        }
-    }
-
-    private static final class Loaded {
-        private final Resource whence;
-        private final Map<String, Object> doc;
-
-        private Loaded(final Resource whence, final Map<String, Object> doc) {
-            this.whence = whence;
-            this.doc = doc;
-        }
-
-        @Override
-        public String toString() {
-            return whence.getDescription() + ": " + doc;
         }
     }
 
