@@ -51,6 +51,7 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
  * @todo Needs documentation.
  * @todo Parse "freemarker.version" from Maven to construct latest Version
  * @todo Remember class methods to define a base layer defining all
+ * @todo Docstrings on enum values
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
@@ -183,24 +184,20 @@ public class YamlGenerateProcessor
             final Resource whence, final Name packaj, final String name,
             final List<String> values)
             throws IOException, TemplateException {
-        final String fullName = fullName(packaj, name);
+        final Names zis = Names.from(packaj, name);
         try (final Writer writer = new OutputStreamWriter(
-                processingEnv.getFiler().createSourceFile(fullName, cause)
+                processingEnv.getFiler().createSourceFile(zis.fullName, cause)
                         .openOutputStream())) {
-            out.note("Writing enum %s", fullName);
             template.process(
                     modelEnum(template.getName(), whence.getURI().toString(),
-                            packaj.toString(), name, null, values), writer);
+                            zis, values), writer);
         }
     }
 
     private static Map<String, Object> modelEnum(final String ftl,
-            final String yml, final String packaj, final String name,
-            final String parent, final List<?> values) {
-        final Map<String, Object> model = commonModel(ftl, yml, packaj, name,
-                parent);
+            final String yml, final Names zis, final List<?> values) {
+        final Map<String, Object> model = commonModel(ftl, yml, zis, null);
         model.put("type", Enum.class.getSimpleName());
-        // TODO: Support doc strings on enums in the YAML
         model.put("values", values);
         return model;
     }
@@ -209,24 +206,25 @@ public class YamlGenerateProcessor
             final Resource whence, final Name packaj, final String name,
             final String parent, final Map<String, Map<String, Object>> data)
             throws IOException, TemplateException {
-        final String fullName = fullName(packaj, name);
-        methods.get(fullName).addAll(data.keySet());
+        final Names zis = Names.from(packaj, name);
+        final Names zuper = Names.from(packaj, parent);
+        methods.get(zis.fullName).addAll(data.keySet());
 
         try (final Writer writer = new OutputStreamWriter(
-                processingEnv.getFiler().createSourceFile(fullName, cause)
-                        .openOutputStream())) {
+                processingEnv.getFiler().
+                        createSourceFile(zis.fullName, cause).
+                        openOutputStream())) {
             template.process(
                     modelClass(template.getName(), whence.getURI().toString(),
-                            packaj.toString(), name, parent, data), writer);
+                            zis, zuper, data), writer);
         }
     }
 
     /** @todo Yucky code */
     private Map<String, Object> modelClass(final String ftl, final String yml,
-            final String packaj, final String name, final String parent,
+            final Names zis, final Names zuper,
             final Map<String, Map<String, Object>> data) {
-        final Map<String, Object> model = commonModel(ftl, yml, packaj, name,
-                parent);
+        final Map<String, Object> model = commonModel(ftl, yml, zis, zuper);
         model.put("type", Class.class.getSimpleName());
         if (null == data)
             model.put("data", emptyMap());
@@ -239,20 +237,15 @@ public class YamlGenerateProcessor
                         (String) props.get("type"), props.get("value"));
                 props.put("type", pair.type);
                 props.put("value", pair.value);
-                props.put("override", overridden(packaj, parent, method));
+                props.put("override", overridden(zuper, method));
             }
             model.put("data", data);
         }
         return model;
     }
 
-    private boolean overridden(final CharSequence packaj, final String parent,
-            final String method) {
-        if (null == parent)
-            return false;
-        final String zuper = parent.contains(".") ? parent
-                : fullName(packaj, parent);
-        return methods.get(zuper).contains(method);
+    private boolean overridden(final Names zuper, final String method) {
+        return null != zuper && methods.get(zuper.fullName).contains(method);
     }
 
     private static final class TypedValue {
@@ -305,21 +298,15 @@ public class YamlGenerateProcessor
     }
 
     private static Map<String, Object> commonModel(final String ftl,
-            final String yml, final String packaj, final String name,
-            final String parent) {
+            final String yml, final Names zis, final Names zuper) {
         return new HashMap<String, Object>() {{
             put("generator", YamlGenerateProcessor.class.getName());
             put("now", Instant.now().toString());
             put("comments", format("From '%s' using '%s'", yml, ftl));
-            put("package", packaj);
-            put("name", name);
-            put("parent", parent);
+            put("package", zis.packaj);
+            put("name", zis.name);
+            put("parent", null == zuper ? null : zuper.nameRelativeTo(zis));
         }};
-    }
-
-    private static String fullName(final CharSequence packaj,
-            final String name) {
-        return 0 == packaj.length() ? name : packaj + "." + name;
     }
 
     private List<Loaded> loadAll(final String pattern) {
