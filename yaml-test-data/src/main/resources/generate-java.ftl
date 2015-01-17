@@ -26,8 +26,9 @@
 
     <#if data[key].doc??>
     /** ${data[key].doc} */
-    @hm.binkley.annotation.YamlGenerate.Doc("${data[key].doc}")
-</#if>    public <#if "text" == data[key].type>String<#elseif "list" == data[key].type>java.util.List<Object><#elseif "map" == data[key].type>java.util.Map<String, Object><#else>${data[key].type}</#if> ${key}() {
+    @hm.binkley.annotation.YamlGenerate.Doc("${data[key].doc}")</#if><#if data[key].override>
+    @Override</#if>
+    public <#if "text" == data[key].type>String<#elseif "list" == data[key].type>java.util.List<Object><#elseif "map" == data[key].type>java.util.Map<String, Object><#else>${data[key].type}</#if> ${key}() {
         <#if !data[key].value??>return null;
         <#elseif data[key].value?is_string>return "${data[key].value}";
         <#elseif data[key].value?is_sequence || data[key].value?is_hash>return ${key};

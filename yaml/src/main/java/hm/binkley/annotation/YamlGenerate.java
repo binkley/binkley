@@ -1,6 +1,7 @@
 package hm.binkley.annotation;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -29,8 +30,9 @@ public @interface YamlGenerate {
     String namespace() default "";
 
     @Documented
+    @Inherited
     @Retention(RUNTIME)
-    public @interface Doc {
+    @interface Doc {
         /** Documentation string for inspecting generated code. */
         String value();
     }
