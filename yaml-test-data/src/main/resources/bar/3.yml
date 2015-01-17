@@ -6,6 +6,15 @@ Baz:
     doc: Pear of my eye
     type: list
 
-Whack fooby.Foo:
+Whack Foo:
   bar:
     value: 7
+
+some.Parent:
+  a:
+    doc: Cool beans
+    value: []
+
+Child some.Parent:
+  a:
+    value: ['a', 3, 4.2, true]

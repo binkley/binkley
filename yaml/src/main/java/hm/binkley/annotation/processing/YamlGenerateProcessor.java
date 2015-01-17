@@ -1,7 +1,5 @@
 package hm.binkley.annotation.processing;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import freemarker.cache.URLTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -39,6 +37,7 @@ import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.unmodifiableMap;
 import static java.util.regex.Pattern.compile;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
@@ -60,14 +59,16 @@ public class YamlGenerateProcessor
         extends
         SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {
     private static final Pattern space = compile("\\s+");
+    private final Map<String, Map<String, Map<String, Object>>> methods
+            = new LinkedHashMap<>();
+    private final Configuration freemarker;
+    private Yaml yaml;
+    private Template template;
+
     // In context, system class loader does not have maven class path
-    private final ResourcePatternResolver loader
+    protected final ResourcePatternResolver loader
             = new PathMatchingResourcePatternResolver(
             YamlGenerateProcessor.class.getClassLoader());
-    // TODO: How to configure the builder with implicits?
-    private final Yaml yaml = YamlHelper.builder().build();
-    private final Multimap<String, String> methods = HashMultimap.create();
-    private final Configuration freemarker;
 
     public YamlGenerateProcessor() {
         super(YamlGenerate.class);
@@ -78,13 +79,26 @@ public class YamlGenerateProcessor
         freemarker.setTemplateExceptionHandler(DEBUG_HANDLER);
     }
 
+    /** Configures YAML, for example, add implicits. */
+    protected YamlHelper.Builder setupYaml(final YamlHelper.Builder builder) {
+        return builder;
+    }
+
     @Override
-    protected YamlGenerateMesseger newMesseger(
+    protected final YamlGenerateMesseger newMesseger(
             final Class<YamlGenerate> annoType, final Messager messager,
             final Element element) {
         return YamlGenerateMesseger.from(messager, element);
     }
 
+    /**
+     * Checks the annotated <var>element</var> for sanity.  Default
+     * implementation checks that {@code &#64;YamlGenerate} is on top-level
+     * interfaces.  When overriding, return {@code super.preValidate(elemenet)}
+     * after yuor own checks.
+     *
+     * @todo Is the top-level restriction for &#64;YamlGenerate needed?
+     */
     @Override
     protected boolean preValidate(final Element element) {
         if (INTERFACE != element.getKind()) {
@@ -101,26 +115,38 @@ public class YamlGenerateProcessor
     }
 
     @Override
-    protected String withAnnotationValue() {
+    protected final String withAnnotationValue() {
         return "template";
     }
 
+    protected boolean postValidate(
+            final Map<String, Map<String, Map<String, Object>>> methods) {
+        return true;
+    }
+
     @Override
-    protected void process(final Element element, final YamlGenerate anno) {
+    protected final boolean postValidate() {
+        return super.postValidate() && postValidate(unmodifiableMap(methods));
+    }
+
+    @Override
+    protected final void process(final Element element,
+            final YamlGenerate anno) {
         final String[] inputs = anno.inputs();
         final String namespace = anno.namespace();
 
         try {
+            yaml = setupYaml(YamlHelper.builder()).build();
             final Resource ftl = loader.getResource(anno.template());
             out = out.withTemplate(ftl);
-            final Template template = freemarker.getTemplate(anno.template());
+            template = freemarker.getTemplate(anno.template());
 
             try {
                 final Name packaj = processingEnv.getElementUtils()
                         .getName(namespace);
 
                 for (final String input : inputs)
-                    process(element, template, packaj, input);
+                    process(element, packaj, input);
             } catch (final Exception e) {
                 out.error(e, "Cannot process");
             }
@@ -129,68 +155,67 @@ public class YamlGenerateProcessor
         }
     }
 
-    private void process(final Element cause, final Template template,
-            final Name packaj, final String input)
-            throws IOException {
+    private void process(final Element cause, final Name packaj,
+            final String input) {
         for (final Loaded loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
+
             for (final Entry<String, Object> each : loaded.doc.entrySet()) {
                 final String key = each.getKey();
-                final String[] names = space.split(key);
-                final String name;
-                final String parent;
-                switch (names.length) {
-                case 1:
-                    name = names[0];
-                    parent = null;
-                    break;
-                case 2:
-                    name = names[0];
-                    parent = names[1];
-                    break;
-                default:
+                final NameParent nameParent = NameParent.from(key);
+                if (null == nameParent) {
                     out.error(
                             "Classes have at most one parent for '%s' in %s",
-                            key, loaded.whence.getURI());
-                    return;
+                            key, loaded);
+                    continue;
                 }
 
+                final Names zis = Names.from(packaj, nameParent.name);
+                final Names zuper = Names.from(packaj, nameParent.parent);
                 final Object value = each.getValue();
+                final boolean isEnum = value instanceof List;
+
                 try {
-                    if (value instanceof List) {
-                        if (null != parent) {
+                    if (isEnum) {
+                        if (null != zuper) {
                             out.error(
-                                    "Enums cannot have a parent for '%s' in %s",
-                                    key, loaded.whence.getURI());
+                                    "Enums cannot have parent for '%s' in %s",
+                                    key, loaded);
                             return;
                         }
-                        buildEnum(cause, template, loaded.whence, packaj,
-                                name, cast(value));
+                        buildEnum(cause, loaded.whence, zis, cast(value),
+                                loaded);
                     } else if (value instanceof Map)
-                        buildClass(cause, template, loaded.whence, packaj,
-                                name, parent, cast(value));
+                        buildClass(cause, loaded.whence, zis, zuper,
+                                cast(value), loaded);
                     else
                         out.error(
-                                "%@ only supports list (enum) and map (class), not (%s) %s",
-                                value.getClass(), value);
+                                "%@ only supports list (enum) and map (class), not (%s) %s in %s",
+                                value.getClass(), value, loaded);
                 } catch (final Exception e) {
-                    out.error(e, "Failed for %s -> %s", name, value);
+                    fail(e, zis, value, loaded);
                 }
             }
         }
     }
 
-    private void buildEnum(final Element cause, final Template template,
-            final Resource whence, final Name packaj, final String name,
-            final List<String> values)
-            throws IOException, TemplateException {
-        final Names zis = Names.from(packaj, name);
+    protected final void fail(final Exception e, final Names zis,
+            final Object value, final Loaded loaded) {
+        final boolean isEnum = value instanceof List;
+        out.error(e, "Failed building %s '%s' with '%s' in %s",
+                isEnum ? "enum" : "class", zis.fullName, value, loaded);
+    }
+
+    protected final void buildEnum(final Element cause, final Resource whence,
+            final Names zis, final List<String> values, final Loaded loaded) {
         try (final Writer writer = new OutputStreamWriter(
                 processingEnv.getFiler().createSourceFile(zis.fullName, cause)
                         .openOutputStream())) {
             template.process(
                     modelEnum(template.getName(), whence.getURI().toString(),
                             zis, values), writer);
+        } catch (final IOException | TemplateException e) {
+            fail(e, zis, values, loaded);
         }
     }
 
@@ -202,13 +227,11 @@ public class YamlGenerateProcessor
         return model;
     }
 
-    private void buildClass(final Element cause, final Template template,
-            final Resource whence, final Name packaj, final String name,
-            final String parent, final Map<String, Map<String, Object>> data)
-            throws IOException, TemplateException {
-        final Names zis = Names.from(packaj, name);
-        final Names zuper = Names.from(packaj, parent);
-        methods.get(zis.fullName).addAll(data.keySet());
+    protected final void buildClass(final Element cause,
+            final Resource whence, final Names zis, final Names zuper,
+            final Map<String, Map<String, Object>> methods,
+            final Loaded loaded) {
+        this.methods.put(zis.fullName, immutable(methods));
 
         try (final Writer writer = new OutputStreamWriter(
                 processingEnv.getFiler().
@@ -216,46 +239,54 @@ public class YamlGenerateProcessor
                         openOutputStream())) {
             template.process(
                     modelClass(template.getName(), whence.getURI().toString(),
-                            zis, zuper, data), writer);
+                            zis, zuper, methods), writer);
+        } catch (final IOException | TemplateException e) {
+            fail(e, zis, methods, loaded);
         }
     }
 
     /** @todo Yucky code */
     private Map<String, Object> modelClass(final String ftl, final String yml,
             final Names zis, final Names zuper,
-            final Map<String, Map<String, Object>> data) {
+            final Map<String, Map<String, Object>> methods) {
         final Map<String, Object> model = commonModel(ftl, yml, zis, zuper);
         model.put("type", Class.class.getSimpleName());
-        if (null == data)
+        if (null == methods)
             model.put("data", emptyMap());
         else {
-            for (final Entry<String, Map<String, Object>> datum : data
+            for (final Entry<String, Map<String, Object>> method : methods
                     .entrySet()) {
-                final String method = datum.getKey();
-                final Map<String, Object> props = datum.getValue();
-                final TypedValue pair = model(method,
+                final String name = method.getKey();
+                final Map<String, Object> props = method.getValue();
+                final TypedValue pair = model(name,
                         (String) props.get("type"), props.get("value"));
                 props.put("type", pair.type);
                 props.put("value", pair.value);
-                props.put("override", overridden(zuper, method));
+                props.put("override", overridden(zuper, name));
             }
-            model.put("data", data);
+            model.put("methods", methods);
         }
         return model;
     }
 
     private boolean overridden(final Names zuper, final String method) {
-        return null != zuper && methods.get(zuper.fullName).contains(method);
+        return null != zuper && methods.get(zuper.fullName)
+                .containsKey(method);
     }
 
-    private static final class TypedValue {
-        private final String type;
-        private final Object value;
+    @SuppressWarnings("unchecked")
+    private static <T> T cast(final Object o) {
+        return (T) o;
+    }
 
-        private TypedValue(final String type, final Object value) {
-            this.type = type;
-            this.value = value;
-        }
+    private static Map<String, Map<String, Object>> immutable(
+            final Map<String, Map<String, Object>> methods) {
+        final Map<String, Map<String, Object>> immutable
+                = new LinkedHashMap<>();
+        methods.entrySet().
+                forEach(e -> immutable
+                        .put(e.getKey(), unmodifiableMap(e.getValue())));
+        return unmodifiableMap(immutable);
     }
 
     private static TypedValue model(final String key, final String type,
@@ -323,9 +354,36 @@ public class YamlGenerateProcessor
         return docs;
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> T cast(final Object o) {
-        return (T) o;
+    private static final class NameParent {
+        private final String name;
+        private final String parent;
+
+        private NameParent(final String name, final String parent) {
+            this.name = name;
+            this.parent = parent;
+        }
+
+        private static NameParent from(final String key) {
+            final String[] names = space.split(key);
+            switch (names.length) {
+            case 1:
+                return new NameParent(names[0], null);
+            case 2:
+                return new NameParent(names[0], names[1]);
+            default:
+                return null;
+            }
+        }
+    }
+
+    private static final class TypedValue {
+        private final String type;
+        private final Object value;
+
+        private TypedValue(final String type, final Object value) {
+            this.type = type;
+            this.value = value;
+        }
     }
 
     private static final class Loaded {
