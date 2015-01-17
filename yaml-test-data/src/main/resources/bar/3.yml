@@ -5,3 +5,7 @@ Baz:
   pear:
     doc: Pear of my eye
     type: list
+
+Whack fooby.Foo:
+  bar:
+    value: 7
