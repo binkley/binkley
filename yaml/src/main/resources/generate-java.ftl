@@ -21,24 +21,33 @@ TODO: FreeMarker template fixes
     ${values?join(", ")};
 }<#else>public class ${name}<#if parent??> extends ${parent}</#if> {
 <#list methods?keys as key>
-<#if methods[key].value??><#if methods[key].value?is_sequence>
+<#assign has_init = false/>
+<#if methods[key].value??>
+    <#if methods[key].value?is_sequence>
+    <#assign has_init = true/>
     private final java.util.List<Object> ${key} = new java.util.ArrayList<>(${methods[key].value?size});
-    <#if methods[key].value?has_content>{
+    <#if methods[key].value?has_content>
+    {
         <#list methods[key].value as each>
         ${key}.add(<@jvalue type=methods[key].type value=each/>);
         </#list>
-    }</#if>
+    }
+    </#if>
 <#elseif methods[key].value?is_hash>
+    <#assign has_init = true/>
     private final java.util.Map<String, Object> ${key} = new java.util.HashMap<>(${methods[key].value?size});
-    <#if methods[key].value?has_content>{
+    <#if methods[key].value?has_content>
+    {
         <#list methods[key].value?keys as each>
         ${key}.put("${each}", <@jvalue type=methods[key].type value=methods[key].value[each]/>);
         </#list>
-    }</#if></#if>
+    }
+</#if>
+</#if>
 </#if>
 </#list>
 <#list methods?keys as key>
-    <#if 0 != key_index>
+    <#if has_init || 0 != key_index>
 
     </#if>
     <#if methods[key].doc??>
