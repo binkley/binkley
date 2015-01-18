@@ -12,6 +12,8 @@ Foo:
   burb:
     doc: Rather quackers
     type: Duck
+  bub:
+    value: Example undocumented
 
 Howard Foo:
   sixtyish:

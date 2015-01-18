@@ -26,14 +26,17 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.time.Instant;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
@@ -43,6 +46,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.regex.Pattern.compile;
+import static java.util.stream.Collectors.joining;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.PACKAGE;
@@ -363,7 +367,6 @@ public class YamlGenerateProcessor
         return model;
     }
 
-    /** @todo Yucky code */
     private Map<String, Object> modelClass(final Names zis, final Names zuper,
             final Map<String, Map<String, Object>> methods,
             final Loaded loaded)
@@ -382,6 +385,7 @@ public class YamlGenerateProcessor
                 props.put("type", pair.type);
                 props.put("value", pair.value);
                 props.put("override", overridden(zuper, name));
+                props.put("definition", toAnnotationValue(props));
             }
             model.put("methods", methods);
         }
@@ -391,6 +395,20 @@ public class YamlGenerateProcessor
     private boolean overridden(final Names zuper, final String method) {
         return null != zuper && methods.get(zuper.fullName)
                 .containsKey(method);
+    }
+
+    /**
+     * @todo Recursive for values which are maps, etc.
+     * @todo Handle quotes within quotes
+     */
+    private static String toAnnotationValue(final Map<String, Object> props) {
+        return props.entrySet().stream().
+                map(e -> new AbstractMap.SimpleImmutableEntry<>(e.getKey(),
+                        Objects.toString(e.getValue()))).
+                map(e -> new AbstractMap.SimpleImmutableEntry<>(
+                        '"' + e.getKey() + '"', '"' + e.getValue() + '"')).
+                flatMap(e -> Stream.of(e.getKey(), e.getValue())).
+                collect(joining(", ", "{", "}"));
     }
 
     @SuppressWarnings("unchecked")

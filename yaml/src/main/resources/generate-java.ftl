@@ -39,13 +39,19 @@ TODO: FreeMarker template fixes
 </#list>
 <#list methods?keys as key>
 
-<#if methods[key].doc??>
+    <#if methods[key].doc??>
     /** ${methods[key].doc} */
-    @hm.binkley.annotation.YamlGenerate.Doc("${methods[key].doc}")
-</#if>
-<#if methods[key].override>
+    <#else>
+    /**
+     * @{code ${key}} is undocumented.
+     *
+     * @todo Documentation
+     */
+    </#if>
+    <#if methods[key].override>
     @Override
-</#if>
+    </#if>
+    @hm.binkley.annotation.YamlGenerate.Definition(${methods[key].definition})
     public <#if "text" == methods[key].type>String<#elseif "list" == methods[key].type>java.util.List<Object><#elseif "map" == methods[key].type>java.util.Map<String, Object><#else>${methods[key].type}</#if> ${key}() {
         return <#if methods[key].value?? && (methods[key].value?is_sequence || methods[key].value?is_hash)>${key}<#else><@jvalue type=methods[key].type value=methods[key].value/></#if>;
     }
