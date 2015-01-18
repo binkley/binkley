@@ -32,8 +32,13 @@ public @interface YamlGenerate {
     @Documented
     @Inherited
     @Retention(RUNTIME)
-    @interface Doc {
-        /** Documentation string for inspecting generated code. */
-        String value();
+    @interface Definition {
+        /**
+         * Key/value pairs of the YAML definition for this method.  Ideally
+         * this would be a sequence of pairs of string to Object, but
+         * annotations do not support that.  Values in the pair are their
+         * natural {@code toString()} representation.
+         */
+        String[] value();
     }
 }
