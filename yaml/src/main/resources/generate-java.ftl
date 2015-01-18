@@ -38,7 +38,7 @@ TODO: FreeMarker template fixes
 </#if>
 </#list>
 <#list methods?keys as key>
-    <#if !methods?first>
+    <#if 0 != key_index>
 
     </#if>
     <#if methods[key].doc??>
