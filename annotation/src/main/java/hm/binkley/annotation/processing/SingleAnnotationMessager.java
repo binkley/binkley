@@ -112,7 +112,7 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
         private final String format;
         private final Object[] args;
 
-        protected MessageArgs(final String format, final Object... args) {
+        private MessageArgs(final String format, final Object... args) {
             this.format = format;
             this.args = args;
         }
@@ -124,17 +124,18 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
 
     private String message(final Exception cause, final String format,
             final Object... args) {
-        final MessageArgs messageArgs = messageArgs(format, args);
+        // Give subclass a chance to modify these before we do
+        final MessageArgs margs = messageArgs(format, args);
         final String xFormat;
         final Object[] xArgs;
         if (null == cause) {
-            xFormat = messageArgs.format;
-            xArgs = messageArgs.args;
+            xFormat = margs.format;
+            xArgs = margs.args;
         } else {
-            xFormat = messageArgs.format + ": %s";
-            xArgs = new Object[1 + messageArgs.args.length];
-            arraycopy(messageArgs.args, 0, xArgs, 0, messageArgs.args.length);
-            xArgs[args.length] = cause;
+            xFormat = margs.format + ": %s";
+            xArgs = new Object[margs.args.length + 1];
+            arraycopy(margs.args, 0, xArgs, 0, margs.args.length);
+            xArgs[margs.args.length] = cause;
         }
 
         return format(

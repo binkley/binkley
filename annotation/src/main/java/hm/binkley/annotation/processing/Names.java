@@ -28,7 +28,6 @@
 package hm.binkley.annotation.processing;
 
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,11 +40,11 @@ import javax.annotation.Nullable;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 @EqualsAndHashCode
-@ToString
 public final class Names {
     public final String fullName;
     public final String packaj;
     public final String name;
+    public final Object diagnostic;
 
     /**
      * Creates a new {@code Names} from the given <var>packaj</var> and
@@ -59,27 +58,45 @@ public final class Names {
      */
     @Nullable
     public static Names from(@Nonnull final CharSequence packaj,
-            @Nullable final String name) {
-        return null == name ? null : new Names(packaj, name);
-    }
+            @Nullable final String name, @Nullable final Object diagnostic) {
+        if (null == name)
+            return null;
 
-    private Names(final CharSequence packaj, final String name) {
+        final String fullName;
+        final String packageName;
+        final String className;
+
         final int len = packaj.length();
         final int x = name.lastIndexOf('.');
         if (-1 == x) {
             fullName = 0 == len ? name : packaj + "." + name;
-            this.packaj = packaj.toString();
-            this.name = name;
+            packageName = packaj.toString();
+            className = name;
         } else {
             if (0 == len) {
                 fullName = name;
-                this.packaj = name.substring(0, x);
+                packageName = name.substring(0, x);
             } else {
                 fullName = packaj + "." + name;
-                this.packaj = packaj + "." + name.substring(0, x);
+                packageName = packaj + "." + name.substring(0, x);
             }
-            this.name = name.substring(x + 1);
+            className = name.substring(x + 1);
         }
+
+        return new Names(fullName, packageName, className, diagnostic);
+    }
+
+    public Names withDiagnostic(final Object diagnostic) {
+        return new Names(fullName, packaj, name, diagnostic);
+    }
+
+    private Names(@Nonnull final String fullName,
+            @Nonnull final String packaj, @Nonnull final String name,
+            @Nullable final Object diagnostic) {
+        this.fullName = fullName;
+        this.packaj = packaj;
+        this.name = name;
+        this.diagnostic = diagnostic;
     }
 
     /**
@@ -92,5 +109,11 @@ public final class Names {
     @Nonnull
     public String nameRelativeTo(@Nonnull final Names zis) {
         return packaj.equals(zis.packaj) ? name : fullName;
+    }
+
+    @Override
+    public String toString() {
+        return null == diagnostic ? fullName
+                : fullName + "(" + diagnostic + ")";
     }
 }
