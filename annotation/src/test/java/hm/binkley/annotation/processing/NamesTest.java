@@ -77,8 +77,8 @@ public class NamesTest {
 
     @Test
     public void shouldWork() {
-        final Names zis = Names.from(packajIn, nameIn);
-        final Names zuper = Names.from(packajIn, parentIn);
+        final Names zis = Names.from(packajIn, nameIn, null);
+        final Names zuper = Names.from(packajIn, parentIn, null);
         assertThat("fullname", zis.fullName, is(equalTo(fullName)));
         assertThat("packaj", zis.packaj, is(equalTo(packaj)));
         assertThat("name", zis.name, is(equalTo(name)));

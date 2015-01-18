@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
 import static java.lang.String.format;
+import static java.lang.System.arraycopy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
@@ -47,13 +48,13 @@ import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.PACKAGE;
 
 /**
- * {@code YamlGenerateProcessor} <b>needs documentation</b>.
+ * {@code YamlGenerateProcessor} generates Java source enums and classes from
+ * YAML descriptions.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  * @todo Much better, less hacky APi for extension
  * @todo Parse "freemarker.version" from Maven to construct latest Version
- * @todo Remember class methods to define a base layer defining all
  * @todo Docstrings on enum values
  * @todo Custom configuration of Freemarker
  */
@@ -173,10 +174,10 @@ public class YamlGenerateProcessor
                 for (final String input : inputs)
                     process(element, packaj, input);
             } catch (final Exception e) {
-                out.error(e, "Cannot process");
+                out.error(e, "%@ cannot process");
             }
         } catch (final Exception e) {
-            out.error(e, "Cannot create template");
+            out.error(e, "%@ cannot create template");
         }
     }
 
@@ -201,21 +202,21 @@ public class YamlGenerateProcessor
 
             for (final Entry<String, Object> each : loaded.yaml.entrySet()) {
                 final String key = each.getKey();
-                final ZisZuper names = ZisZuper.from(packaj, key);
-                if (null == names) {
-                    // TODO: Use fail()
-                    out.error(
-                            "Classes have at most one parent for '%s' in %s",
-                            key, loaded);
-                    continue;
-                }
-
                 final Object value = each.getValue();
                 final Generate generate = Generate.from(value);
                 if (null == generate) {
                     out.error(
-                            "%@ only supports list (enum) and map (class), not (%s) %s in %s",
-                            value.getClass(), value, loaded);
+                            "%@ only supports list (enum) and map (class), not %s in '%s' from '%s' with %s",
+                            value.getClass(), key, loaded, value);
+                    continue;
+                }
+
+                final ZisZuper names = ZisZuper.from(packaj, key);
+                if (null == names) {
+                    // TODO: Use fail()
+                    out.error(
+                            "%@ classes have at most one parent for '%s' from '%s'",
+                            key, loaded);
                     continue;
                 }
 
@@ -223,10 +224,8 @@ public class YamlGenerateProcessor
                     switch (generate) {
                     case ENUM:
                         if (null != names.zuper) {
-                            // TODO: Use fail()
-                            out.error(
-                                    "Enums cannot have parent for '%s' in %s",
-                                    key, loaded);
+                            fail(names.zis, value, loaded,
+                                    "Enums cannot have a parent");
                             continue;
                         }
                         buildEnum(cause, names.zis, cast(value), loaded);
@@ -253,15 +252,41 @@ public class YamlGenerateProcessor
      * classes), never missing
      * @param loaded the loading details for the YAML defining the class,
      * never missing
-     *
-     * @todo Use more widely
      */
     protected final void fail(@Nonnull final Exception e,
             @Nonnull final Names zis, @Nonnull final Object value,
             @Nonnull final Loaded loaded) {
-        final boolean enumish = value instanceof List;
-        out.error(e, "%s: Failed building %s '%s' with '%s' in %s", e,
-                enumish ? "enum" : "class", zis.fullName, value, loaded);
+        final String type = value instanceof List ? "enum" : "class";
+        out.error(e, "%s: Failed building %s '%s' from '%s' with '%s'", e,
+                type, zis, loaded, value);
+    }
+
+    /**
+     * Fails the Javac build with details specific to YAML-to-Java code
+     * generation after an internal exception.
+     *
+     * @param zis the details for the processed class name, never missing
+     * @param value the data details for the class (list for enums, map for
+     * classes), never missing
+     * @param loaded the loading details for the YAML defining the class,
+     * never missing
+     * @param format a printf-style message, optional
+     * @param args arguments for <var>format</var>, if any
+     */
+    protected final void fail(@Nonnull final Names zis,
+            @Nonnull final Object value, @Nonnull final Loaded loaded,
+            @Nullable final String format, final Object... args) {
+        final String type = value instanceof List ? "enum" : "class";
+        final Object[] xArgs = new Object[args.length + 4];
+        arraycopy(args, 0, xArgs, 0, args.length);
+        xArgs[args.length] = type;
+        xArgs[args.length + 1] = zis;
+        xArgs[args.length + 2] = loaded;
+        xArgs[args.length + 3] = value;
+        final String xFormat = null == format
+                ? "Failed building %s '%s' from '%s' with '%s'"
+                : format + ": Failed building %s '%s' from '%s' with '%s'";
+        out.error(xFormat, xArgs);
     }
 
     /**
@@ -320,7 +345,11 @@ public class YamlGenerateProcessor
                 processingEnv.getFiler().createSourceFile(zis.fullName, cause)
                         .openOutputStream())) {
             template.process(model.get(), writer);
-        } catch (final IOException | TemplateException e) {
+        } catch (final IOException e) {
+            fail(e, zis, values, loaded);
+        } catch (final TemplateException e) {
+            template.getSource(e.getColumnNumber(), e.getLineNumber(),
+                    e.getEndColumnNumber(), e.getEndLineNumber());
             fail(e, zis, values, loaded);
         }
     }
@@ -379,6 +408,7 @@ public class YamlGenerateProcessor
         return unmodifiableMap(immutable);
     }
 
+    /** @todo Use fail() and return null */
     private static TypedValue model(final String key, final String type,
             final Object value) {
         if (null == value) {
@@ -484,8 +514,9 @@ public class YamlGenerateProcessor
             default:
                 return null;
             }
-            return new ZisZuper(Names.from(packaj, name),
-                    Names.from(packaj, parent));
+            //noinspection ConstantConditions
+            return new ZisZuper(Names.from(packaj, name, key),
+                    Names.from(packaj, parent, key));
         }
 
         private ZisZuper(@Nonnull final Names zis,
@@ -513,7 +544,7 @@ public class YamlGenerateProcessor
             try {
                 return resource.exists() ? resource.getURL() : null;
             } catch (final IOException e) {
-                out.error(e, "Cannot load FTL template from '%s'",
+                out.error(e, "%@ cannot load FTL template from '%s'",
                         resource.getDescription());
                 return null;
             }
