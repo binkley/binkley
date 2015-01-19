@@ -1,6 +1,10 @@
-Duck:
-- Bill
-- Feathers
+Duck Enum:
+  .meta:
+    doc: Walks like a duck
+  Bill:
+    doc: Sitting here on Capital Hill
+  Feathers:
+    doc: Throw me in Forochel
 
 Foo:
   .meta:

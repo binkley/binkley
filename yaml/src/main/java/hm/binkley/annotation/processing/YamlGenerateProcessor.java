@@ -187,14 +187,10 @@ public class YamlGenerateProcessor
     private enum Generate {
         ENUM, CLASS;
 
-        @Nullable
-        private static Generate from(@Nonnull final Object value) {
-            if (value instanceof List)
-                return ENUM;
-            else if (value instanceof Map)
-                return CLASS;
-            else
-                return null;
+        @Nonnull
+        private static Generate from(@Nonnull final ZisZuper types) {
+            final Names zuper = types.zuper;
+            return null == zuper || !"Enum".equals(zuper.name) ? CLASS : ENUM;
         }
     }
 
@@ -205,14 +201,6 @@ public class YamlGenerateProcessor
 
             for (final Entry<String, Object> each : loaded.yaml.entrySet()) {
                 final String key = each.getKey();
-                final Object value = each.getValue();
-                final Generate generate = Generate.from(value);
-                if (null == generate) {
-                    out.error(
-                            "%@ only supports list (enum) and map (class), not %s in '%s' from '%s' with %s",
-                            value.getClass(), key, loaded, value);
-                    continue;
-                }
 
                 final ZisZuper names = ZisZuper.from(packaj, key);
                 if (null == names) {
@@ -223,14 +211,10 @@ public class YamlGenerateProcessor
                     continue;
                 }
 
+                final Object value = each.getValue();
                 try {
-                    switch (generate) {
+                    switch (Generate.from(names)) {
                     case ENUM:
-                        if (null != names.zuper) {
-                            fail(names.zis, value, loaded,
-                                    "Enums cannot have a parent");
-                            continue;
-                        }
                         buildEnum(cause, names.zis, cast(value), loaded);
                         break;
                     case CLASS:
@@ -313,7 +297,8 @@ public class YamlGenerateProcessor
      * @param loaded the loading details for the YAML defining the class,
      */
     protected final void buildEnum(@Nonnull final Element cause,
-            @Nonnull final Names zis, @Nonnull final List<String> values,
+            @Nonnull final Names zis,
+            @Nonnull final Map<String, Map<String, Object>> values,
             @Nonnull final Loaded loaded) {
         writeSource(cause, zis, values, loaded,
                 () -> modelEnum(zis, values, loaded));
@@ -358,11 +343,27 @@ public class YamlGenerateProcessor
     }
 
     private Map<String, Object> modelEnum(final Names zis,
-            final List<?> values, final Loaded loaded)
+            final Map<String, Map<String, Object>> rawEnums,
+            final Loaded loaded)
             throws IOException {
         final Map<String, Object> model = commonModel(loaded, zis, null);
         model.put("type", Enum.class.getSimpleName());
-        model.put("values", values);
+        final List<String> enums = new ArrayList<>(rawEnums.size());
+        for (final Entry<String, Map<String, Object>> emum : rawEnums
+                .entrySet()) {
+            final String name = emum.getKey();
+            switch (name) {
+            case ".meta":
+                // Class details
+                model.put("doc", emum.getValue().get("doc"));
+                break;
+            default:
+                // Enum names
+                enums.add(name);
+                break;
+            }
+        }
+        model.put("values", enums);
         return model;
     }
 
@@ -384,7 +385,7 @@ public class YamlGenerateProcessor
                 switch (name) {
                 case ".meta":
                     // Class details
-                    model.put("doc", rawMethods.get(".meta").get("doc"));
+                    model.put("doc", method.getValue().get("doc"));
                     continue;
                 default:
                     // Instance details
