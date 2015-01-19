@@ -3,6 +3,8 @@ Duck:
 - Feathers
 
 Foo:
+  .meta:
+    doc: I am the one and only Foo!
   bar:
     doc: I am bar
     value: 0
