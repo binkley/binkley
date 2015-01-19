@@ -28,7 +28,6 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -368,24 +367,36 @@ public class YamlGenerateProcessor
     }
 
     private Map<String, Object> modelClass(final Names zis, final Names zuper,
-            final Map<String, Map<String, Object>> methods,
+            final Map<String, Map<String, Object>> rawMethods,
             final Loaded loaded)
             throws IOException {
         final Map<String, Object> model = commonModel(loaded, zis, zuper);
         model.put("type", Class.class.getSimpleName());
+
         if (null == methods)
             model.put("data", emptyMap());
         else {
-            for (final Entry<String, Map<String, Object>> method : methods
+            final Map<String, Map<String, Object>> methods
+                    = new LinkedHashMap<>(rawMethods.size());
+            for (final Entry<String, Map<String, Object>> method : rawMethods
                     .entrySet()) {
                 final String name = method.getKey();
-                final Map<String, Object> props = method.getValue();
-                final TypedValue pair = model(name,
-                        (String) props.get("type"), props.get("value"));
-                props.put("type", pair.type);
-                props.put("value", pair.value);
-                props.put("override", overridden(zuper, name));
-                props.put("definition", toAnnotationValue(props));
+                switch (name) {
+                case ".meta":
+                    // Class details
+                    model.put("doc", rawMethods.get(".meta").get("doc"));
+                    continue;
+                default:
+                    // Instance details
+                    final Map<String, Object> props = method.getValue();
+                    methods.put(name, props);
+                    final TypedValue pair = model(name,
+                            (String) props.get("type"), props.get("value"));
+                    props.put("type", pair.type);
+                    props.put("value", pair.value);
+                    props.put("override", overridden(zuper, name));
+                    props.put("definition", toAnnotationValue(props));
+                }
             }
             model.put("methods", methods);
         }
@@ -469,7 +480,7 @@ public class YamlGenerateProcessor
     private Map<String, Object> commonModel(final Loaded loaded,
             final Names zis, final Names zuper)
             throws IOException {
-        return new HashMap<String, Object>() {{
+        return new LinkedHashMap<String, Object>() {{
             put("generator", YamlGenerateProcessor.class.getName());
             put("now", Instant.now().toString());
             put("comments", format("From '%s' using '%s'",

@@ -11,9 +11,14 @@ TODO: FreeMarker template fixes
     <#elseif value?is_boolean || value?is_number>${value?c}<#if "double" == type>d</#if>
     <#else>${type}.valueOf("${value}")</#if>
 </@compress></#macro>
-<#if package?has_content>package ${package};
+<#if package?has_content>
+package ${package};
 
-</#if>@javax.annotation.Generated(
+</#if>
+<#if doc??>
+/** ${doc} */
+</#if>
+@javax.annotation.Generated(
     value="${generator}",
     date="${now}",
     comments="${comments}")
