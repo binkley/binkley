@@ -5,6 +5,8 @@ Duck Enum:
     doc: Sitting here on Capital Hill
   Feathers:
     doc: Throw me in Forochel
+  # Undocumented
+  Feet:
 
 Foo:
   .meta:

@@ -22,8 +22,21 @@ package ${package};
     value="${generator}",
     date="${now}",
     comments="${comments}")
+@hm.binkley.annotation.YamlGenerate.Definition(${definition})
 <#if type == "Enum">public enum ${name} {
-    ${values?join(", ")};
+<#list values?keys as value>
+    <#if values[value].doc??>
+    /** ${values[value].doc} */
+    <#else>
+    /**
+    * @{code ${value}} is undocumented.
+    *
+    * @todo Documentation
+    */
+    </#if>
+    @hm.binkley.annotation.YamlGenerate.Definition(${values[value].definition})
+    ${value}<#if value_has_next>,<#else>;</#if>
+</#list>
 }<#else>public class ${name}<#if parent??> extends ${parent}</#if> {
 <#list methods?keys as key>
 <#assign has_init = false/>
