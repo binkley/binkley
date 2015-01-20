@@ -70,12 +70,7 @@ package ${package};
     </#if>
     <#if methods[key].doc??>
     /** ${methods[key].doc} */
-    <#else>
-    /**
-     * @{code ${key}} is undocumented.
-     *
-     * @todo Documentation
-     */
+    @hm.binkley.annotation.YamlGenerate.Documentation("${methods[key].doc}")
     </#if>
     <#if methods[key].override>
     @Override

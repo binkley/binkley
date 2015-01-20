@@ -5,6 +5,8 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
@@ -32,6 +34,7 @@ public @interface YamlGenerate {
     @Documented
     @Inherited
     @Retention(RUNTIME)
+    @Target({FIELD, METHOD, TYPE})
     @interface Definition {
         /**
          * Key/value pairs of the YAML definition for this method.  Ideally
@@ -40,5 +43,19 @@ public @interface YamlGenerate {
          * natural {@code toString()} representation.
          */
         String[] value();
+    }
+
+    @Documented
+    @Inherited
+    @Retention(RUNTIME)
+    @Target(METHOD)
+    @interface Documentation {
+        /**
+         * Documentation from YAML, same as the {@code "doc"} value in {@link
+         * Definition} repeated separately so the annotation is inherited.
+         * Extending YAML classes may declare overrides to change values, and
+         * inherit the documentation.
+         */
+        String value();
     }
 }
