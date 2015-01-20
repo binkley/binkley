@@ -28,3 +28,4 @@ Howard Foo:
     value: 60.00001
   bar:
     value: 2
+    undefined: extra
