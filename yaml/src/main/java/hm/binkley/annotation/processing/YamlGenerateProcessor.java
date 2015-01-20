@@ -66,6 +66,7 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
  * @todo Parse "freemarker.version" from Maven to construct latest Version
  * @todo Custom configuration of Freemarker
  * @todo Errors in blocks should show source specific to block, not whole
+ * @todo Shorten path for template in comment anno, similar as for yamls
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
@@ -174,7 +175,7 @@ public class YamlGenerateProcessor
             yaml = newYamlBuilder().build();
             final Resource ftl = loader.getResource(anno.template());
             out = out.withTemplate(ftl);
-            template = freemarker.getTemplate(anno.template());
+            template = freemarker.getTemplate(ftl.getURI().toString());
 
             try {
                 final Name packaj = processingEnv.getElementUtils()
@@ -378,6 +379,12 @@ public class YamlGenerateProcessor
      */
     private static String toAnnotationValue(final Map<String, Object> props) {
         return props.entrySet().stream().
+                map(e -> {
+                    final Object value = e.getValue();
+                    return new AbstractMap.SimpleImmutableEntry<>(
+                            e.getKey() + ":" + (null == value ? "null"
+                                    : typeOf(value)), value);
+                }).
                 map(e -> new AbstractMap.SimpleImmutableEntry<>(e.getKey(),
                         Objects.toString(e.getValue()))).
                 map(e -> new AbstractMap.SimpleImmutableEntry<>(
@@ -425,20 +432,23 @@ public class YamlGenerateProcessor
             throw new IllegalStateException(
                     format("TODO: Both value and type are provided for '%s'",
                             key));
-        else if (value instanceof String)
-            return new TypedValue("text", value);
+
+        return new TypedValue(typeOf(value), value);
+    }
+
+    private static String typeOf(final Object value) {
+        if (value instanceof String)
+            return "text";
         else if (value instanceof Integer)
-            return new TypedValue("int", value);
+            return "int";
         else if (value instanceof Double)
-            return new TypedValue("double", value);
+            return "double";
         else if (value instanceof List)
-            return new TypedValue("list", value);
+            return "list";
         else if (value instanceof Map)
-            return new TypedValue("map", value);
+            return "map";
         else
-            throw new IllegalStateException(
-                    format("TODO: Support UDT of '%s' for '%s'",
-                            value.getClass().getName(), key));
+            return value.getClass().getName();
     }
 
     private Map<String, Object> commonModel(final ZisZuper names,
@@ -508,7 +518,6 @@ public class YamlGenerateProcessor
         }
 
         private static String shorten(final URI uri) {
-            System.err.println("*** shorten - " + uri);
             final String path = uri.getPath();
             return roots.stream().
                     filter(path::endsWith).
