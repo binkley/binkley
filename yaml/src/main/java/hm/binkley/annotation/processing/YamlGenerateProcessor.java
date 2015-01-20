@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -58,8 +57,8 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
  * @todo Needs documentation.
  * @todo Much better, less hacky APi for extension
  * @todo Parse "freemarker.version" from Maven to construct latest Version
- * @todo Docstrings on enum values
  * @todo Custom configuration of Freemarker
+ * @todo Errors in blocks should show source specific to block, not whole
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
@@ -185,11 +184,45 @@ public class YamlGenerateProcessor
     }
 
     private enum Generate {
-        ENUM, CLASS;
+        ENUM("Enum", "values") {
+            @Override
+            protected void generate(final String name,
+                    final Map<String, Object> model,
+                    final Map<String, Object> block, final ZisZuper names,
+                    final Map<String, Map<String, Map<String, Object>>> methods) {
+                // Do nothing
+            }
+        }, CLASS("Class", "methods") {
+            @Override
+            protected void generate(final String name,
+                    final Map<String, Object> model,
+                    final Map<String, Object> block, final ZisZuper names,
+                    final Map<String, Map<String, Map<String, Object>>> methods) {
+                model.put("parent", names.parent());
+                final TypedValue pair = model(name,
+                        (String) block.get("type"), block.get("value"));
+                block.put("type", pair.type);
+                block.put("value", pair.value);
+                block.put("override", names.overridden(methods, name));
+            }
+        };
+
+        private final String typeKey;
+        private final String loopKey;
+
+        Generate(final String typeKey, final String loopKey) {
+            this.typeKey = typeKey;
+            this.loopKey = loopKey;
+        }
+
+        protected abstract void generate(final String name,
+                final Map<String, Object> model,
+                final Map<String, Object> block, final ZisZuper names,
+                final Map<String, Map<String, Map<String, Object>>> methods);
 
         @Nonnull
-        private static Generate from(@Nonnull final ZisZuper types) {
-            final Names zuper = types.zuper;
+        private static Generate from(@Nonnull final ZisZuper names) {
+            final Names zuper = names.zuper;
             return null == zuper || !"Enum".equals(zuper.name) ? CLASS : ENUM;
         }
     }
@@ -211,19 +244,12 @@ public class YamlGenerateProcessor
                     continue;
                 }
 
-                final Object value = each.getValue();
+                final Map<String, Map<String, Object>> values = cast(
+                        each.getValue());
                 try {
-                    switch (Generate.from(names)) {
-                    case ENUM:
-                        buildEnum(cause, names.zis, cast(value), loaded);
-                        break;
-                    case CLASS:
-                        buildClass(cause, names.zis, names.zuper, cast(value),
-                                loaded);
-                        break;
-                    }
+                    buildX(cause, names, values, loaded);
                 } catch (final RuntimeException e) {
-                    fail(e, names.zis, value, loaded);
+                    fail(e, names.zis, values, loaded);
                 }
             }
         }
@@ -276,137 +302,68 @@ public class YamlGenerateProcessor
         out.error(xFormat, xArgs);
     }
 
-    /**
-     * Builds a FreeMarker model for writing source files.  Essentially the
-     * same as {@link Supplier} but throws {@code IOException}.
-     */
-    @FunctionalInterface
-    public interface ModelSupplier {
-        @Nonnull
-        Map<String, Object> get()
-                throws IOException;
-    }
-
-    /**
-     * Generates source for an {@code enum} from YAML.
-     *
-     * @param cause the element annotated with {@code &64;YamlGenerate}, never
-     * missing
-     * @param zis the defails of the processed enum name, never missing
-     * @param values the data details for the enum, never missing
-     * @param loaded the loading details for the YAML defining the class,
-     */
-    protected final void buildEnum(@Nonnull final Element cause,
-            @Nonnull final Names zis,
-            @Nonnull final Map<String, Map<String, Object>> values,
-            @Nonnull final Loaded loaded) {
-        writeSource(cause, zis, values, loaded,
-                () -> modelEnum(zis, values, loaded));
-    }
-
-    /**
-     * Generates source for a {@code class} from YAML.
-     *
-     * @param cause the element annotated with {@code &64;YamlGenerate}, never
-     * missing
-     * @param zis the defails of the processed class name, never missing
-     * @param zuper the defails of the processed super class, {@code null} if
-     * none
-     * @param methods the data details for the class, never missing
-     * @param loaded the loading details for the YAML defining the class,
-     */
-    protected final void buildClass(@Nonnull final Element cause,
-            @Nonnull final Names zis, @Nullable final Names zuper,
+    private void buildX(@Nonnull final Element cause,
+            @Nonnull final ZisZuper names,
             @Nonnull final Map<String, Map<String, Object>> methods,
             @Nonnull final Loaded loaded) {
-        this.methods.put(zis.fullName, immutable(methods));
-
-        writeSource(cause, zis, methods, loaded,
-                () -> modelClass(zis, zuper, methods, loaded));
-    }
-
-    private void writeSource(final Element cause, final Names zis,
-            final Object values, final Loaded loaded,
-            final ModelSupplier model) {
-        // "Inside out" to keep exception handling in this method
         try (final Writer writer = new OutputStreamWriter(
-                processingEnv.getFiler().createSourceFile(zis.fullName, cause)
+                processingEnv.getFiler()
+                        .createSourceFile(names.zis.fullName, cause)
                         .openOutputStream())) {
-            template.process(model.get(), writer);
+            template.process(modelX(names, methods, loaded), writer);
         } catch (final IOException e) {
-            fail(e, zis, values, loaded);
+            fail(e, names.zis, methods, loaded);
         } catch (final TemplateException e) {
             template.getSource(e.getColumnNumber(), e.getLineNumber(),
                     e.getEndColumnNumber(), e.getEndLineNumber());
-            fail(e, zis, values, loaded);
+            fail(e, names.zis, methods, loaded);
         }
     }
 
-    private Map<String, Object> modelEnum(final Names zis,
-            final Map<String, Map<String, Object>> rawEnums,
+    private Map<String, Object> modelX(final ZisZuper names,
+            final Map<String, Map<String, Object>> values,
             final Loaded loaded)
             throws IOException {
-        final Map<String, Object> model = commonModel(loaded, zis, null);
-        model.put("type", Enum.class.getSimpleName());
-        final List<String> enums = new ArrayList<>(rawEnums.size());
-        for (final Entry<String, Map<String, Object>> emum : rawEnums
+        final Generate generate = Generate.from(names);
+        if (Generate.CLASS == generate)
+            methods.put(names.zis.fullName, immutable(values));
+
+        final Map<String, Object> model = commonModel(names, loaded);
+        model.put("type", generate.typeKey);
+
+        final String loopKey = generate.loopKey;
+        if (null == values) {
+            model.put(loopKey, emptyMap());
+            return model;
+        }
+
+        final Map<String, Map<String, Object>> loops = new LinkedHashMap<>(
+                values.size());
+        model.put(loopKey, loops);
+        model.put("definition", toAnnotationValue(emptyMap()));
+
+        for (final Entry<String, Map<String, Object>> method : values
                 .entrySet()) {
-            final String name = emum.getKey();
+            final String name = method.getKey();
+            final Map<String, Object> value = method.getValue();
+            final Map<String, Object> block = null == value
+                    ? new LinkedHashMap<>() : value;
+
             switch (name) {
             case ".meta":
                 // Class details
-                model.put("doc", emum.getValue().get("doc"));
+                model.put("definition", toAnnotationValue(block));
+                model.put("doc", block.get("doc"));
                 break;
             default:
-                // Enum names
-                enums.add(name);
+                block.put("definition", toAnnotationValue(block));
+                generate.generate(name, model, block, names, methods);
+                loops.put(name, block);
                 break;
             }
         }
-        model.put("values", enums);
+
         return model;
-    }
-
-    private Map<String, Object> modelClass(final Names zis, final Names zuper,
-            final Map<String, Map<String, Object>> rawMethods,
-            final Loaded loaded)
-            throws IOException {
-        final Map<String, Object> model = commonModel(loaded, zis, zuper);
-        model.put("type", Class.class.getSimpleName());
-
-        if (null == methods)
-            model.put("data", emptyMap());
-        else {
-            final Map<String, Map<String, Object>> methods
-                    = new LinkedHashMap<>(rawMethods.size());
-            for (final Entry<String, Map<String, Object>> method : rawMethods
-                    .entrySet()) {
-                final String name = method.getKey();
-                switch (name) {
-                case ".meta":
-                    // Class details
-                    model.put("doc", method.getValue().get("doc"));
-                    continue;
-                default:
-                    // Instance details
-                    final Map<String, Object> props = method.getValue();
-                    methods.put(name, props);
-                    final TypedValue pair = model(name,
-                            (String) props.get("type"), props.get("value"));
-                    props.put("type", pair.type);
-                    props.put("value", pair.value);
-                    props.put("override", overridden(zuper, name));
-                    props.put("definition", toAnnotationValue(props));
-                }
-            }
-            model.put("methods", methods);
-        }
-        return model;
-    }
-
-    private boolean overridden(final Names zuper, final String method) {
-        return null != zuper && methods.get(zuper.fullName)
-                .containsKey(method);
     }
 
     /**
@@ -478,17 +435,16 @@ public class YamlGenerateProcessor
                             value.getClass().getName(), key));
     }
 
-    private Map<String, Object> commonModel(final Loaded loaded,
-            final Names zis, final Names zuper)
+    private Map<String, Object> commonModel(final ZisZuper names,
+            final Loaded loaded)
             throws IOException {
         return new LinkedHashMap<String, Object>() {{
             put("generator", YamlGenerateProcessor.class.getName());
             put("now", Instant.now().toString());
             put("comments", format("From '%s' using '%s'",
                     loaded.whence.getURI().toString(), template.getName()));
-            put("package", zis.packaj);
-            put("name", zis.name);
-            put("parent", null == zuper ? null : zuper.nameRelativeTo(zis));
+            put("package", names.zis.packaj);
+            put("name", names.zis.name);
         }};
     }
 
@@ -547,6 +503,19 @@ public class YamlGenerateProcessor
             //noinspection ConstantConditions
             return new ZisZuper(Names.from(packaj, name, key),
                     Names.from(packaj, parent, key));
+        }
+
+        @Nullable
+        String parent() {
+            return null == zuper || "Enum".equals(zuper.name) ? null
+                    : zuper.nameRelativeTo(zis);
+        }
+
+        boolean overridden(
+                final Map<String, Map<String, Map<String, Object>>> methods,
+                final String method) {
+            return null != zuper && methods.get(zuper.fullName)
+                    .containsKey(method);
         }
 
         private ZisZuper(@Nonnull final Names zis,
