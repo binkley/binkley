@@ -1,5 +1,7 @@
 package hm.binkley.annotation.processing;
 
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ResourceInfo;
 import freemarker.cache.URLTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -7,6 +9,8 @@ import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
 import hm.binkley.util.YamlHelper;
 import org.kohsuke.MetaInfServices;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -20,10 +24,12 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
+import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
 import java.util.AbstractMap;
@@ -34,6 +40,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
@@ -310,7 +317,7 @@ public class YamlGenerateProcessor
                 processingEnv.getFiler()
                         .createSourceFile(names.zis.fullName, cause)
                         .openOutputStream())) {
-            template.process(modelX(names, methods, loaded), writer);
+            template.process(model(names, methods, loaded), writer);
         } catch (final IOException e) {
             fail(e, names.zis, methods, loaded);
         } catch (final TemplateException e) {
@@ -320,10 +327,9 @@ public class YamlGenerateProcessor
         }
     }
 
-    private Map<String, Object> modelX(final ZisZuper names,
+    private Map<String, Object> model(final ZisZuper names,
             final Map<String, Map<String, Object>> values,
-            final Loaded loaded)
-            throws IOException {
+            final Loaded loaded) {
         final Generate generate = Generate.from(names);
         if (Generate.CLASS == generate)
             methods.put(names.zis.fullName, immutable(values));
@@ -436,13 +442,12 @@ public class YamlGenerateProcessor
     }
 
     private Map<String, Object> commonModel(final ZisZuper names,
-            final Loaded loaded)
-            throws IOException {
+            final Loaded loaded) {
         return new LinkedHashMap<String, Object>() {{
             put("generator", YamlGenerateProcessor.class.getName());
             put("now", Instant.now().toString());
-            put("comments", format("From '%s' using '%s'",
-                    loaded.whence.getURI().toString(), template.getName()));
+            put("comments", format("From '%s' using '%s'", loaded.path,
+                    template.getName()));
             put("package", names.zis.packaj);
             put("name", names.zis.name);
         }};
@@ -454,7 +459,7 @@ public class YamlGenerateProcessor
             for (final Resource resource : loader.getResources(pattern))
                 try (final InputStream in = resource.getInputStream()) {
                     for (final Object doc : yaml.loadAll(in))
-                        docs.add(new Loaded(resource, cast(doc)));
+                        docs.add(new Loaded(pattern, resource, cast(doc)));
                 }
         } catch (final IOException e) {
             out.error(e, "Cannot load");
@@ -463,18 +468,59 @@ public class YamlGenerateProcessor
     }
 
     public static final class Loaded {
+        private static final List<String> roots;
+        private final String pattern;
         private final Resource whence;
+        private final String path;
         private final Map<String, Object> yaml;
 
-        private Loaded(final Resource whence,
-                final Map<String, Object> yaml) {
+        static {
+            try {
+                roots = ClassPath
+                        .from(YamlGenerateProcessor.class.getClassLoader()).
+                                getResources().stream().
+                                map(ResourceInfo::getResourceName).
+                                collect(Collectors.toList());
+            } catch (final IOException e) {
+                throw new IOError(e);
+            }
+        }
+
+        private Loaded(final String pattern, final Resource whence,
+                final Map<String, Object> yaml)
+                throws IOException {
+            this.pattern = pattern;
             this.whence = whence;
+            path = path(pattern, whence);
             this.yaml = yaml;
+        }
+
+        private static String path(final String pattern,
+                final Resource whence)
+                throws IOException {
+            if (whence instanceof ClassPathResource)
+                return format("classpath:/%s(%s)",
+                        ((ClassPathResource) whence).getPath(), pattern);
+            else if (whence instanceof FileSystemResource)
+                return format("%s(%s)", shorten(whence.getURI()), pattern);
+            else
+                return format("%s(%s)", whence.getURI().toString(), pattern);
+        }
+
+        private static String shorten(final URI uri) {
+            System.err.println("*** shorten - " + uri);
+            final String path = uri.getPath();
+            return roots.stream().
+                    filter(path::endsWith).
+                    map(root -> "classpath:/" + root).
+                    findFirst().
+                    orElse(uri.toString());
         }
 
         @Override
         public String toString() {
-            return whence.getDescription() + ": " + yaml;
+            return format("%s(%s): %s", whence.getDescription(), pattern,
+                    yaml);
         }
     }
 
