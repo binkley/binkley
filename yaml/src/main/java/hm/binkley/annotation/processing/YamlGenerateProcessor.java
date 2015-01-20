@@ -51,7 +51,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.regex.Pattern.compile;
-import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.PACKAGE;
@@ -377,7 +377,7 @@ public class YamlGenerateProcessor
      * @todo Recursive for values which are maps, etc.
      * @todo Handle quotes within quotes
      */
-    private static String toAnnotationValue(final Map<String, Object> props) {
+    private static List<String> toAnnotationValue(final Map<String, Object> props) {
         return props.entrySet().stream().
                 map(e -> {
                     final Object value = e.getValue();
@@ -390,7 +390,7 @@ public class YamlGenerateProcessor
                 map(e -> new AbstractMap.SimpleImmutableEntry<>(
                         '"' + e.getKey() + '"', '"' + e.getValue() + '"')).
                 flatMap(e -> Stream.of(e.getKey(), e.getValue())).
-                collect(joining(", ", "{", "}"));
+                collect(toList());
     }
 
     @SuppressWarnings("unchecked")
