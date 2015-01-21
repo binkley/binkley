@@ -1,5 +1,6 @@
 package hm.binkley.annotation.processing;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ResourceInfo;
 import freemarker.cache.URLTemplateLoader;
@@ -66,7 +67,6 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
  * @todo Parse "freemarker.version" from Maven to construct latest Version
  * @todo Custom configuration of Freemarker
  * @todo Errors in blocks should show source specific to block, not whole
- * @todo Shorten path for template in comment anno, similar as for yamls
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
@@ -210,7 +210,22 @@ public class YamlGenerateProcessor
                 final TypedValue pair = model(name,
                         (String) block.get("type"), block.get("value"));
                 block.put("type", pair.type);
-                block.put("value", pair.value);
+                if ("list".equals(pair.type)) {
+                    final List<?> elements = cast(pair.value);
+                    final List<Map<String, ?>> value = new ArrayList<>(
+                            elements.size());
+                    elements.forEach(v -> value.add(ImmutableMap
+                            .of("value", v, "type", typeOf(v))));
+                    block.put("value", value);
+                } else if ("map".equals(pair.type)) {
+                    final Map<String, ?> elements = cast(pair.value);
+                    final Map<String, Map<String, ?>> value
+                            = new LinkedHashMap<>(elements.size());
+                    elements.forEach((k, v) -> value.put(k,
+                            ImmutableMap.of("value", v, "type", typeOf(v))));
+                    block.put("value", value);
+                } else
+                    block.put("value", pair.value);
                 block.put("override", names.overridden(methods, name));
             }
         };
@@ -377,7 +392,8 @@ public class YamlGenerateProcessor
      * @todo Recursive for values which are maps, etc.
      * @todo Handle quotes within quotes
      */
-    private static List<String> toAnnotationValue(final Map<String, Object> props) {
+    private static List<String> toAnnotationValue(
+            final Map<String, Object> props) {
         return props.entrySet().stream().
                 map(e -> {
                     final Object value = e.getValue();

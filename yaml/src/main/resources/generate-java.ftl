@@ -1,6 +1,5 @@
 <#--
 TODO: FreeMarker template fixes
-    * Whitespace
     * Condense with macros
     * Recurive methods types
     * Get rid of "type" for builtin types
@@ -47,17 +46,18 @@ package ${package};
     <#if methods[key].value?has_content>
     {
         <#list methods[key].value as each>
-        ${key}.add(<@jvalue type=methods[key].type value=each/>);
+        ${key}.add(<@jvalue type=each.type value=each.value/>);
         </#list>
     }
     </#if>
 <#elseif methods[key].value?is_hash>
     <#assign has_init = true/>
-    private final java.util.Map<String, Object> ${key} = new java.util.HashMap<>(${methods[key].value?size});
+    private final java.util.Map<String, Object> ${key} = new java.util.LinkedHashMap<>(${methods[key].value?size});
     <#if methods[key].value?has_content>
     {
-        <#list methods[key].value?keys as each>
-        ${key}.put("${each}", <@jvalue type=methods[key].type value=methods[key].value[each]/>);
+        <#list methods[key].value?keys as eKey>
+        <#assign each=methods[key].value[eKey]/>
+        ${key}.put("${eKey}", <@jvalue type=each.type value=each.value/>);
         </#list>
     }
 </#if>
