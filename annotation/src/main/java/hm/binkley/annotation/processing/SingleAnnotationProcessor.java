@@ -69,6 +69,10 @@ public abstract class SingleAnnotationProcessor<A extends Annotation, M extends 
         return null;
     }
 
+    protected boolean postValidate(final Element element) {
+        return true;
+    }
+
     protected boolean postValidate() {
         return true;
     }
@@ -102,6 +106,9 @@ public abstract class SingleAnnotationProcessor<A extends Annotation, M extends 
             } catch (final Exception e) {
                 out.error(e, "Cannot process %@ on '%s'", element);
             }
+
+            if (postValidate(element))
+                return false;
         }
 
         return postValidate();

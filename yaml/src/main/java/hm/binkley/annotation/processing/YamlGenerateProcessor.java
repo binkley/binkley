@@ -40,8 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
@@ -51,7 +49,6 @@ import static java.lang.System.arraycopy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
-import static java.util.regex.Pattern.compile;
 import static java.util.stream.Collectors.toList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
@@ -74,7 +71,6 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
 public class YamlGenerateProcessor
         extends
         SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {
-    private static final Pattern space = compile("\\s+");
     private final Map<String, Map<String, Map<String, Object>>> methods
             = new LinkedHashMap<>();
     private final Configuration freemarker;
@@ -155,14 +151,22 @@ public class YamlGenerateProcessor
      * @todo Should it pass in enums also?
      */
     @SuppressWarnings("UnusedParameters")
-    protected boolean postValidate(
+    protected boolean postValidate(final Element element,
             final Map<String, Map<String, Map<String, Object>>> methods) {
         return true;
     }
 
     @Override
-    protected final boolean postValidate() {
-        return super.postValidate() && postValidate(unmodifiableMap(methods));
+    protected final boolean postValidate(final Element element) {
+        return postValidate(element, unmodifiableMap(methods)) && super
+                .postValidate(element);
+    }
+
+    protected LoadedTemplate loadTemplate(final String path)
+            throws IOException {
+        final Resource ftl = loader.getResource(path);
+        return new LoadedTemplate(ftl,
+                freemarker.getTemplate(ftl.getURI().toString()), path);
     }
 
     @Override
@@ -173,9 +177,10 @@ public class YamlGenerateProcessor
 
         try {
             yaml = newYamlBuilder().build();
-            final Resource ftl = loader.getResource(anno.template());
-            out = out.withTemplate(ftl);
-            template = freemarker.getTemplate(ftl.getURI().toString());
+            final LoadedTemplate loadedTemplate = loadTemplate(
+                    anno.template());
+            template = loadedTemplate.what;
+            out = out.withTemplate(loadedTemplate.whence);
 
             try {
                 final Name packaj = processingEnv.getElementUtils()
@@ -252,10 +257,10 @@ public class YamlGenerateProcessor
 
     private void process(final Element cause, final Name packaj,
             final String input) {
-        for (final Loaded loaded : loadAll(input)) {
+        for (final LoadedYaml loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
-            for (final Entry<String, Object> each : loaded.yaml.entrySet()) {
+            for (final Entry<String, Object> each : loaded.what.entrySet()) {
                 final String key = each.getKey();
 
                 final ZisZuper names = ZisZuper.from(packaj, key);
@@ -270,7 +275,7 @@ public class YamlGenerateProcessor
                 final Map<String, Map<String, Object>> values = cast(
                         each.getValue());
                 try {
-                    buildX(cause, names, values, loaded);
+                    build(cause, names, values, loaded);
                 } catch (final RuntimeException e) {
                     fail(e, names.zis, values, loaded);
                 }
@@ -291,10 +296,10 @@ public class YamlGenerateProcessor
      */
     protected final void fail(@Nonnull final Exception e,
             @Nonnull final Names zis, @Nonnull final Object value,
-            @Nonnull final Loaded loaded) {
+            @Nullable final Loaded<?> loaded) {
         final String type = value instanceof List ? "enum" : "class";
         out.error(e, "%s: Failed building %s '%s' from '%s' with '%s'", e,
-                type, zis, loaded, value);
+                type, zis, null == loaded ? "Did not load" : loaded, value);
     }
 
     /**
@@ -310,14 +315,14 @@ public class YamlGenerateProcessor
      * @param args arguments for <var>format</var>, if any
      */
     protected final void fail(@Nonnull final Names zis,
-            @Nonnull final Object value, @Nonnull final Loaded loaded,
+            @Nonnull final Object value, @Nullable final Loaded<?> loaded,
             @Nullable final String format, final Object... args) {
         final String type = value instanceof List ? "enum" : "class";
         final Object[] xArgs = new Object[args.length + 4];
         arraycopy(args, 0, xArgs, 0, args.length);
         xArgs[args.length] = type;
         xArgs[args.length + 1] = zis;
-        xArgs[args.length + 2] = loaded;
+        xArgs[args.length + 2] = null == loaded ? "Did not load" : loaded;
         xArgs[args.length + 3] = value;
         final String xFormat = null == format
                 ? "Failed building %s '%s' from '%s' with '%s'"
@@ -325,10 +330,10 @@ public class YamlGenerateProcessor
         out.error(xFormat, xArgs);
     }
 
-    private void buildX(@Nonnull final Element cause,
+    protected final void build(@Nonnull final Element cause,
             @Nonnull final ZisZuper names,
             @Nonnull final Map<String, Map<String, Object>> methods,
-            @Nonnull final Loaded loaded) {
+            @Nonnull final Loaded<?> loaded) {
         try (final Writer writer = new OutputStreamWriter(
                 processingEnv.getFiler()
                         .createSourceFile(names.zis.fullName, cause)
@@ -345,7 +350,7 @@ public class YamlGenerateProcessor
 
     private Map<String, Object> model(final ZisZuper names,
             final Map<String, Map<String, Object>> values,
-            final Loaded loaded) {
+            final Loaded<?> loaded) {
         final Generate generate = Generate.from(names);
         if (Generate.CLASS == generate)
             methods.put(names.zis.fullName, immutable(values));
@@ -468,24 +473,25 @@ public class YamlGenerateProcessor
     }
 
     private Map<String, Object> commonModel(final ZisZuper names,
-            final Loaded loaded) {
+            final Loaded<?> loaded) {
         return new LinkedHashMap<String, Object>() {{
             put("generator", YamlGenerateProcessor.class.getName());
             put("now", Instant.now().toString());
-            put("comments", format("From '%s' using '%s'", loaded.path,
+            put("comments", format("From '%s' using '%s'", loaded.where(),
                     template.getName()));
             put("package", names.zis.packaj);
             put("name", names.zis.name);
         }};
     }
 
-    private List<Loaded> loadAll(final String pattern) {
-        final List<Loaded> docs = new ArrayList<>();
+    private List<LoadedYaml> loadAll(final String pattern) {
+        final List<LoadedYaml> docs = new ArrayList<>();
         try {
             for (final Resource resource : loader.getResources(pattern))
                 try (final InputStream in = resource.getInputStream()) {
                     for (final Object doc : yaml.loadAll(in))
-                        docs.add(new Loaded(pattern, resource, cast(doc)));
+                        docs.add(
+                                new LoadedYaml(pattern, resource, cast(doc)));
                 }
         } catch (final IOException e) {
             out.error(e, "Cannot load");
@@ -493,12 +499,29 @@ public class YamlGenerateProcessor
         return docs;
     }
 
-    public static final class Loaded {
+    protected static final class LoadedTemplate
+            extends Loaded<Template> {
+        private LoadedTemplate(final Resource whence, final Template template,
+                final String path) {
+            super(path, whence, template);
+        }
+
+        @Override
+        public String where() {
+            return where;
+        }
+
+        @Override
+        public String toString() {
+            return format("%s(%s): %s", whence.getDescription(), where(),
+                    what.getName());
+        }
+    }
+
+    protected static final class LoadedYaml
+            extends Loaded<Map<String, Object>> {
         private static final List<String> roots;
-        private final String pattern;
-        private final Resource whence;
-        private final String path;
-        private final Map<String, Object> yaml;
+        public final String path;
 
         static {
             try {
@@ -506,19 +529,22 @@ public class YamlGenerateProcessor
                         .from(YamlGenerateProcessor.class.getClassLoader()).
                                 getResources().stream().
                                 map(ResourceInfo::getResourceName).
-                                collect(Collectors.toList());
+                                collect(toList());
             } catch (final IOException e) {
                 throw new IOError(e);
             }
         }
 
-        private Loaded(final String pattern, final Resource whence,
+        @Override
+        public String where() {
+            return path;
+        }
+
+        private LoadedYaml(final String pattern, final Resource whence,
                 final Map<String, Object> yaml)
                 throws IOException {
-            this.pattern = pattern;
-            this.whence = whence;
+            super(pattern, whence, yaml);
             path = path(pattern, whence);
-            this.yaml = yaml;
         }
 
         private static String path(final String pattern,
@@ -544,55 +570,7 @@ public class YamlGenerateProcessor
 
         @Override
         public String toString() {
-            return format("%s(%s): %s", whence.getDescription(), pattern,
-                    yaml);
-        }
-    }
-
-    private static final class ZisZuper {
-        @Nonnull
-        private final Names zis;
-        @Nullable
-        private final Names zuper;
-
-        private static ZisZuper from(final Name packaj, final String key) {
-            final String name;
-            final String parent;
-            final String[] names = space.split(key);
-            switch (names.length) {
-            case 1:
-                name = names[0];
-                parent = null;
-                break;
-            case 2:
-                name = names[0];
-                parent = names[1];
-                break;
-            default:
-                return null;
-            }
-            //noinspection ConstantConditions
-            return new ZisZuper(Names.from(packaj, name, key),
-                    Names.from(packaj, parent, key));
-        }
-
-        @Nullable
-        String parent() {
-            return null == zuper || "Enum".equals(zuper.name) ? null
-                    : zuper.nameRelativeTo(zis);
-        }
-
-        boolean overridden(
-                final Map<String, Map<String, Map<String, Object>>> methods,
-                final String method) {
-            return null != zuper && methods.get(zuper.fullName)
-                    .containsKey(method);
-        }
-
-        private ZisZuper(@Nonnull final Names zis,
-                @Nullable final Names zuper) {
-            this.zis = zis;
-            this.zuper = zuper;
+            return format("%s(%s): %s", whence.getDescription(), where, what);
         }
     }
 
