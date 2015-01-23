@@ -9,7 +9,6 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
 import hm.binkley.util.YamlHelper;
-import org.kohsuke.MetaInfServices;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -20,7 +19,6 @@ import org.yaml.snakeyaml.Yaml;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
-import javax.annotation.processing.Processor;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.element.Element;
@@ -67,7 +65,6 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
-@MetaInfServices(Processor.class)
 public class YamlGenerateProcessor
         extends
         SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {

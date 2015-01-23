@@ -22,8 +22,11 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 @Retention(SOURCE)
 @Target(TYPE)
 public @interface YamlGenerate {
-    /** Resource path to the template from which to generate sources. */
-    String template();
+    /**
+     * Resource path to the template from which to generate sources.  Defaults
+     * to {@code /generate-java.ftl}.
+     */
+    String template() default "/generate-java.ftl";
 
     /** Resource paths to YAML used by the template (wildcards supported). */
     String[] inputs();
