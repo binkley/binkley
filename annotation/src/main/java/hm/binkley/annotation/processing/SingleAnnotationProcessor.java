@@ -40,6 +40,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+import static javax.tools.Diagnostic.Kind.ERROR;
+
 /**
  * {@code SingleAnnotationProcessor} <b>needs documentation</b>.
  *
@@ -80,38 +83,47 @@ public abstract class SingleAnnotationProcessor<A extends Annotation, M extends 
     @Override
     public final boolean process(final Set<? extends TypeElement> annotations,
             final RoundEnvironment roundEnv) {
-        for (final Element element : roundEnv
-                .getElementsAnnotatedWith(annoType)) {
-            out = newMesseger(annoType, processingEnv.getMessager(), element);
-
-            if (!preValidate(element))
-                continue;
-
-            // Use both annotation and mirror:
-            // - Annotation is easier for accessing members
-            // - Mirror is needed for messenger
-
-            final AnnotationMirror aMirror = annotationMirror(element);
-            if (null == aMirror)
-                continue;
-
-            // Optionally narrow down logging to specific anno value
-            final String annotationValue = withAnnotationValue();
-            if (null != annotationValue)
-                out = out.withAnnotation(aMirror,
-                        annotationValue(aMirror, annotationValue));
-
+        final Set<? extends Element> elements = roundEnv
+                .getElementsAnnotatedWith(annoType);
+        for (final Element element : elements)
             try {
+                out = newMesseger(annoType, processingEnv.getMessager(),
+                        element);
+
+                if (!preValidate(element))
+                    continue;
+
+                // Use both annotation and mirror:
+                // - Annotation is easier for accessing members
+                // - Mirror is needed for messenger
+
+                final AnnotationMirror aMirror = annotationMirror(element);
+                if (null == aMirror)
+                    continue;
+
+                // Optionally narrow down logging to specific anno value
+                final String annotationValue = withAnnotationValue();
+                if (null != annotationValue)
+                    out = out.withAnnotation(aMirror,
+                            annotationValue(aMirror, annotationValue));
+
                 process(element, element.getAnnotation(annoType));
+
+                if (postValidate(element))
+                    return false;
             } catch (final Exception e) {
                 out.error(e, "Cannot process %@ on '%s'", element);
+                return false;
             }
 
-            if (postValidate(element))
-                return false;
+        try {
+            return postValidate();
+        } catch (final Exception e) {
+            processingEnv.getMessager().printMessage(ERROR,
+                    format("Cannot process @%s on one of '%s'",
+                            annoType.getName(), elements));
+            return false;
         }
-
-        return postValidate();
     }
 
     private AnnotationMirror annotationMirror(final Element element) {
