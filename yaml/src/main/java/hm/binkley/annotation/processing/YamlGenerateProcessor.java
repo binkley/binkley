@@ -373,14 +373,15 @@ public class YamlGenerateProcessor
             final Map<String, Object> block = null == value
                     ? new LinkedHashMap<>() : value;
 
+            final List<String> definition = toAnnotationValue(block);
             switch (name) {
             case ".meta":
                 // Class details
-                model.put("definition", toAnnotationValue(block));
+                model.put("definition", definition);
                 model.put("doc", block.get("doc"));
                 break;
             default:
-                block.put("definition", toAnnotationValue(block));
+                block.put("definition", definition);
                 generate.generate(name, model, block, names, methods);
                 loops.put(name, block);
                 break;
@@ -446,31 +447,22 @@ public class YamlGenerateProcessor
                 return new TypedValue(type, null);
             }
         } else if (null != type) {
+            final String actualType = typeOf(value);
             switch (type) {
+            case "text":
             case "int":
-                check(key, type, value, Integer.class);
-                break;
             case "double":
-                check(key, type, value, Double.class);
-                break;
             case "list":
-                check(key, type, value, List.class);
-                break;
             case "map":
-                check(key, type, value, Map.class);
+                if (!actualType.equals(type))
+                    throw new IllegalStateException(
+                            format("Conflicting type and value for '%s': '%s' vs '%s'",
+                                    key, type, actualType));
             }
             // TODO: How to check UDTs?
         }
 
         return new TypedValue(typeOf(value), value);
-    }
-
-    private static void check(final String key, final String type,
-            final Object value, final Class<?> expected) {
-        if (!expected.isAssignableFrom(value.getClass()))
-            throw new IllegalStateException(
-                    format("Conflicting type and value for '%s': '%s' vs '%s'",
-                            key, type, typeOf(value)));
     }
 
     private static String typeOf(final Object value) {
@@ -490,14 +482,14 @@ public class YamlGenerateProcessor
 
     private Map<String, Object> commonModel(final ZisZuper names,
             final Loaded<?> loaded) {
-        return new LinkedHashMap<String, Object>() {{
-            put("generator", YamlGenerateProcessor.class.getName());
-            put("now", Instant.now().toString());
-            put("comments", format("From '%s' using '%s'", loaded.where(),
-                    template.getName()));
-            put("package", names.zis.packaj);
-            put("name", names.zis.name);
-        }};
+        final LinkedHashMap<String, Object> model = new LinkedHashMap<>();
+        model.put("generator", YamlGenerateProcessor.class.getName());
+        model.put("now", Instant.now().toString());
+        model.put("comments", format("From '%s' using '%s'", loaded.where(),
+                template.getName()));
+        model.put("package", names.zis.packaj);
+        model.put("name", names.zis.name);
+        return model;
     }
 
     private List<LoadedYaml> loadAll(final String pattern) {
