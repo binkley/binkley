@@ -55,6 +55,9 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
 /**
  * {@code YamlGenerateProcessor} generates Java source enums and classes from
  * YAML descriptions.
+ * <p>
+ * Type names are those <a href="http://yaml.org/type/">defined by YAML
+ * 1.1</a>.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
@@ -212,14 +215,14 @@ public class YamlGenerateProcessor
                 final TypedValue pair = model(name,
                         (String) block.get("type"), block.get("value"));
                 block.put("type", pair.type);
-                if ("list".equals(pair.type)) {
+                if ("seq".equals(pair.type)) {
                     final List<?> elements = cast(pair.value);
                     final List<Map<String, ?>> value = new ArrayList<>(
                             elements.size());
                     elements.forEach(v -> value.add(ImmutableMap
                             .of("value", v, "type", typeOf(v))));
                     block.put("value", value);
-                } else if ("map".equals(pair.type)) {
+                } else if ("pairs".equals(pair.type)) {
                     final Map<String, ?> elements = cast(pair.value);
                     final Map<String, Map<String, ?>> value
                             = new LinkedHashMap<>(elements.size());
@@ -435,25 +438,28 @@ public class YamlGenerateProcessor
                 throw new IllegalStateException(
                         format("Missing value and type for '%s", key));
             switch (type) {
+            case "bool":
+                return new TypedValue("bool", false);
             case "int":
                 return new TypedValue("int", 0);
-            case "double":
-                return new TypedValue("double", 0.0d);
-            case "list":
-                return new TypedValue("list", new ArrayList<>(0));
-            case "map":
-                return new TypedValue("map", new LinkedHashMap<>(0));
+            case "float":
+                return new TypedValue("float", 0.0d);
+            case "seq":
+                return new TypedValue("seq", new ArrayList<>(0));
+            case "pairs":
+                return new TypedValue("pairs", new LinkedHashMap<>(0));
             default:
                 return new TypedValue(type, null);
             }
         } else if (null != type) {
             final String actualType = typeOf(value);
             switch (type) {
-            case "text":
+            case "str":
+            case "bool":
             case "int":
-            case "double":
-            case "list":
-            case "map":
+            case "float":
+            case "seq":
+            case "pairs":
                 if (!actualType.equals(type))
                     throw new IllegalStateException(
                             format("Conflicting type and value for '%s': '%s' vs '%s'",
@@ -467,15 +473,17 @@ public class YamlGenerateProcessor
 
     private static String typeOf(final Object value) {
         if (value instanceof String)
-            return "text";
+            return "str";
+        else if (value instanceof Boolean)
+            return "bool";
         else if (value instanceof Integer)
             return "int";
         else if (value instanceof Double)
-            return "double";
+            return "float";
         else if (value instanceof List)
-            return "list";
+            return "seq";
         else if (value instanceof Map)
-            return "map";
+            return "pairs";
         else
             return value.getClass().getName();
     }

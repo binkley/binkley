@@ -4,11 +4,22 @@ TODO: FreeMarker template fixes
     * Recurive methods types
     * Get rid of "type" for builtin types
 -->
-<#macro jvalue type value="\n"><@compress>
+<#macro rvalue type value="\n"><@compress>
     <#if value?is_string>
         <#if "\n" == value>null<#else>"${value}"</#if>
-    <#elseif value?is_boolean || value?is_number>${value?c}<#if "double" == type>d</#if>
+    <#elseif value?is_boolean || value?is_number>${value?c}<#if "float" == type>d</#if>
     <#else>${type}.valueOf("${value}")</#if>
+</@compress></#macro>
+<#macro lvalue type><@compress>
+    <#if "str" == type>String
+    <#-- int is int -->
+    <#elseif "bool" == type>boolean
+    <#elseif "float" == type>double
+    <#elseif "seq" == type>
+    java.util.List<?>
+    <#elseif "pairs" == type>
+    java.util.Map<String, ?>
+    <#else>${type}</#if>
 </@compress></#macro>
 <#if package?has_content>
 package ${package};
@@ -46,7 +57,7 @@ package ${package};
     <#if methods[key].value?has_content>
     {
         <#list methods[key].value as each>
-        ${key}.add(<@jvalue type=each.type value=each.value/>);
+        ${key}.add(<@rvalue type=each.type value=each.value/>);
         </#list>
     }
     </#if>
@@ -57,7 +68,7 @@ package ${package};
     {
         <#list methods[key].value?keys as eKey>
         <#assign each=methods[key].value[eKey]/>
-        ${key}.put("${eKey}", <@jvalue type=each.type value=each.value/>);
+        ${key}.put("${eKey}", <@rvalue type=each.type value=each.value/>);
         </#list>
     }
 </#if>
@@ -76,8 +87,8 @@ package ${package};
     @Override
     </#if>
     @hm.binkley.annotation.YamlGenerate.Definition({${methods[key].definition?join(", ")}})
-    public <#if "text" == methods[key].type>String<#elseif "list" == methods[key].type>java.util.List<Object><#elseif "map" == methods[key].type>java.util.Map<String, Object><#else>${methods[key].type}</#if> ${key}() {
-        return <#if methods[key].value?? && (methods[key].value?is_sequence || methods[key].value?is_hash)>${key}<#else><@jvalue type=methods[key].type value=methods[key].value/></#if>;
+    public <@lvalue methods[key].type/> ${key}() {
+        return <#if methods[key].value?? && (methods[key].value?is_sequence || methods[key].value?is_hash)>${key}<#else><@rvalue type=methods[key].type value=methods[key].value/></#if>;
     }
 </#list>
 }</#if>

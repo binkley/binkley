@@ -1,10 +1,13 @@
 Baz:
   apple:
     doc: The apple falls near the tree
-    type: map
+    type: pairs
   pear:
     doc: Pear of my eye
-    type: list
+    type: seq
+  kangKong:
+    doc: Tasty green
+    value: true
 
 Whack Foo:
   bar:
