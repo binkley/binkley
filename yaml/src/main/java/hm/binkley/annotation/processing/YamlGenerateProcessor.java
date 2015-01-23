@@ -445,13 +445,32 @@ public class YamlGenerateProcessor
             default:
                 return new TypedValue(type, null);
             }
-        } else if (null != type)
-            // TODO: Actually should be OK for implicit UDT (e.g., Dice)
-            throw new IllegalStateException(
-                    format("TODO: Both value and type are provided for '%s'",
-                            key));
+        } else if (null != type) {
+            switch (type) {
+            case "int":
+                check(key, type, value, Integer.class);
+                break;
+            case "double":
+                check(key, type, value, Double.class);
+                break;
+            case "list":
+                check(key, type, value, List.class);
+                break;
+            case "map":
+                check(key, type, value, Map.class);
+            }
+            // TODO: How to check UDTs?
+        }
 
         return new TypedValue(typeOf(value), value);
+    }
+
+    private static void check(final String key, final String type,
+            final Object value, final Class<?> expected) {
+        if (!expected.isAssignableFrom(value.getClass()))
+            throw new IllegalStateException(
+                    format("Conflicting type and value for '%s': '%s' vs '%s'",
+                            key, type, typeOf(value)));
     }
 
     private static String typeOf(final Object value) {
