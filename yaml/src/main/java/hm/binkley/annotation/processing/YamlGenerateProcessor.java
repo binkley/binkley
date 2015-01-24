@@ -375,8 +375,9 @@ public class YamlGenerateProcessor
                 .entrySet()) {
             final String name = method.getKey();
             final Map<String, Object> value = method.getValue();
+            // Clone to leave original YAML alone
             final Map<String, Object> block = null == value
-                    ? new LinkedHashMap<>() : value;
+                    ? new LinkedHashMap<>() : new LinkedHashMap<>(value);
 
             final List<String> definition = toAnnotationValue(block);
             switch (name) {

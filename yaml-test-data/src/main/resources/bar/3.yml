@@ -5,7 +5,7 @@ Baz:
   pear:
     doc: Pear of my eye
     type: seq
-  kang-kong:
+  kangKong:
     doc: Tasty green
     value: true
 
