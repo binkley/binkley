@@ -72,8 +72,10 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
 public class YamlGenerateProcessor
         extends
         SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {
+
     private final Map<String, Map<String, Map<String, Object>>> methods
             = new LinkedHashMap<>();
+    private final List<String> roots = findRoots();
     private final Configuration freemarker;
     private Yaml yaml;
     private Template template;
@@ -81,7 +83,7 @@ public class YamlGenerateProcessor
     // In context, system class loader does not have maven class path
     protected final ResourcePatternResolver loader
             = new PathMatchingResourcePatternResolver(
-            YamlGenerateProcessor.class.getClassLoader());
+            getClass().getClassLoader());
 
     public YamlGenerateProcessor() {
         super(YamlGenerate.class);
@@ -454,7 +456,7 @@ public class YamlGenerateProcessor
     private Map<String, Object> commonModel(final ZisZuper names,
             final Loaded<?> loaded) {
         final LinkedHashMap<String, Object> model = new LinkedHashMap<>();
-        model.put("generator", YamlGenerateProcessor.class.getName());
+        model.put("generator", getClass().getName());
         model.put("now", Instant.now().toString());
         model.put("comments", format("From '%s' using '%s'", loaded.where(),
                 template.getName()));
@@ -478,6 +480,17 @@ public class YamlGenerateProcessor
         return docs;
     }
 
+    private List<String> findRoots() {
+        try {
+            return ClassPath.from(getClass().getClassLoader()).
+                    getResources().stream().
+                    map(ResourceInfo::getResourceName).
+                    collect(toList());
+        } catch (final IOException e) {
+            throw new IOError(e);
+        }
+    }
+
     protected static final class LoadedTemplate
             extends Loaded<Template> {
         private LoadedTemplate(final Resource whence, final Template template,
@@ -497,22 +510,9 @@ public class YamlGenerateProcessor
         }
     }
 
-    protected static final class LoadedYaml
+    protected final class LoadedYaml
             extends Loaded<Map<String, Object>> {
-        private static final List<String> roots;
         public final String path;
-
-        static {
-            try {
-                roots = ClassPath
-                        .from(YamlGenerateProcessor.class.getClassLoader()).
-                                getResources().stream().
-                                map(ResourceInfo::getResourceName).
-                                collect(toList());
-            } catch (final IOException e) {
-                throw new IOError(e);
-            }
-        }
 
         @Override
         public String where() {
@@ -526,7 +526,7 @@ public class YamlGenerateProcessor
             path = path(pattern, whence);
         }
 
-        private static String path(final String pattern,
+        private String path(final String pattern,
                 final Resource whence)
                 throws IOException {
             if (whence instanceof ClassPathResource)
@@ -538,7 +538,7 @@ public class YamlGenerateProcessor
                 return format("%s(%s)", whence.getURI().toString(), pattern);
         }
 
-        private static String shorten(final URI uri) {
+        private String shorten(final URI uri) {
             final String path = uri.getPath();
             return roots.stream().
                     filter(path::endsWith).
