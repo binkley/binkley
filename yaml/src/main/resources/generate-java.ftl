@@ -1,9 +1,3 @@
-<#--
-TODO: FreeMarker template fixes
-    * Condense with macros
-    * Recurive methods types
-    * Get rid of "type" for builtin types
--->
 <#macro rvalue type value="\n"><@compress>
     <#if value?is_string>
         <#if "\n" == value>null<#else>"${value}"</#if>
@@ -16,11 +10,17 @@ TODO: FreeMarker template fixes
     <#elseif "bool" == type>boolean
     <#elseif "float" == type>double
     <#elseif "seq" == type>
-    java.util.List<?>
+    java.util.List<Object>
     <#elseif "pairs" == type>
-    java.util.Map<String, ?>
+    java.util.Map<String, Object>
     <#else>${type}</#if>
 </@compress></#macro>
+<#--
+    TODO: FreeMarker template fixes
+    * Recurive methods types
+    * Get rid of "type" for builtin types
+    * Fix indentation of directives
+-->
 <#if package?has_content>
 package ${package};
 
@@ -51,7 +51,7 @@ package ${package};
 <#list methods?keys as key>
 <#assign has_init = false/>
 <#if methods[key].value??>
-    <#if methods[key].value?is_sequence>
+<#if methods[key].value?is_sequence>
     <#assign has_init = true/>
     private final java.util.List<Object> ${key} = new java.util.ArrayList<>(${methods[key].value?size});
     <#if methods[key].value?has_content>
@@ -87,7 +87,7 @@ package ${package};
     @Override
     </#if>
     @hm.binkley.annotation.YamlGenerate.Definition({${methods[key].definition?join(", ")}})
-    public <@lvalue methods[key].type/> ${key}() {
+    public <@lvalue methods[key].type/> ${methods[key].name}() {
         return <#if methods[key].value?? && (methods[key].value?is_sequence || methods[key].value?is_hash)>${key}<#else><@rvalue type=methods[key].type value=methods[key].value/></#if>;
     }
 </#list>
