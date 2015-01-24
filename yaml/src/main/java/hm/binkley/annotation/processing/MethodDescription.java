@@ -29,16 +29,9 @@ package hm.binkley.annotation.processing;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.regex.Pattern;
 
-import static com.google.common.base.CaseFormat.LOWER_CAMEL;
-import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
-import static com.google.common.base.CaseFormat.UPPER_CAMEL;
-import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 import static hm.binkley.annotation.processing.YamlGenerateProcessor.typeOf;
-import static java.lang.Character.isLowerCase;
 import static java.lang.String.format;
-import static java.util.regex.Pattern.compile;
 
 /**
  * {@code MethodDescription} <b>needs documentation</b>.
@@ -47,34 +40,31 @@ import static java.util.regex.Pattern.compile;
  * @todo Needs documentation.
  */
 public final class MethodDescription {
-    private static final Pattern keySeps = compile("\\W+");
-
     public final String name;
     public final String type;
     public final Object value;
 
     /** @todo Use fail() and return null */
-    public static MethodDescription methodDescription(final String key,
+    public static MethodDescription methodDescription(final String name,
             final String type, final Object value) {
         if (null == value) {
             if (null == type)
                 throw new IllegalStateException(
-                        format("Missing value and type for '%s", key));
+                        format("Missing value and type for '%s", name));
             switch (type) {
             case "bool":
-                return new MethodDescription(camelCase(key), "bool", false);
+                return new MethodDescription(name, "bool", false);
             case "int":
-                return new MethodDescription(camelCase(key), "int", 0);
+                return new MethodDescription(name, "int", 0);
             case "float":
-                return new MethodDescription(camelCase(key), "float", 0.0d);
+                return new MethodDescription(name, "float", 0.0d);
             case "seq":
-                return new MethodDescription(camelCase(key), "seq",
-                        new ArrayList<>(0));
+                return new MethodDescription(name, "seq", new ArrayList<>(0));
             case "pairs":
-                return new MethodDescription(camelCase(key), "pairs",
+                return new MethodDescription(name, "pairs",
                         new LinkedHashMap<>(0));
             default:
-                return new MethodDescription(camelCase(key), type, null);
+                return new MethodDescription(name, type, null);
             }
         } else if (null != type) {
             final String actualType = typeOf(value);
@@ -88,12 +78,12 @@ public final class MethodDescription {
                 if (!actualType.equals(type))
                     throw new IllegalStateException(
                             format("Conflicting type and value for '%s': '%s' vs '%s'",
-                                    key, type, actualType));
+                                    name, type, actualType));
             }
             // TODO: How to check UDTs?
         }
 
-        return new MethodDescription(camelCase(key), typeOf(value), value);
+        return new MethodDescription(name, typeOf(value), value);
     }
 
     private MethodDescription(final String name, final String type,
@@ -101,11 +91,5 @@ public final class MethodDescription {
         this.name = name;
         this.type = type;
         this.value = value;
-    }
-
-    private static String camelCase(final CharSequence in) {
-        final String u = keySeps.matcher(in).replaceAll("_");
-        return isLowerCase(u.charAt(0)) ? LOWER_UNDERSCORE.to(LOWER_CAMEL, u)
-                : UPPER_UNDERSCORE.to(UPPER_CAMEL, u);
     }
 }
