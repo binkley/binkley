@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
+import static hm.binkley.annotation.processing.MethodDescription.methodDescription;
 import static java.lang.String.format;
 import static java.lang.System.arraycopy;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -212,25 +213,26 @@ public class YamlGenerateProcessor
                     final Map<String, Object> block, final ZisZuper names,
                     final Map<String, Map<String, Map<String, Object>>> methods) {
                 model.put("parent", names.parent());
-                final TypedValue pair = model(name,
+                final MethodDescription method = methodDescription(name,
                         (String) block.get("type"), block.get("value"));
-                block.put("type", pair.type);
-                if ("seq".equals(pair.type)) {
-                    final List<?> elements = cast(pair.value);
+                block.put("name", method.name);
+                block.put("type", method.type);
+                if ("seq".equals(method.type)) {
+                    final List<?> elements = cast(method.value);
                     final List<Map<String, ?>> value = new ArrayList<>(
                             elements.size());
                     elements.forEach(v -> value.add(ImmutableMap
                             .of("value", v, "type", typeOf(v))));
                     block.put("value", value);
-                } else if ("pairs".equals(pair.type)) {
-                    final Map<String, ?> elements = cast(pair.value);
+                } else if ("pairs".equals(method.type)) {
+                    final Map<String, ?> elements = cast(method.value);
                     final Map<String, Map<String, ?>> value
                             = new LinkedHashMap<>(elements.size());
                     elements.forEach((k, v) -> value.put(k,
                             ImmutableMap.of("value", v, "type", typeOf(v))));
                     block.put("value", value);
                 } else
-                    block.put("value", pair.value);
+                    block.put("value", method.value);
                 block.put("override", names.overridden(methods, name));
             }
         };
@@ -430,48 +432,8 @@ public class YamlGenerateProcessor
         return unmodifiableMap(immutable);
     }
 
-    /** @todo Use fail() and return null */
-    private static TypedValue model(final String key, final String type,
-            final Object value) {
-        if (null == value) {
-            if (null == type)
-                throw new IllegalStateException(
-                        format("Missing value and type for '%s", key));
-            switch (type) {
-            case "bool":
-                return new TypedValue("bool", false);
-            case "int":
-                return new TypedValue("int", 0);
-            case "float":
-                return new TypedValue("float", 0.0d);
-            case "seq":
-                return new TypedValue("seq", new ArrayList<>(0));
-            case "pairs":
-                return new TypedValue("pairs", new LinkedHashMap<>(0));
-            default:
-                return new TypedValue(type, null);
-            }
-        } else if (null != type) {
-            final String actualType = typeOf(value);
-            switch (type) {
-            case "str":
-            case "bool":
-            case "int":
-            case "float":
-            case "seq":
-            case "pairs":
-                if (!actualType.equals(type))
-                    throw new IllegalStateException(
-                            format("Conflicting type and value for '%s': '%s' vs '%s'",
-                                    key, type, actualType));
-            }
-            // TODO: How to check UDTs?
-        }
-
-        return new TypedValue(typeOf(value), value);
-    }
-
-    private static String typeOf(final Object value) {
+    /** @todo Shared with MethodDescription - bad placement */
+    public static String typeOf(final Object value) {
         if (value instanceof String)
             return "str";
         else if (value instanceof Boolean)
@@ -587,16 +549,6 @@ public class YamlGenerateProcessor
         @Override
         public String toString() {
             return format("%s(%s): %s", whence.getDescription(), where, what);
-        }
-    }
-
-    private static final class TypedValue {
-        private final String type;
-        private final Object value;
-
-        private TypedValue(final String type, final Object value) {
-            this.type = type;
-            this.value = value;
         }
     }
 
