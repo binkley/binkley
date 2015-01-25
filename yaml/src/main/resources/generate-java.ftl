@@ -33,7 +33,8 @@ package ${package};
     date="${now}",
     comments="${comments}")
 @hm.binkley.annotation.YamlGenerate.Definition({${definition?join(", ")}})
-<#if type == "Enum">public enum ${name} {
+<#if type == "Enum">
+public enum ${name} {
 <#list values?keys as value>
     <#if values[value].doc??>
     /** ${values[value].doc} */
@@ -47,7 +48,8 @@ package ${package};
     @hm.binkley.annotation.YamlGenerate.Definition({${values[value].definition?join(", ")}})
     ${value}<#if value_has_next>,<#else>;</#if>
 </#list>
-}<#else>public class ${name}<#if parent??> extends ${parent}</#if> {
+<#else>
+public class ${name}<#if parent??> extends ${parent}</#if> {
 <#list methods?keys as key>
 <#assign has_init = false/>
 <#if methods[key].value??>
@@ -91,4 +93,5 @@ package ${package};
         return <#if methods[key].value?? && (methods[key].value?is_sequence || methods[key].value?is_hash)>${key}<#else><@rvalue type=methods[key].type value=methods[key].value/></#if>;
     }
 </#list>
-}</#if>
+</#if>
+}
