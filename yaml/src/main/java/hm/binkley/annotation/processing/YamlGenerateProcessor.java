@@ -10,8 +10,6 @@ import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
 import hm.binkley.util.YamlHelper;
 import hm.binkley.util.YamlHelper.Builder;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -29,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
 import java.util.AbstractMap;
@@ -79,7 +76,7 @@ public class YamlGenerateProcessor
     private final List<String> roots = findRootsOf(getClass());
     private final Configuration freemarker;
     private Yaml yaml;
-    private Template template;
+    private LoadedTemplate template;
 
     // In context, system class loader does not have maven class path
     protected final ResourcePatternResolver loader
@@ -167,13 +164,6 @@ public class YamlGenerateProcessor
                 .postValidate(element);
     }
 
-    protected LoadedTemplate loadTemplate(final String path)
-            throws IOException {
-        final Resource ftl = loader.getResource(path);
-        return new LoadedTemplate(ftl,
-                freemarker.getTemplate(ftl.getURI().toString()), path);
-    }
-
     @Override
     protected final void process(final Element element,
             final YamlGenerate anno) {
@@ -207,9 +197,8 @@ public class YamlGenerateProcessor
      */
     protected void withTemplate(@Nonnull final String path)
             throws IOException {
-        final LoadedTemplate loadedTemplate = loadTemplate(path);
-        template = loadedTemplate.what;
-        out = out.withTemplate(loadedTemplate.whence);
+        template = loadTemplate(path);
+        out = out.withTemplate(template.whence);
     }
 
     private void process(final Element cause, final Name packaj,
@@ -295,11 +284,11 @@ public class YamlGenerateProcessor
                 processingEnv.getFiler()
                         .createSourceFile(names.zis.fullName, cause)
                         .openOutputStream())) {
-            template.process(model(names, methods, loaded), writer);
+            template.what.process(model(names, methods, loaded), writer);
         } catch (final IOException e) {
             fail(e, names.zis, methods, loaded);
         } catch (final TemplateException e) {
-            template.getSource(e.getColumnNumber(), e.getLineNumber(),
+            template.what.getSource(e.getColumnNumber(), e.getLineNumber(),
                     e.getEndColumnNumber(), e.getEndLineNumber());
             fail(e, names.zis, methods, loaded);
         }
@@ -415,8 +404,8 @@ public class YamlGenerateProcessor
         final LinkedHashMap<String, Object> model = new LinkedHashMap<>();
         model.put("generator", getClass().getName());
         model.put("now", Instant.now().toString());
-        model.put("comments", format("From '%s' using '%s'", loaded.where(),
-                template.getName()));
+        model.put("comments",
+                format("From '%s' using '%s'", loaded.where(), template));
         model.put("package", names.zis.packaj);
         model.put("name", names.zis.name);
         return model;
@@ -449,10 +438,17 @@ public class YamlGenerateProcessor
         }
     }
 
+    protected LoadedTemplate loadTemplate(final String path)
+            throws IOException {
+        final Resource ftl = loader.getResource(path);
+        return new LoadedTemplate(path, ftl,
+                freemarker.getTemplate(ftl.getURI().toString()));
+    }
+
     protected static final class LoadedTemplate
             extends Loaded<Template> {
-        private LoadedTemplate(final Resource whence, final Template template,
-                final String path) {
+        private LoadedTemplate(final String path, final Resource whence,
+                final Template template) {
             super(path, whence, template);
         }
 
@@ -463,8 +459,10 @@ public class YamlGenerateProcessor
 
         @Override
         public String toString() {
-            return format("%s(%s): %s", whence.getDescription(), where(),
-                    what.getName());
+            final String whence = this.whence.getDescription();
+            final String where = where();
+            return whence.equals(where) ? whence
+                    : format("%s(%s)", whence, where);
         }
     }
 
@@ -477,39 +475,18 @@ public class YamlGenerateProcessor
             return path;
         }
 
-        private LoadedYaml(final String pattern, final Resource whence,
+        private LoadedYaml(final String pathPattern, final Resource whence,
                 final Map<String, Object> yaml, final List<String> roots)
                 throws IOException {
-            super(pattern, whence, yaml);
-            path = path(pattern, whence, roots);
-        }
-
-        private static String path(final String pattern,
-                final Resource whence, final List<String> roots)
-                throws IOException {
-            if (whence instanceof ClassPathResource)
-                return format("classpath:/%s(%s)",
-                        ((ClassPathResource) whence).getPath(), pattern);
-            else if (whence instanceof FileSystemResource)
-                return format("%s(%s)", shorten(whence.getURI(), roots),
-                        pattern);
-            else
-                return format("%s(%s)", whence.getURI().toString(), pattern);
-        }
-
-        private static String shorten(final URI uri,
-                final List<String> roots) {
-            final String path = uri.getPath();
-            return roots.stream().
-                    filter(path::endsWith).
-                    map(root -> "classpath:/" + root).
-                    findFirst().
-                    orElse(uri.toString());
+            super(pathPattern, whence, yaml);
+            path = path(pathPattern, whence, roots);
         }
 
         @Override
         public String toString() {
-            return format("%s(%s): %s", whence.getDescription(), where, what);
+            final String whence = this.whence.getDescription();
+            return whence.equals(where) ? format("%s: %s", whence, what)
+                    : format("%s(%s): %s", whence, where, what);
         }
     }
 

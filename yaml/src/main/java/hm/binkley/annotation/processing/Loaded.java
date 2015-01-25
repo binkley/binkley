@@ -27,7 +27,15 @@
 
 package hm.binkley.annotation.processing;
 
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+
+import static java.lang.String.format;
 
 /**
  * {@code Loaded} <b>needs documentation</b>.
@@ -40,10 +48,32 @@ public abstract class Loaded<T> {
     public final Resource whence;
     public final T what;
 
-    protected Loaded(final String where, final Resource whence, final T what) {
+    protected Loaded(final String where, final Resource whence,
+            final T what) {
         this.where = where;
         this.whence = whence;
         this.what = what;
+    }
+
+    protected static String path(final String pattern, final Resource whence,
+            final List<String> roots)
+            throws IOException {
+        if (whence instanceof ClassPathResource)
+            return format("classpath:/%s(%s)",
+                    ((ClassPathResource) whence).getPath(), pattern);
+        else if (whence instanceof FileSystemResource)
+            return format("%s(%s)", shorten(whence.getURI(), roots), pattern);
+        else
+            return format("%s(%s)", whence.getURI().toString(), pattern);
+    }
+
+    private static String shorten(final URI uri, final List<String> roots) {
+        final String path = uri.getPath();
+        return roots.stream().
+                filter(path::endsWith).
+                map(root -> "classpath:/" + root).
+                findFirst().
+                orElse(uri.toString());
     }
 
     public abstract String where();

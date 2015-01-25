@@ -24,3 +24,7 @@ some.Parent:
 Child some.Parent:
   a:
     value: ['a', 3, 4.2, true]
+
+Empty:
+  .meta:
+    doc: Only doc, no methods
