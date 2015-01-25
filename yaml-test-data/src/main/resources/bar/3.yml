@@ -8,6 +8,9 @@ Baz:
   kangKong:
     doc: Tasty green
     value: true
+  banana:
+    doc: Really big floating point
+    value: 1.234567890123456789
 
 Whack Foo:
   bar:

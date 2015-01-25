@@ -9,6 +9,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
 import hm.binkley.util.YamlHelper;
+import hm.binkley.util.YamlHelper.Builder;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -75,7 +76,7 @@ public class YamlGenerateProcessor
 
     private final Map<String, Map<String, Map<String, Object>>> methods
             = new LinkedHashMap<>();
-    private final List<String> roots = findRoots();
+    private final List<String> roots = findRootsOf(getClass());
     private final Configuration freemarker;
     private Yaml yaml;
     private Template template;
@@ -96,11 +97,12 @@ public class YamlGenerateProcessor
 
     /**
      * Configures YAML, for example, add implicits.  Default implementation
-     * returns a plain builder.  When overriding capture {@code
-     * super.newYamlBuilder()} and return that after configuring it.
+     * returns <var>builder</var>.
+     *
+     * @param builder the YAML builder
      */
-    protected YamlHelper.Builder newYamlBuilder() {
-        return YamlHelper.builder();
+    protected YamlHelper.Builder setup(final Builder builder) {
+        return builder;
     }
 
     @Override
@@ -179,11 +181,8 @@ public class YamlGenerateProcessor
         final String namespace = anno.namespace();
 
         try {
-            yaml = newYamlBuilder().build();
-            final LoadedTemplate loadedTemplate = loadTemplate(
-                    anno.template());
-            template = loadedTemplate.what;
-            out = out.withTemplate(loadedTemplate.whence);
+            yaml = setup(YamlHelper.builder()).build();
+            withTemplate(anno.template());
 
             try {
                 final Name packaj = processingEnv.getElementUtils()
@@ -199,64 +198,18 @@ public class YamlGenerateProcessor
         }
     }
 
-    private enum Generate {
-        ENUM("Enum", "values") {
-            @Override
-            protected void generate(final String name,
-                    final Map<String, Object> model,
-                    final Map<String, Object> block, final ZisZuper names,
-                    final Map<String, Map<String, Map<String, Object>>> methods) {
-                // Do nothing
-            }
-        }, CLASS("Class", "methods") {
-            @Override
-            protected void generate(final String name,
-                    final Map<String, Object> model,
-                    final Map<String, Object> block, final ZisZuper names,
-                    final Map<String, Map<String, Map<String, Object>>> methods) {
-                model.put("parent", names.parent());
-                final MethodDescription method = methodDescription(name,
-                        (String) block.get("type"), block.get("value"));
-                block.put("name", method.name);
-                block.put("type", method.type);
-                if ("seq".equals(method.type)) {
-                    final List<?> elements = cast(method.value);
-                    final List<Map<String, ?>> value = new ArrayList<>(
-                            elements.size());
-                    elements.forEach(v -> value.add(ImmutableMap
-                            .of("value", v, "type", typeOf(v))));
-                    block.put("value", value);
-                } else if ("pairs".equals(method.type)) {
-                    final Map<String, ?> elements = cast(method.value);
-                    final Map<String, Map<String, ?>> value
-                            = new LinkedHashMap<>(elements.size());
-                    elements.forEach((k, v) -> value.put(k,
-                            ImmutableMap.of("value", v, "type", typeOf(v))));
-                    block.put("value", value);
-                } else
-                    block.put("value", method.value);
-                block.put("override", names.overridden(methods, name));
-            }
-        };
-
-        private final String typeKey;
-        private final String loopKey;
-
-        Generate(final String typeKey, final String loopKey) {
-            this.typeKey = typeKey;
-            this.loopKey = loopKey;
-        }
-
-        protected abstract void generate(final String name,
-                final Map<String, Object> model,
-                final Map<String, Object> block, final ZisZuper names,
-                final Map<String, Map<String, Map<String, Object>>> methods);
-
-        @Nonnull
-        private static Generate from(@Nonnull final ZisZuper names) {
-            final Names zuper = names.zuper;
-            return null == zuper || !"Enum".equals(zuper.name) ? CLASS : ENUM;
-        }
+    /**
+     * Uses the Freemarker template found at <var>path</var>.
+     *
+     * @param path the template path, never missing
+     *
+     * @throws IOException if the template cannot be loaded
+     */
+    protected void withTemplate(@Nonnull final String path)
+            throws IOException {
+        final LoadedTemplate loadedTemplate = loadTemplate(path);
+        template = loadedTemplate.what;
+        out = out.withTemplate(loadedTemplate.whence);
     }
 
     private void process(final Element cause, final Name packaj,
@@ -390,7 +343,7 @@ public class YamlGenerateProcessor
                 break;
             default:
                 block.put("definition", definition);
-                generate.generate(name, model, block, names, methods);
+                generate.updateModel(name, model, block, names, methods);
                 loops.put(name, block);
                 break;
             }
@@ -420,6 +373,7 @@ public class YamlGenerateProcessor
                 collect(toList());
     }
 
+    /** @todo Utility code */
     @SuppressWarnings("unchecked")
     private static <T> T cast(final Object o) {
         return (T) o;
@@ -435,7 +389,10 @@ public class YamlGenerateProcessor
         return unmodifiableMap(immutable);
     }
 
-    /** @todo Shared with MethodDescription - bad placement */
+    /**
+     * @todo Shared with MethodDescription - bad placement
+     * @todo Is this in SnakeYAML?
+     */
     public static String typeOf(final Object value) {
         if (value instanceof String)
             return "str";
@@ -471,8 +428,8 @@ public class YamlGenerateProcessor
             for (final Resource resource : loader.getResources(pattern))
                 try (final InputStream in = resource.getInputStream()) {
                     for (final Object doc : yaml.loadAll(in))
-                        docs.add(
-                                new LoadedYaml(pattern, resource, cast(doc)));
+                        docs.add(new LoadedYaml(pattern, resource, cast(doc),
+                                roots));
                 }
         } catch (final IOException e) {
             out.error(e, "Cannot load");
@@ -480,9 +437,10 @@ public class YamlGenerateProcessor
         return docs;
     }
 
-    private List<String> findRoots() {
+    private static List<String> findRootsOf(
+            final Class<? extends YamlGenerateProcessor> relativeTo) {
         try {
-            return ClassPath.from(getClass().getClassLoader()).
+            return ClassPath.from(relativeTo.getClassLoader()).
                     getResources().stream().
                     map(ResourceInfo::getResourceName).
                     collect(toList());
@@ -510,7 +468,7 @@ public class YamlGenerateProcessor
         }
     }
 
-    protected final class LoadedYaml
+    protected static final class LoadedYaml
             extends Loaded<Map<String, Object>> {
         public final String path;
 
@@ -520,25 +478,27 @@ public class YamlGenerateProcessor
         }
 
         private LoadedYaml(final String pattern, final Resource whence,
-                final Map<String, Object> yaml)
+                final Map<String, Object> yaml, final List<String> roots)
                 throws IOException {
             super(pattern, whence, yaml);
-            path = path(pattern, whence);
+            path = path(pattern, whence, roots);
         }
 
-        private String path(final String pattern,
-                final Resource whence)
+        private static String path(final String pattern,
+                final Resource whence, final List<String> roots)
                 throws IOException {
             if (whence instanceof ClassPathResource)
                 return format("classpath:/%s(%s)",
                         ((ClassPathResource) whence).getPath(), pattern);
             else if (whence instanceof FileSystemResource)
-                return format("%s(%s)", shorten(whence.getURI()), pattern);
+                return format("%s(%s)", shorten(whence.getURI(), roots),
+                        pattern);
             else
                 return format("%s(%s)", whence.getURI().toString(), pattern);
         }
 
-        private String shorten(final URI uri) {
+        private static String shorten(final URI uri,
+                final List<String> roots) {
             final String path = uri.getPath();
             return roots.stream().
                     filter(path::endsWith).
@@ -550,6 +510,67 @@ public class YamlGenerateProcessor
         @Override
         public String toString() {
             return format("%s(%s): %s", whence.getDescription(), where, what);
+        }
+    }
+
+    private enum Generate {
+        ENUM("Enum", "values") {
+            @Override
+            protected void updateModel(final String name,
+                    final Map<String, Object> model,
+                    final Map<String, Object> block, final ZisZuper names,
+                    final Map<String, Map<String, Map<String, Object>>> methods) {
+                // Do nothing
+            }
+        },
+        CLASS("Class", "methods") {
+            @Override
+            protected void updateModel(final String name,
+                    final Map<String, Object> model,
+                    final Map<String, Object> block, final ZisZuper names,
+                    final Map<String, Map<String, Map<String, Object>>> methods) {
+                model.put("parent", names.parent());
+                final MethodDescription method = methodDescription(name,
+                        (String) block.get("type"), block.get("value"));
+                block.put("name", method.name);
+                block.put("type", method.type);
+                if ("seq".equals(method.type)) {
+                    final List<?> elements = cast(method.value);
+                    final List<Map<String, ?>> value = new ArrayList<>(
+                            elements.size());
+                    elements.forEach(v -> value.add(ImmutableMap
+                            .of("value", v, "type", typeOf(v))));
+                    block.put("value", value);
+                } else if ("pairs".equals(method.type)) {
+                    final Map<String, ?> elements = cast(method.value);
+                    final Map<String, Map<String, ?>> value
+                            = new LinkedHashMap<>(elements.size());
+                    elements.forEach((k, v) -> value.put(k,
+                            ImmutableMap.of("value", v, "type", typeOf(v))));
+                    block.put("value", value);
+                } else
+                    block.put("value", method.value);
+                block.put("override", names.overridden(methods, name));
+            }
+        };
+
+        private final String typeKey;
+        private final String loopKey;
+
+        Generate(final String typeKey, final String loopKey) {
+            this.typeKey = typeKey;
+            this.loopKey = loopKey;
+        }
+
+        protected abstract void updateModel(final String name,
+                final Map<String, Object> model,
+                final Map<String, Object> block, final ZisZuper names,
+                final Map<String, Map<String, Map<String, Object>>> methods);
+
+        @Nonnull
+        private static Generate from(@Nonnull final ZisZuper names) {
+            final Names zuper = names.zuper;
+            return null == zuper || !"Enum".equals(zuper.name) ? CLASS : ENUM;
         }
     }
 

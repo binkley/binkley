@@ -82,23 +82,28 @@ public interface YamlHelper<T> {
         return from(firstChars, match, valueOf);
     }
 
-    /** Creates a new {@code YamlHelper} for one-int-constructor classes. */
-    static <T> YamlHelper<T> from(final String firstChars, final String regex,
-            final Function<Integer, T> ctor, final String error) {
+    /** Creates a new {@code YamlHelper} for one-arg-constructor classes. */
+    static <T, R> YamlHelper<R> from(final String firstChars,
+            final String regex, final Function<String, T> valueOfT,
+            final Function<T, R> ctor, final String error) {
         final Pattern match = compile(regex);
-        final Function<String, T> valueOf = s -> ctor
-                .apply(Integer.valueOf(Util.matcher(s, match, error).group(1)));
+        final Function<String, R> valueOf = s -> {
+            final Matcher matcher = Util.matcher(s, match, error);
+            return ctor.apply(valueOfT.apply(matcher.group(1)));
+        };
         return from(firstChars, match, valueOf);
     }
 
-    /** Creates a new {@code YamlHelper} for two-int-constructor classes. */
-    static <T> YamlHelper<T> from(final String firstChars, final String regex,
-            final BiFunction<Integer, Integer, T> ctor, final String error) {
+    /** Creates a new {@code YamlHelper} for two-arg-constructor classes. */
+    static <T, U, R> YamlHelper<R> from(final String firstChars,
+            final String regex, final Function<String, T> valueOfT,
+            final Function<String, U> valueOfU,
+            final BiFunction<T, U, R> ctor, final String error) {
         final Pattern match = compile(regex);
-        final Function<String, T> valueOf = s -> {
+        final Function<String, R> valueOf = s -> {
             final Matcher matcher = Util.matcher(s, match, error);
-            return ctor.apply(Integer.valueOf(matcher.group(1)),
-                    Integer.valueOf(matcher.group(2)));
+            return ctor.apply(valueOfT.apply(matcher.group(1)),
+                    valueOfU.apply(matcher.group(2)));
         };
         return from(firstChars, match, valueOf);
     }
