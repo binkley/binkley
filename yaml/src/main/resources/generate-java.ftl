@@ -15,6 +15,11 @@
     java.util.Map<String, Object>
     <#else>${type}</#if>
 </@compress></#macro>
+<#macro defn prefix pairs>
+${prefix}@hm.binkley.annotation.YamlGenerate.Definition({<#if pairs?has_content>
+<#list pairs as each><#if 0 == each_index % 2>${prefix}        ${each},<#else> ${each}<#if each_has_next>,
+</#if></#if></#list></#if>})
+</#macro>
 <#--
     TODO: FreeMarker template fixes
     * Recurive methods types
@@ -29,10 +34,10 @@ package ${package};
 /** ${doc} */
 </#if>
 @javax.annotation.Generated(
-    value="${generator}",
-    date="${now}",
-    comments="${comments}")
-@hm.binkley.annotation.YamlGenerate.Definition({${definition?join(", ")}})
+        value="${generator}",
+        date="${now}",
+        comments="${comments}")
+<@defn prefix="" pairs=definition/>
 <#if type == "Enum">
 public enum ${name} {
 <#list values?keys as value>
@@ -45,7 +50,7 @@ public enum ${name} {
     * @todo Documentation
     */
     </#if>
-    @hm.binkley.annotation.YamlGenerate.Definition({${values[value].definition?join(", ")}})
+    <@defn prefix="    " pairs=values[value].definition/>
     ${value}<#if value_has_next>,<#else>;</#if>
 </#list>
 <#else>
@@ -88,7 +93,7 @@ public class ${name}<#if parent??> extends ${parent}</#if> {
     <#if methods[key].override>
     @Override
     </#if>
-    @hm.binkley.annotation.YamlGenerate.Definition({${methods[key].definition?join(", ")}})
+    <@defn prefix="    " pairs=methods[key].definition/>
     public <@lvalue methods[key].type/> ${methods[key].name}() {
         return <#if methods[key].value?? && (methods[key].value?is_sequence || methods[key].value?is_hash)>${key}<#else><@rvalue type=methods[key].type value=methods[key].value/></#if>;
     }
