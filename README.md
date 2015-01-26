@@ -32,6 +32,7 @@ Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkl
 
 ### 0.6
 
+* Added `StringX` for additional formatting.
 * Added annotation module.
 * Added yaml module.
 * Completable executors can unwrap interrupts.
