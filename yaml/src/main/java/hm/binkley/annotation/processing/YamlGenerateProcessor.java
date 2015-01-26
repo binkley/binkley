@@ -118,7 +118,8 @@ public class YamlGenerateProcessor
      * @todo Is the top-level restriction for &#64;YamlGenerate needed?
      */
     @Override
-    protected boolean preValidate(final Element element) {
+    protected boolean preValidate(final Element element,
+            final YamlGenerate anno) {
         if (INTERFACE != element.getKind()) {
             out.error("%@ only supported on interfaces");
             return false;
@@ -129,7 +130,7 @@ public class YamlGenerateProcessor
             return false;
         }
 
-        return super.preValidate(element);
+        return super.preValidate(element, anno);
     }
 
     @Override
@@ -154,14 +155,16 @@ public class YamlGenerateProcessor
      */
     @SuppressWarnings("UnusedParameters")
     protected boolean postValidate(final Element element,
+            final YamlGenerate anno,
             final Map<String, Map<String, Map<String, Object>>> methods) {
         return true;
     }
 
     @Override
-    protected final boolean postValidate(final Element element) {
-        return postValidate(element, unmodifiableMap(methods)) && super
-                .postValidate(element);
+    protected final boolean postValidate(final Element element,
+            final YamlGenerate anno) {
+        return postValidate(element, anno, unmodifiableMap(methods)) && super
+                .postValidate(element, anno);
     }
 
     @Override
@@ -276,6 +279,35 @@ public class YamlGenerateProcessor
         out.error(xFormat, xArgs);
     }
 
+    /**
+     * Builds a Java class from the given parameters using
+     * <var>description</var> as the YAML source.  Used for classes generated
+     * programmatically rather than from YAML.
+     *
+     * @param cause the element annotated with {@link YamlGenerate}, never
+     * missing
+     * @param names the class and superclass names, never missing
+     * @param methods the methods, never missing
+     * @param format the programmatic source description, never missing
+     * @param args any formatting arguments for <var>format</var>
+     */
+    protected final void build(@Nonnull final Element cause,
+            @Nonnull final ZisZuper names,
+            @Nonnull final Map<String, Map<String, Object>> methods,
+            @Nonnull final String format, final Object... args) {
+        build(cause, names, methods, new UnLoaded(format, args));
+    }
+
+    /**
+     * Builds a Java class from the given parameters using <var>loaded</var>
+     * as the YAML source.  Used for classes generated from YAML files.
+     *
+     * @param cause the element annotated with {@link YamlGenerate}, never
+     * missing
+     * @param names the class and superclass names, never missing
+     * @param methods the methods, never missing
+     * @param loaded the loaded YAML source, never missing
+     */
     protected final void build(@Nonnull final Element cause,
             @Nonnull final ZisZuper names,
             @Nonnull final Map<String, Map<String, Object>> methods,
@@ -294,9 +326,9 @@ public class YamlGenerateProcessor
         }
     }
 
-    private Map<String, Object> model(final ZisZuper names,
-            final Map<String, Map<String, Object>> values,
-            final Loaded<?> loaded) {
+    private Map<String, Object> model(@Nonnull final ZisZuper names,
+            @Nullable final Map<String, Map<String, Object>> values,
+            @Nonnull final Loaded<?> loaded) {
         final Generate generate = Generate.from(names);
         if (Generate.CLASS == generate)
             methods.put(names.zis.fullName, immutable(values));
@@ -399,8 +431,8 @@ public class YamlGenerateProcessor
             return value.getClass().getName();
     }
 
-    private Map<String, Object> commonModel(final ZisZuper names,
-            final Loaded<?> loaded) {
+    private Map<String, Object> commonModel(@Nonnull final ZisZuper names,
+            @Nonnull final Loaded<?> loaded) {
         final LinkedHashMap<String, Object> model = new LinkedHashMap<>();
         model.put("generator", getClass().getName());
         model.put("now", Instant.now().toString());
@@ -463,6 +495,23 @@ public class YamlGenerateProcessor
             final String where = where();
             return whence.equals(where) ? whence
                     : format("%s(%s)", whence, where);
+        }
+    }
+
+    protected final class UnLoaded
+            extends Loaded<Void> {
+        public UnLoaded(final String format, final Object... args) {
+            super(out.annoFormat(format, args), null, null);
+        }
+
+        @Override
+        public String where() {
+            return where;
+        }
+
+        @Override
+        public String toString() {
+            return where();
         }
     }
 

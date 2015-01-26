@@ -16,7 +16,7 @@ import static java.lang.System.arraycopy;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-public class YamlGenerateMesseger
+public final class YamlGenerateMesseger
         extends SingleAnnotationMessager<YamlGenerate, YamlGenerateMesseger> {
     private final Resource ftl;
     private final Resource yml;

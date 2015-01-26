@@ -62,17 +62,17 @@ public abstract class SingleAnnotationProcessor<A extends Annotation, M extends 
     protected abstract M newMesseger(final Class<A> annoType,
             final Messager messager, final Element element);
 
-    protected boolean preValidate(final Element element) {
+    protected boolean preValidate(final Element element, final A anno) {
         return true;
     }
 
-    protected abstract void process(final Element element, final A annno);
+    protected abstract void process(final Element element, final A anno);
 
     protected String withAnnotationValue() {
         return null;
     }
 
-    protected boolean postValidate(final Element element) {
+    protected boolean postValidate(final Element element, final A anno) {
         return true;
     }
 
@@ -90,9 +90,6 @@ public abstract class SingleAnnotationProcessor<A extends Annotation, M extends 
                 out = newMesseger(annoType, processingEnv.getMessager(),
                         element);
 
-                if (!preValidate(element))
-                    continue;
-
                 // Use both annotation and mirror:
                 // - Annotation is easier for accessing members
                 // - Mirror is needed for messenger
@@ -107,9 +104,14 @@ public abstract class SingleAnnotationProcessor<A extends Annotation, M extends 
                     out = out.withAnnotation(aMirror,
                             annotationValue(aMirror, annotationValue));
 
-                process(element, element.getAnnotation(annoType));
+                final A anno = element.getAnnotation(annoType);
 
-                if (postValidate(element))
+                if (!preValidate(element, anno))
+                    continue;
+
+                process(element, anno);
+
+                if (postValidate(element, anno))
                     return false;
             } catch (final Exception e) {
                 out.error(e, "Cannot process %@ on '%s'", element);

@@ -41,11 +41,15 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.lang.System.arraycopy;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.Diagnostic.Kind.NOTE;
@@ -118,12 +122,20 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
         }
     }
 
-    protected MessageArgs messageArgs(final String format, final Object... args) {
+    public String annoFormat(final String format, final Object... rawArgs) {
+        return format(
+                aname.matcher(format).replaceAll("@" + annoType.getName()),
+                patchArrays(rawArgs));
+    }
+
+    protected MessageArgs messageArgs(final String format,
+            final Object... args) {
         return new MessageArgs(format, args);
     }
 
     private String message(final Exception cause, final String format,
-            final Object... args) {
+            final Object... rawArgs) {
+        final Object[] args = patchArrays(rawArgs);
         // Give subclass a chance to modify these before we do
         final MessageArgs margs = messageArgs(format, args);
         final String xFormat;
@@ -138,9 +150,15 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
             xArgs[margs.args.length] = cause;
         }
 
-        return format(
-                aname.matcher(xFormat).replaceAll("@" + annoType.getName()),
-                xArgs);
+        return annoFormat(xFormat, xArgs);
+    }
+
+    private static Object[] patchArrays(final Object... rawArgs) {
+        final List<Object> argsList = new ArrayList<>(rawArgs.length);
+        asList(rawArgs).stream().
+                map(a -> argsList.add(a instanceof Object[] ? Arrays
+                        .toString((Object[]) a) : a));
+        return argsList.toArray(new Object[rawArgs.length]);
     }
 
     private class MessengerWriter
