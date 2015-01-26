@@ -23,5 +23,9 @@
             <groupId>org.kohsuke.metainf-services</groupId>
             <artifactId>metainf-services</artifactId>
         </dependency>
+        <dependency>
+            <groupId>hm.binkley</groupId>
+            <artifactId>binkley-util</artifactId>
+        </dependency>
     </dependencies>
 </project>

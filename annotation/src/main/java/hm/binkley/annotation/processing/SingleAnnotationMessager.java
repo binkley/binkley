@@ -27,6 +27,8 @@
 
 package hm.binkley.annotation.processing;
 
+import hm.binkley.lang.StringX;
+
 import javax.annotation.Nonnull;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.AnnotationMirror;
@@ -41,15 +43,10 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
 import static java.lang.System.arraycopy;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.Diagnostic.Kind.NOTE;
@@ -62,9 +59,9 @@ import static javax.tools.Diagnostic.Kind.WARNING;
  * @todo Needs documentation.
  */
 public abstract class SingleAnnotationMessager<A extends Annotation, M extends SingleAnnotationMessager<A, M>> {
-    private static final Pattern aname = compile("%@");
     private static final Pattern nl = compile("\\n");
 
+    protected final StringX stringx = new StringX();
     protected final Class<A> annoType;
     protected final Messager messager;
     protected final Element element;
@@ -79,6 +76,8 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
         this.element = element;
         this.mirror = mirror;
         this.value = value;
+
+        stringx.addReplacement('@', annoType.getName());
     }
 
     public abstract M withAnnotation(final AnnotationMirror mirror,
@@ -122,10 +121,9 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
         }
     }
 
-    public String annoFormat(final String format, final Object... rawArgs) {
-        return format(
-                aname.matcher(format).replaceAll("@" + annoType.getName()),
-                patchArrays(rawArgs));
+    public String annoFormat(final String rawFormat,
+            final Object... rawArgs) {
+        return stringx.format(rawFormat, rawArgs);
     }
 
     protected MessageArgs messageArgs(final String format,
@@ -134,8 +132,7 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
     }
 
     private String message(final Exception cause, final String format,
-            final Object... rawArgs) {
-        final Object[] args = patchArrays(rawArgs);
+            final Object... args) {
         // Give subclass a chance to modify these before we do
         final MessageArgs margs = messageArgs(format, args);
         final String xFormat;
@@ -151,14 +148,6 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
         }
 
         return annoFormat(xFormat, xArgs);
-    }
-
-    private static Object[] patchArrays(final Object... rawArgs) {
-        final List<Object> argsList = new ArrayList<>(rawArgs.length);
-        asList(rawArgs).stream().
-                map(a -> argsList.add(a instanceof Object[] ? Arrays
-                        .toString((Object[]) a) : a));
-        return argsList.toArray(new Object[rawArgs.length]);
     }
 
     private class MessengerWriter
