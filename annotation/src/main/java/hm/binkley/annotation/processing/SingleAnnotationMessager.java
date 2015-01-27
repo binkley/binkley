@@ -27,7 +27,7 @@
 
 package hm.binkley.annotation.processing;
 
-import hm.binkley.lang.StringX;
+import hm.binkley.util.StringX;
 
 import javax.annotation.Nonnull;
 import javax.annotation.processing.Messager;
@@ -77,7 +77,7 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
         this.mirror = mirror;
         this.value = value;
 
-        stringx.addReplacement('@', annoType.getName());
+        stringx.put('@', annoType.getName());
     }
 
     public abstract M withAnnotation(final AnnotationMirror mirror,

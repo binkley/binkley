@@ -25,8 +25,9 @@
  * For more information, please refer to <http://unlicense.org/>.
  */
 
-package hm.binkley.lang;
+package hm.binkley.util;
 
+import hm.binkley.util.StringX.FormatResult;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -41,11 +42,32 @@ import static org.junit.Assert.assertThat;
 public final class StringXTest {
     @Test
     public void shouldFormatWithNewSpecifiers() {
-        final StringX stringx = new StringX();
-        stringx.addReplacement('!', "Dog barking");
-        stringx.addReplacement('#', "Cat mewling");
+        final StringX stringx = new StringX(2);
+        stringx.put('!', "Dog barking");
+        stringx.put('^', "Cat mewling");
 
-        assertThat(stringx.format("Foo saw %! and heard %#."),
+        assertThat(stringx.format("Foo saw %! and heard %^."),
                 is(equalTo("Foo saw Dog barking and heard Cat mewling.")));
+    }
+
+    @Test
+    public void shouldFormatWithPercentSign() {
+        final StringX stringx = new StringX(1);
+        stringx.put('!', "%Foo%");
+
+        assertThat(stringx.format("This is %!."),
+                is(equalTo("This is %Foo%.")));
+    }
+
+    @Test
+    public void shouldFormatWithNewAndOldSpecifiers() {
+        final StringX stringx = new StringX(1);
+        stringx.put('!',
+                sargs -> new FormatResult("Hi, " + sargs.args[sargs.n], 1,
+                        false));
+
+        assertThat(
+                stringx.format("Foo said '%!' and heard %s.", "Bob", "Sally"),
+                is(equalTo("Foo said 'Hi, Bob' and heard Sally.")));
     }
 }
