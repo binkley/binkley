@@ -125,8 +125,8 @@ public interface YamlHelper<T> {
         private Builder() {}
 
         /** Supports Hollywood principal. */
-        public Builder then(final Consumer<Builder> them) {
-            them.accept(this);
+        public Builder then(final Consumer<Builder> then) {
+            then.accept(this);
             return this;
         }
 

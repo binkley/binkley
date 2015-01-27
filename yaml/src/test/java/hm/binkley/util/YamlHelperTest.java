@@ -1,10 +1,15 @@
 package hm.binkley.util;
 
+import lombok.EqualsAndHashCode;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 
-import java.util.function.BiFunction;
+import javax.annotation.Nonnull;
+import java.util.Random;
 
+import static java.util.stream.IntStream.rangeClosed;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -22,11 +27,11 @@ public class YamlHelperTest {
                 then(Foo::registerWith).
                 build();
 
-        final Object o = yaml.load("3x007");
+        final Object o = yaml.load("3x12");
         assertThat(o, is(instanceOf(Foo.class)));
         final Foo foo = (Foo) o;
         assertThat(foo.bar, is(equalTo(3)));
-        assertThat(foo.none, is(equalTo(7)));
+        assertThat(foo.none, is(equalTo(12)));
     }
 
     @Test
@@ -35,9 +40,9 @@ public class YamlHelperTest {
                 then(Foo::registerWith).
                 build();
 
-        final Foo foo = new Foo(3, 7);
+        final Foo foo = new Foo(3, 12);
         final String doc = yaml.dump(foo);
-        assertThat(doc, is(equalTo("--- 3x7\n...\n")));
+        assertThat(doc, is(equalTo("--- 3x12\n...\n")));
     }
 
     @Test
@@ -46,19 +51,25 @@ public class YamlHelperTest {
                 then(FancyFoo::registerWith).
                 build();
 
-        final Object o = yaml.load("x007");
+        final Object o = yaml.load("x20");
         assertThat(o, is(instanceOf(FancyFoo.class)));
         final FancyFoo foo = (FancyFoo) o;
-        assertThat(foo.bar(), is(equalTo(1)));
-        assertThat(foo.none(), is(equalTo(7)));
+        assertThat(foo.number(), is(equalTo(1)));
+        assertThat(foo.sides(), is(equalTo(20)));
+    }
+
+    @Test
+    public void shouldLoadithValueOf() {
+        assertThat(FancyFoo.valueOf("3x6"), is(equalTo(new FancyFoo(3, 6))));
     }
 
     public static final class Foo {
-        private static final String n = "123456789";
+        @Language("RegExp")
+        private static final String match
+                = "^([123456789]\\d*)x(4|6|8|10|12|20|100)$";
         private static final YamlHelper<Foo> helper = YamlHelper
-                .from(n, "^([" + n + "]\\d*)x(\\d+)$", Integer::valueOf,
-                        Integer::valueOf, Foo::new,
-                        "'%s' is not the foo you are looking for");
+                .from("123456789", match, Integer::valueOf, Integer::valueOf,
+                        Foo::new, "'%s' is not the foo you are looking for");
         public final int bar;
         public final int none;
 
@@ -77,39 +88,55 @@ public class YamlHelperTest {
         }
     }
 
+    @EqualsAndHashCode
     public static final class FancyFoo {
-        private static final String n = "123456789";
+        @Language("RegExp")
+        private static final String match
+                = "^([123456789]\\d*)?x(4|6|8|10|12|20|100)$";
         private static final YamlHelper<FancyFoo> helper = YamlHelper
-                .from('x' + n, "^([" + n + "]\\d*)?x(\\d+)$",
-                        FancyFoo::nullableValueOf, Integer::valueOf,
-                        (BiFunction<Integer, Integer, FancyFoo>) FancyFoo::new,
+                .from("x123456789", match, FancyFoo::nullableIntegerValueOf,
+                        Integer::valueOf, FancyFoo::new,
                         "'%s' is not the *fancy* foo you are looking for");
-        private final Integer bar;
-        private final int none;
+        private static final Random random = new Random();
+
+        @Nullable
+        private final Integer number;
+        private final int sides;
 
         public static void registerWith(final YamlHelper.Builder builder) {
             builder.addImplicit(FancyFoo.class, helper);
         }
 
-        public FancyFoo(final Integer bar, final int none) {
-            this.bar = bar;
-            this.none = none;
+        @Nonnull
+        public static FancyFoo valueOf(@Nonnull final String val) {
+            return helper.valueOf().apply(val);
         }
 
-        public int bar() {
-            return null == bar ? 1 : bar;
+        public FancyFoo(@Nullable final Integer number, final int sides) {
+            this.number = number;
+            this.sides = sides;
         }
 
-        public int none() {
-            return none;
+        public int number() {
+            return null == number ? 1 : number;
+        }
+
+        public int sides() {
+            return sides;
+        }
+
+        public int roll() {
+            return rangeClosed(1, number()).
+                    map(n -> random.nextInt(sides()) + 1).
+                    sum();
         }
 
         @Override
         public String toString() {
-            return null == bar ? "x" + none : bar + "x" + none;
+            return null == number ? "x" + sides : number + "x" + sides;
         }
 
-        private static Integer nullableValueOf(final String n) {
+        private static Integer nullableIntegerValueOf(final String n) {
             return null == n ? null : Integer.valueOf(n);
         }
     }
