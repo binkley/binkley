@@ -1,5 +1,6 @@
 package hm.binkley.util;
 
+import hm.binkley.util.YamlHelper.Builder;
 import lombok.EqualsAndHashCode;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +23,7 @@ import static org.junit.Assert.assertThat;
  */
 public class YamlHelperTest {
     @Test
-    public void shouldLoadWithAddImplicit() {
+    public void shouldLoadWithImplicit() {
         final Yaml yaml = YamlHelper.builder().
                 then(Foo::registerWith).
                 build();
@@ -35,7 +36,7 @@ public class YamlHelperTest {
     }
 
     @Test
-    public void shouldDumpWithAddImplicit() {
+    public void shouldDumpWithImplicit() {
         final Yaml yaml = YamlHelper.builder().
                 then(Foo::registerWith).
                 build();
@@ -46,7 +47,7 @@ public class YamlHelperTest {
     }
 
     @Test
-    public void shouldLoadWithExtraAddImplicit() {
+    public void shouldLoadWithExtraImplicit() {
         final Yaml yaml = YamlHelper.builder().
                 then(FancyFoo::registerWith).
                 build();
@@ -63,6 +64,18 @@ public class YamlHelperTest {
         assertThat(FancyFoo.valueOf("3x6"), is(equalTo(new FancyFoo(3, 6))));
     }
 
+    @Test
+    public void shouldLoadWithExplicit() {
+        final Yaml yaml = YamlHelper.builder().
+                then(Bar::registerWith).
+                build();
+
+        final Object o = yaml.load("!\u2685 howard jones");
+        assertThat(o, is(instanceOf(Bar.class)));
+        final Bar bar = (Bar) o;
+        assertThat(bar.value(), is(equalTo("howard jones")));
+    }
+
     public static final class Foo {
         @Language("RegExp")
         private static final String match
@@ -70,12 +83,13 @@ public class YamlHelperTest {
         private static final YamlHelper<Foo> helper = YamlHelper
                 .from("123456789", match, Integer::valueOf, Integer::valueOf,
                         Foo::new, "'%s' is not the foo you are looking for");
-        public final int bar;
-        public final int none;
 
         public static void registerWith(final YamlHelper.Builder builder) {
             builder.addImplicit(Foo.class, helper);
         }
+
+        public final int bar;
+        public final int none;
 
         public Foo(final int bar, final int none) {
             this.bar = bar;
@@ -99,13 +113,13 @@ public class YamlHelperTest {
                         "'%s' is not the *fancy* foo you are looking for");
         private static final Random random = new Random();
 
-        @Nullable
-        private final Integer number;
-        private final int sides;
-
         public static void registerWith(final YamlHelper.Builder builder) {
             builder.addImplicit(FancyFoo.class, helper);
         }
+
+        @Nullable
+        private final Integer number;
+        private final int sides;
 
         @Nonnull
         public static FancyFoo valueOf(@Nonnull final String val) {
@@ -138,6 +152,30 @@ public class YamlHelperTest {
 
         private static Integer nullableIntegerValueOf(final String n) {
             return null == n ? null : Integer.valueOf(n);
+        }
+    }
+
+    public static final class Bar {
+        public static void registerWith(final Builder builder) {
+            // http://www.fileformat.info/info/unicode/char/1f3b2/index.htm
+            // not permitted by SnakeYAML
+            builder.addExplicit(Bar.class, "\u2685");
+        }
+
+        @Nonnull
+        public static Bar valueOf(final String val) {
+            return new Bar(val);
+        }
+
+        public Bar(@Nonnull final String value) {
+            this.value = value;
+        }
+
+        private final String value;
+
+        @Nonnull
+        public String value() {
+            return value;
         }
     }
 }
