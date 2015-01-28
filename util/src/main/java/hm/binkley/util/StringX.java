@@ -69,6 +69,8 @@ public final class StringX {
 
         public FormatResult(final String formatted, final int consumed,
                 final boolean reformatting) {
+            if (reformatting)
+                throw new UnsupportedOperationException("UNIMPLEMENTED");
             this.formatted = reformatting ? formatted
                     : percent.matcher(formatted).replaceAll("%%");
             this.consumed = consumed;
@@ -97,6 +99,11 @@ public final class StringX {
                     : conversion.charAt(0);
             this.args = args;
             this.n = n;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <T> T arg() {
+            return (T) (null == index ? args[n] : args[index - 1]);
         }
 
         private int forward() {
@@ -171,9 +178,8 @@ public final class StringX {
         } while (matcher.find());
         matcher.appendTail(format);
 
-        final Object[] args = punch(rawArgs, holes);
-
-        return String.format(format.toString(), patchArrays(args));
+        return String.format(format.toString(),
+                patchArrays(punch(rawArgs, holes)));
     }
 
     @SuppressWarnings("MethodCanBeVariableArityMethod")

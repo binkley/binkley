@@ -63,11 +63,21 @@ public final class StringXTest {
     public void shouldFormatWithNewAndOldSpecifiers() {
         final StringX stringx = new StringX(1);
         stringx.put('!',
-                sargs -> new FormatResult("Hi, " + sargs.args[sargs.n], 1,
-                        false));
+                sargs -> new FormatResult("Hi, " + sargs.arg(), 1, false));
 
         assertThat(
                 stringx.format("Foo said '%!' and heard %s.", "Bob", "Sally"),
                 is(equalTo("Foo said 'Hi, Bob' and heard Sally.")));
+    }
+
+    @Test
+    public void shouldFormatWithNumberedNewAndOldSpecifiers() {
+        final StringX stringx = new StringX(1);
+        stringx.put('!',
+                sargs -> new FormatResult("Hi, " + sargs.arg(), 1, false));
+
+        assertThat(
+                stringx.format("Foo said '%2$!' and heard %1$s.", "Bob", "Sally"),
+                is(equalTo("Foo said 'Hi, Sally' and heard Bob.")));
     }
 }
