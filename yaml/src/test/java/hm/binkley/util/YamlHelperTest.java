@@ -70,7 +70,7 @@ public class YamlHelperTest {
                 then(Bar::registerWith).
                 build();
 
-        final Object o = yaml.load("!\u2685 howard jones");
+        final Object o = yaml.load("!* howard jones");
         assertThat(o, is(instanceOf(Bar.class)));
         final Bar bar = (Bar) o;
         assertThat(bar.value(), is(equalTo("howard jones")));
@@ -158,8 +158,9 @@ public class YamlHelperTest {
     public static final class Bar {
         public static void registerWith(final Builder builder) {
             // http://www.fileformat.info/info/unicode/char/1f3b2/index.htm
-            // not permitted by SnakeYAML
-            builder.addExplicit(Bar.class, "\u2685");
+            // not permitted by SnakeYAML.  In fact, SnakeYAML does not like
+            // anyone not using ASCII.
+            builder.addExplicit(Bar.class, "*");
         }
 
         @Nonnull
