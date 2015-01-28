@@ -1,6 +1,7 @@
 package hm.binkley.util;
 
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.AbstractConstruct;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -32,8 +33,8 @@ import static org.yaml.snakeyaml.DumperOptions.LineBreak.UNIX;
  * configuration based on Java 8 improvements for interfaces and builder
  * pattern.
  * <p>
- * This is a light-weight API wrapper; a given buider is not designed for reuse
- * or thread-safety.
+ * This is a light-weight API wrapper; a given buider is not designed for
+ * reuse or thread-safety.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
@@ -109,14 +110,16 @@ public interface YamlHelper<T> {
     }
 
     /** Creates a new {@code YamlHelper}. */
-    static <T> YamlHelper<T> from(final String firstChars, final Pattern match,
-            final Function<String, T> valueOf) {
+    static <T> YamlHelper<T> from(final String firstChars,
+            final Pattern match, final Function<String, T> valueOf) {
         return new SimpleYamlHelper<>(firstChars, match, valueOf);
     }
 
     final class Builder {
-        private final BuilderConstructor constructor = new BuilderConstructor();
-        private final BuilderRepresenter representer = new BuilderRepresenter();
+        private final BuilderConstructor constructor
+                = new BuilderConstructor();
+        private final BuilderRepresenter representer
+                = new BuilderRepresenter();
         private final BuilderDumperOptions dumperOptions
                 = new BuilderDumperOptions();
         private final Yaml yaml = new BuilderYaml(constructor, representer,
@@ -125,6 +128,7 @@ public interface YamlHelper<T> {
         private Builder() {}
 
         /** Supports Hollywood principal. */
+        @Nonnull
         public Builder then(final Consumer<Builder> then) {
             then.accept(this);
             return this;
@@ -134,19 +138,30 @@ public interface YamlHelper<T> {
          * Configures an implicit tag for {@code Yaml} defining the tag to be
          * the <var>type</var> simple name prefixed by an exclamation point.
          */
-        public <T> Builder addImplicit(final Class<T> type,
-                final YamlHelper<T> helper) {
+        @Nonnull
+        public <T> Builder addImplicit(@Nonnull final Class<T> type,
+                @Nonnull final YamlHelper<T> helper) {
             final Tag tag = tagFor(type);
             constructor.addImplicit(tag, helper.valueOf());
             representer.addImplicit(type);
-            yaml.addImplicitResolver(tag, helper.match(), helper.firstChars());
+            yaml.addImplicitResolver(tag, helper.match(),
+                    helper.firstChars());
+            return this;
+        }
+
+        @Nonnull
+        public <T> Builder addExplicit(@Nonnull final Class<T> type,
+                @Nonnull final String tagText) {
+            final Tag tag = new Tag("!" + tagText);
+            constructor.addTypeDescription(new TypeDescription(type, tag));
+            representer.addClassTag(type, tag);
             return this;
         }
 
         /**
-         * Gets the configured {@code Yaml}.  This does not destroy or disbable
-         * the instance in this builder, further builder calls modifying the
-         * returned instance.
+         * Gets the configured {@code Yaml}.  This does not destroy or
+         * disbable the instance in this builder, further builder calls
+         * modifying the returned instance.
          */
         public Yaml build() {
             return yaml;
@@ -187,8 +202,8 @@ public interface YamlHelper<T> {
             }
 
             void addImplicit(final Class<?> type) {
-                representers.put(type,
-                        data -> representScalar(tagFor(type), data.toString()));
+                representers.put(type, data -> representScalar(tagFor(type),
+                        data.toString()));
             }
         }
 
