@@ -1,7 +1,6 @@
 package hm.binkley.util;
 
 import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.AbstractConstruct;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -27,6 +26,7 @@ import static java.util.regex.Pattern.compile;
 import static java.util.stream.Collectors.joining;
 import static org.yaml.snakeyaml.DumperOptions.FlowStyle.BLOCK;
 import static org.yaml.snakeyaml.DumperOptions.LineBreak.UNIX;
+import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.PLAIN;
 
 /**
  * {@code YamlHelper} provides an alternate API to common SnakeYAML
@@ -36,29 +36,38 @@ import static org.yaml.snakeyaml.DumperOptions.LineBreak.UNIX;
  * This is a light-weight API wrapper; a given buider is not designed for
  * reuse or thread-safety.
  *
+ * @param <T> the type of class receiving help
+ *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 public interface YamlHelper<T> {
-    /**
-     * Gets the first characters for implicit matching.
-     *
-     * @see Yaml#addImplicitResolver(Tag, Pattern, String)
-     */
-    @Nonnull
-    String firstChars();
+    interface Implicit<T>
+            extends YamlHelper<T> {
+        /**
+         * Gets the first characters for implicit matching.
+         *
+         * @see Yaml#addImplicitResolver(Tag, Pattern, String)
+         */
+        @Nonnull
+        String firstChars();
 
-    /**
-     * Gets the pattern for implicit matching.
-     *
-     * @see Yaml#addImplicitResolver(Tag, Pattern, String)
-     */
-    @Nonnull
-    Pattern match();
+        /**
+         * Gets the pattern for implicit matching.
+         *
+         * @see Yaml#addImplicitResolver(Tag, Pattern, String)
+         */
+        @Nonnull
+        Pattern match();
+    }
+
+    interface Explicit<T>
+            extends YamlHelper<T> {}
 
     /**
      * Converter for YAML constructors map.
      *
-     * @see Builder.BuilderConstructor#addImplicit(Class, YamlHelper)
+     * @see Builder.BuilderConstructor#addImplicit(Class, Implicit)
+     * @see Builder.BuilderConstructor#addExplicit(Tag, Explicit)
      */
     @Nonnull
     Function<String, T> valueOf();
@@ -67,10 +76,11 @@ public interface YamlHelper<T> {
     @Nonnull
     static Builder builder() { return new Builder(); }
 
-    /** Creates a new {@code YamlHelper} for enums. */
+    /** Creates a new {@code YamlHelper.Implicit} for enums. */
+    @Nonnull
     @SafeVarargs
-    static <E extends Enum<E>> YamlHelper<E> from(final Class<E> type,
-            final E... values) {
+    static <E extends Enum<E>> Implicit<E> implicitFrom(
+            @Nonnull final Class<E> type, final E... values) {
         final List<E> v = asList(values);
         final String firstChars = v.stream().
                 map(Object::toString).
@@ -80,39 +90,58 @@ public interface YamlHelper<T> {
                 map(Object::toString).
                 collect(joining("|", "^(", ")$")));
         final Function<String, E> valueOf = s -> Enum.valueOf(type, s);
-        return from(firstChars, match, valueOf);
+        return implicitFrom(firstChars, match, valueOf);
     }
 
-    /** Creates a new {@code YamlHelper} for one-arg-constructor classes. */
-    static <T, R> YamlHelper<R> from(final String firstChars,
-            final String regex, final Function<String, T> valueOfT,
-            final Function<T, R> ctor, final String error) {
+    /**
+     * Creates a new {@code YamlHelper.Implicit} for one-arg-constructor
+     * classes.
+     */
+    @Nonnull
+    static <T, R> Implicit<R> implicitFrom(@Nonnull final String firstChars,
+            @Nonnull final String regex,
+            @Nonnull final Function<String, T> valueOfT,
+            @Nonnull final Function<T, R> ctor, @Nonnull final String error) {
         final Pattern match = compile(regex);
         final Function<String, R> valueOf = s -> {
             final Matcher matcher = Util.matcher(s, match, error);
             return ctor.apply(valueOfT.apply(matcher.group(1)));
         };
-        return from(firstChars, match, valueOf);
+        return implicitFrom(firstChars, match, valueOf);
     }
 
-    /** Creates a new {@code YamlHelper} for two-arg-constructor classes. */
-    static <T, U, R> YamlHelper<R> from(final String firstChars,
-            final String regex, final Function<String, T> valueOfT,
-            final Function<String, U> valueOfU,
-            final BiFunction<T, U, R> ctor, final String error) {
+    /**
+     * Creates a new {@code YamlHelper.Implicit} for two-arg-constructor
+     * classes.
+     */
+    @Nonnull
+    static <T, U, R> Implicit<R> implicitFrom(
+            @Nonnull final String firstChars, @Nonnull final String regex,
+            @Nonnull final Function<String, T> valueOfT,
+            @Nonnull final Function<String, U> valueOfU,
+            @Nonnull final BiFunction<T, U, R> ctor,
+            @Nonnull final String error) {
         final Pattern match = compile(regex);
         final Function<String, R> valueOf = s -> {
             final Matcher matcher = Util.matcher(s, match, error);
             return ctor.apply(valueOfT.apply(matcher.group(1)),
                     valueOfU.apply(matcher.group(2)));
         };
-        return from(firstChars, match, valueOf);
+        return implicitFrom(firstChars, match, valueOf);
     }
 
-    /** Creates a new {@code YamlHelper}. */
-    static <T> YamlHelper<T> from(final String firstChars,
-            final Pattern match, final Function<String, T> valueOf) {
-        return new SimpleYamlHelper<>(firstChars, match, valueOf);
+    /** Creates a new {@code YamlHelper.Implicit}. */
+    @Nonnull
+    static <T> Implicit<T> implicitFrom(@Nonnull final String firstChars,
+            @Nonnull final Pattern match,
+            @Nonnull final Function<String, T> valueOf) {
+        return new SimpleImplicit<>(firstChars, match, valueOf);
+    }
+
+    @Nonnull
+    static <T> Explicit<T> explicitFrom(
+            @Nonnull final Function<String, T> valueOf) {
+        return () -> valueOf;
     }
 
     final class Builder {
@@ -122,8 +151,8 @@ public interface YamlHelper<T> {
                 = new BuilderRepresenter();
         private final BuilderDumperOptions dumperOptions
                 = new BuilderDumperOptions();
-        private final Yaml yaml = new BuilderYaml(constructor, representer,
-                dumperOptions);
+        private final BuilderYaml yaml = new BuilderYaml(constructor,
+                representer, dumperOptions);
 
         private Builder() {}
 
@@ -134,27 +163,34 @@ public interface YamlHelper<T> {
             return this;
         }
 
+        /** Configures the dumper options. */
+        @Nonnull
+        public Builder dumper(final Consumer<DumperOptions> dumper) {
+            dumper.accept(dumperOptions);
+            return this;
+        }
+
         /**
          * Configures an implicit tag for {@code Yaml} defining the tag to be
          * the <var>type</var> simple name prefixed by an exclamation point.
          */
         @Nonnull
         public <T> Builder addImplicit(@Nonnull final Class<T> type,
-                @Nonnull final YamlHelper<T> helper) {
+                @Nonnull final Implicit<T> helper) {
             final Tag tag = tagFor(type);
-            constructor.addImplicit(tag, helper.valueOf());
-            representer.addImplicit(type);
-            yaml.addImplicitResolver(tag, helper.match(),
-                    helper.firstChars());
+            constructor.addImplicit(tag, helper);
+            representer.addImplicit(type, tag);
+            yaml.addImplicitResolver(tag, helper);
             return this;
         }
 
         @Nonnull
         public <T> Builder addExplicit(@Nonnull final Class<T> type,
-                @Nonnull final String tagText) {
+                @Nonnull final String tagText,
+                @Nonnull final Explicit<T> helper) {
             final Tag tag = new Tag("!" + tagText);
-            constructor.addTypeDescription(new TypeDescription(type, tag));
-            representer.addClassTag(type, tag);
+            constructor.addExplicit(tag, helper);
+            representer.addExplicit(type, tag);
             return this;
         }
 
@@ -173,23 +209,29 @@ public interface YamlHelper<T> {
 
         private static class BuilderConstructor
                 extends Constructor {
-            <T> void addImplicit(final Tag tag,
-                    final Function<String, T> valueOf) {
-                yamlConstructors.put(tag, new BuilderConstruct<>(valueOf));
+            <T> void addImplicit(final Tag tag, final Implicit<T> implicit) {
+                yamlConstructors.put(tag, new BuilderConstruct<>(implicit));
             }
 
-            private static class BuilderConstruct<T>
+            <T> void addExplicit(final Tag tag, final Explicit<T> explicit) {
+                final BuilderConstruct<T> ctor = new BuilderConstruct<>(
+                        explicit);
+                yamlConstructors.put(tag, ctor);
+                yamlMultiConstructors.put(tag.getValue(), ctor);
+            }
+
+            private class BuilderConstruct<T>
                     extends AbstractConstruct {
                 private final Function<String, T> valueOf;
 
-                BuilderConstruct(final Function<String, T> valueOf) {
-                    this.valueOf = valueOf;
+                BuilderConstruct(final YamlHelper<T> helper) {
+                    valueOf = helper.valueOf();
                 }
 
                 @Override
                 public T construct(final Node node) {
-                    final String val = ((ScalarNode) node).getValue();
-                    return valueOf.apply(val);
+                    return valueOf.apply((String) constructScalar(
+                            (ScalarNode) node));
                 }
             }
         }
@@ -198,12 +240,20 @@ public interface YamlHelper<T> {
                 extends Representer {
             {
                 setDefaultFlowStyle(BLOCK);
+                setDefaultScalarStyle(PLAIN);
                 setTimeZone(null); // null is UTC
             }
 
-            void addImplicit(final Class<?> type) {
-                representers.put(type, data -> representScalar(tagFor(type),
-                        data.toString()));
+            void addImplicit(final Class<?> type, final Tag tag) {
+                addClassTag(type, tag);
+                representers.put(type,
+                        data -> representScalar(tag, data.toString()));
+            }
+
+            void addExplicit(final Class<?> type, final Tag tag) {
+                addClassTag(type, tag);
+                representers.put(type,
+                        data -> representScalar(tag, data.toString()));
             }
         }
 
@@ -211,8 +261,7 @@ public interface YamlHelper<T> {
                 extends DumperOptions {
             {
                 setDefaultFlowStyle(BLOCK);
-                setExplicitEnd(true);
-                setExplicitStart(true);
+                setDefaultScalarStyle(PLAIN);
                 setLineBreak(UNIX);
                 setTimeZone(null); // null is UTC
             }
@@ -224,6 +273,11 @@ public interface YamlHelper<T> {
                     final BuilderRepresenter representer,
                     final BuilderDumperOptions dumperOptions) {
                 super(constructor, representer, dumperOptions);
+            }
+
+            public void addImplicitResolver(final Tag tag,
+                    final Implicit<?> helper) {
+                addImplicitResolver(tag, helper.match(), helper.firstChars());
             }
 
             @Override
@@ -252,13 +306,13 @@ public interface YamlHelper<T> {
         }
     }
 
-    class SimpleYamlHelper<T>
-            implements YamlHelper<T> {
+    class SimpleImplicit<T>
+            implements Implicit<T> {
         private final String firstChars;
         private final Pattern match;
         private final Function<String, T> valueOf;
 
-        public SimpleYamlHelper(final String firstChars, final Pattern match,
+        public SimpleImplicit(final String firstChars, final Pattern match,
                 final Function<String, T> valueOf) {
             this.firstChars = firstChars;
             this.match = match;
