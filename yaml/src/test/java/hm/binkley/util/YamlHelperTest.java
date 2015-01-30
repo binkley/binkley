@@ -4,12 +4,14 @@ import hm.binkley.util.YamlHelper.Builder;
 import lombok.EqualsAndHashCode;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -20,6 +22,9 @@ import static org.junit.Assert.assertThat;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley</a>
  */
 public class YamlHelperTest {
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
+
     @Test
     public void shouldLoadWithImplicit() {
         final Yaml yaml = YamlHelper.builder().
@@ -31,9 +36,12 @@ public class YamlHelperTest {
         assertThat(foo.none, is(equalTo(12)));
     }
 
-    @Ignore("SnakeYAML wants new(x) and ignores Constructor for loadAs")
     @Test
     public void shouldLoadAsWithImplicit() {
+        // SnakeYAML wants new(x) and ignores Constructor for loadAs
+        thrown.expectMessage(containsString(
+                "No single argument constructor found for class hm.binkley.util.YamlHelperTest$Foo"));
+
         final Yaml yaml = YamlHelper.builder().
                 then(Foo::registerWith).
                 build();
@@ -82,8 +90,12 @@ public class YamlHelperTest {
     }
 
     @Test
-    @Ignore("SnakeYAML treats PLAIN style as single-quoted :(")
     public void shouldDumpWithExplicit() {
+        // SnakeYAML treats PLAIN style as single-quoted :(
+        thrown.expect(AssertionError.class);
+        thrown.expectMessage("Expected: is \"!* howard jones\\n\"\n"
+                + "     but: was \"!* 'howard jones'\\n\"");
+
         final Yaml yaml = YamlHelper.builder().
                 then(Bar::registerWith).
                 build();
