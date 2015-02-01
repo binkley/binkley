@@ -35,7 +35,7 @@ public class NonRandom
     protected int next(final int bits) {
         if (i == nexts.length)
             throw new NoSuchElementException("Exhausted random numbers");
-        return 32 == bits ? nexts[i++]
-                : nexts[i++] & Integer.MAX_VALUE >> 31 - bits;
+        final int next = nexts[i++];
+        return 32 == bits ? next : next & Integer.MAX_VALUE >> 31 - bits;
     }
 }
