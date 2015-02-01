@@ -39,25 +39,17 @@ import static org.junit.Assert.assertThat;
  * {@code NonRandomTest} tests {@link NonRandom}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public final class NonRandomTest {
     @Test
     public void shouldBeInSequence() {
         final NonRandom random = new NonRandom(0, 1);
-        assertThat(random.nextInt(), is(equalTo(0)));
-        assertThat(random.nextInt(), is(equalTo(1)));
+        assertThat(random.nextInt(2), is(equalTo(0)));
+        assertThat(random.nextInt(2), is(equalTo(1)));
     }
 
     @Test(expected = NoSuchElementException.class)
     public void shouldComplainWhenExhausted() {
-        final NonRandom random = new NonRandom();
-        random.nextInt();
-    }
-
-    @Test
-    public void shouldRoundForBits() {
-        final NonRandom random = new NonRandom(0xFF);
-        assertThat(random.next(1), is(equalTo(1)));
+        new NonRandom().nextInt();
     }
 }
