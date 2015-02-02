@@ -10,9 +10,13 @@ import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
 import hm.binkley.util.YamlHelper;
 import hm.binkley.util.YamlHelper.Builder;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.yaml.snakeyaml.DumperOptions.FlowStyle;
+import org.yaml.snakeyaml.DumperOptions.LineBreak;
+import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
@@ -29,14 +33,11 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.time.Instant;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
@@ -44,7 +45,9 @@ import static hm.binkley.annotation.processing.MethodDescription.methodDescripti
 import static java.lang.String.format;
 import static java.lang.System.arraycopy;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.toList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
@@ -64,7 +67,6 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
  * @todo Parse "freemarker.version" from Maven to construct latest Version
  * @todo Custom configuration of Freemarker
  * @todo Errors in blocks should show source specific to block, not whole
- * @todo Definition should be the YAML, not a stringified map
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
@@ -390,24 +392,12 @@ public class YamlGenerateProcessor
         return new LinkedHashMap<>();
     }
 
-    /**
-     * @todo Recursive for values which are maps, etc.
-     * @todo Handle quotes within quotes
-     */
-    private static List<String> toAnnotationValue(
-            final Map<String, Object> props) {
+    private List<String> toAnnotationValue(final Map<String, Object> props) {
         return props.entrySet().stream().
-                map(e -> {
-                    final Object value = e.getValue();
-                    return new AbstractMap.SimpleImmutableEntry<>(
-                            e.getKey() + ":" + (null == value ? "null"
-                                    : typeOf(value)), value);
-                }).
-                map(e -> new AbstractMap.SimpleImmutableEntry<>(e.getKey(),
-                        Objects.toString(e.getValue()))).
-                map(e -> new AbstractMap.SimpleImmutableEntry<>(
-                        '"' + e.getKey() + '"', '"' + e.getValue() + '"')).
-                flatMap(e -> Stream.of(e.getKey(), e.getValue())).
+                map(e -> singletonMap(e.getKey(), e.getValue())).
+                map(yaml::dump).
+                map(StringEscapeUtils::escapeJava).
+                map(e -> format("\"%s\"", e)).
                 collect(toList());
     }
 
@@ -630,5 +620,40 @@ public class YamlGenerateProcessor
                 return null;
             }
         }
+    }
+
+    public static void main(final String... args) {
+        final Map<String, Object> values
+                = new LinkedHashMap<String, Object>() {{
+            put("a", "aaa");
+            put("b", 2);
+            put("c", true);
+            put("d", 3.14159d);
+            put("e", "This is\ta \\gnarly \"string\"!");
+            put("f", asList("a", true, 3));
+            put("g", new LinkedHashMap<String, Object>() {{
+                put("p", "ppp");
+                put("q", 3);
+                put("r", true);
+            }});
+        }};
+        final Yaml yaml = YamlHelper.builder().
+                dumper(d -> {
+                    d.setPrettyFlow(true);
+                    d.setWidth(Integer.MAX_VALUE);
+                    d.setDefaultScalarStyle(ScalarStyle.DOUBLE_QUOTED);
+                    d.setDefaultFlowStyle(FlowStyle.FLOW);
+                    d.setLineBreak(LineBreak.UNIX);
+                    d.setTimeZone(null);
+                }).
+                build();
+
+        values.entrySet().stream().
+                map(e -> singletonMap(e.getKey(), e.getValue())).
+                map(yaml::dump).
+                // map(e -> e.substring(0, e.length() - 1)). // chop nl
+                map(StringEscapeUtils::escapeJava).
+                map(e -> format("\"%s\"", e)).
+                forEach(System.out::println);
     }
 }

@@ -19,7 +19,6 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
  * classes in YAML.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Return YAML, not stringified map
  */
 @Documented
 @Retention(SOURCE)
@@ -42,12 +41,7 @@ public @interface YamlGenerate {
     @Retention(RUNTIME)
     @Target({FIELD, METHOD, TYPE})
     @interface Definition {
-        /**
-         * Key/value pairs of the YAML definition for this method.  Ideally
-         * this would be a sequence of pairs of string to Object, but
-         * annotations do not support that.  Values in the pair are their
-         * natural {@code toString()} representation.
-         */
+        /** Sequence of YAML used to define the annotated element. */
         String[] value();
     }
 
@@ -71,6 +65,7 @@ public @interface YamlGenerate {
      * interfaces.
      */
     interface Helper {
+        /** Extract annotated "doc" value from the element. */
         static String documentationFor(final Class<?> generatedType) {
             final Documentation anno = generatedType
                     .getAnnotation(Documentation.class);
@@ -82,6 +77,7 @@ public @interface YamlGenerate {
             return anno.value();
         }
 
+        /** Extract annotated "doc" value from the element. */
         static String documentationFor(final Class<?> generatedType,
                 final String name)
                 throws NoSuchMethodException {
@@ -96,6 +92,7 @@ public @interface YamlGenerate {
             return anno.value();
         }
 
+        /** Extract annotated YAML definition for the element. */
         static String[] definitionFor(final Class<?> generatedType) {
             final Definition anno = generatedType
                     .getAnnotation(Definition.class);
@@ -107,6 +104,7 @@ public @interface YamlGenerate {
             return anno.value();
         }
 
+        /** Extract annotated YAML definition for the element. */
         static String[] definitionFor(final Class<?> generatedType,
                 final String name)
                 throws NoSuchMethodException {

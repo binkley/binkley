@@ -26,7 +26,8 @@ Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkl
 * [Xio](xio/) - Pulling out interfaces from JDK I/O
 * [XML](xml/) - Experiments in XML
 * [XProperties](xprops/) - Extended Java properties
-* [YAML](yaml/) - Java code generation from YAML
+* [YAML compile](yaml-compile/) - Java code generation from YAML
+* [YAML runtime](yaml-runtime/) - Java code generation from YAML
 
 ## Changes
 
