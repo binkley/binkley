@@ -10,11 +10,15 @@ import org.junit.rules.ExpectedException;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
+import java.util.LinkedHashMap;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.yaml.snakeyaml.DumperOptions.FlowStyle.FLOW;
+import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.PLAIN;
 
 /**
  * {@code YamlHelperTest} tests {@link YamlHelper}.
@@ -102,6 +106,28 @@ public class YamlHelperTest {
 
         assertThat(yaml.dump(new Bar("howard jones")),
                 is(equalTo("!* howard jones\n")));
+    }
+
+    @Test
+    public void shouldChangeStyles() {
+        final Yaml yaml = YamlHelper.builder().
+                then(Bar::registerWith).
+                build(options -> {
+                    options.setDefaultFlowStyle(FLOW);
+                    options.setDefaultScalarStyle(PLAIN);
+                    options.setWidth(Integer.MAX_VALUE);
+                });
+
+        assertThat(yaml.dump(new LinkedHashMap<String, Object>(4) {{
+            put("a", "aaa");
+            put("b", 3);
+            put("c", asList("CCC", 12, true));
+            put("d", new LinkedHashMap<String, Object>(2) {{
+                put("p", "PPP");
+                put("q", 4);
+            }});
+        }}), is(equalTo(
+                "{a: aaa, b: 3, c: [CCC, 12, true], d: {p: PPP, q: 4}}\n")));
     }
 
     public static final class Foo {

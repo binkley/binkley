@@ -13,7 +13,9 @@ import javax.annotation.Nonnull;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -149,24 +151,12 @@ public interface YamlHelper<T> {
                 = new BuilderConstructor();
         private final BuilderRepresenter representer
                 = new BuilderRepresenter();
-        private final BuilderDumperOptions dumperOptions
-                = new BuilderDumperOptions();
-        private final BuilderYaml yaml = new BuilderYaml(constructor,
-                representer, dumperOptions);
-
-        private Builder() {}
+        private final Map<Tag, Implicit<?>> implicits = new LinkedHashMap<>();
 
         /** Supports Hollywood principal. */
         @Nonnull
         public Builder then(final Consumer<Builder> then) {
             then.accept(this);
-            return this;
-        }
-
-        /** Configures the dumper options. */
-        @Nonnull
-        public Builder dumper(final Consumer<DumperOptions> dumper) {
-            dumper.accept(dumperOptions);
             return this;
         }
 
@@ -180,7 +170,7 @@ public interface YamlHelper<T> {
             final Tag tag = tagFor(type);
             constructor.addImplicit(tag, helper);
             representer.addImplicit(type, tag);
-            yaml.addImplicitResolver(tag, helper);
+            implicits.put(tag, helper);
             return this;
         }
 
@@ -194,12 +184,29 @@ public interface YamlHelper<T> {
             return this;
         }
 
-        /**
-         * Gets the configured {@code Yaml}.  This does not destroy or
-         * disbable the instance in this builder, further builder calls
-         * modifying the returned instance.
-         */
+        /** Creates a new YAML instance with default dumper options. */
         public Yaml build() {
+            final DumperOptions dumperOptions = new BuilderDumperOptions();
+            final BuilderYaml yaml = new BuilderYaml(constructor, representer,
+                    dumperOptions);
+            implicits.entrySet().stream().
+                    forEach(e -> yaml
+                            .addImplicitResolver(e.getKey(), e.getValue()));
+            return yaml;
+        }
+
+        /**
+         * Creates a new YAML instance using the given <var>options</var>.  No
+         * options are inherited from previous configuration.
+         */
+        public Yaml build(final Consumer<DumperOptions> options) {
+            final DumperOptions dumperOptions = new BuilderDumperOptions();
+            options.accept(dumperOptions);
+            final BuilderYaml yaml = new BuilderYaml(constructor, representer,
+                    dumperOptions);
+            implicits.entrySet().stream().
+                    forEach(e -> yaml
+                            .addImplicitResolver(e.getKey(), e.getValue()));
             return yaml;
         }
 
@@ -257,7 +264,7 @@ public interface YamlHelper<T> {
             }
         }
 
-        private static class BuilderDumperOptions
+        static class BuilderDumperOptions
                 extends DumperOptions {
             {
                 setDefaultFlowStyle(BLOCK);
@@ -271,7 +278,7 @@ public interface YamlHelper<T> {
                 extends Yaml {
             public BuilderYaml(final BuilderConstructor constructor,
                     final BuilderRepresenter representer,
-                    final BuilderDumperOptions dumperOptions) {
+                    final DumperOptions dumperOptions) {
                 super(constructor, representer, dumperOptions);
             }
 
