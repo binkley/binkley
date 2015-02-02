@@ -350,10 +350,7 @@ public class YamlGenerateProcessor
         for (final Entry<String, Map<String, Object>> method : values
                 .entrySet()) {
             final String name = method.getKey();
-            final Map<String, Object> value = method.getValue();
-            // Clone to leave original YAML alone
-            final Map<String, Object> block = null == value
-                    ? new LinkedHashMap<>() : new LinkedHashMap<>(value);
+            final Map<String, Object> block = block(names, method);
 
             final List<String> definition = toAnnotationValue(block);
             switch (name) {
@@ -371,6 +368,25 @@ public class YamlGenerateProcessor
         }
 
         return model;
+    }
+
+    /**
+     * Strategy: <ol><li>If there are values, use them.</li> <li>If this is
+     * ".meta" and there is a supertype, use the supertype values.</li>
+     * <li>Use empty values.</li></ol>
+     */
+    private Map<String, Object> block(final ZisZuper names,
+            final Entry<String, Map<String, Object>> method) {
+        final Map<String, Object> values = method.getValue();
+        if (null != values)
+            // Clone to leave original YAML alone
+            return new LinkedHashMap<>(values);
+        final String name = method.getKey();
+        if (null != names.zuper && ".meta".equals(name)) {
+            methods.get(names.zuper.fullName).get(name);
+            return new LinkedHashMap<>();
+        }
+        return new LinkedHashMap<>();
     }
 
     /**

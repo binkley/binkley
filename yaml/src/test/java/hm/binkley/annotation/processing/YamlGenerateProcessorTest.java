@@ -1,6 +1,5 @@
 package hm.binkley.annotation.processing;
 
-import hm.binkley.annotation.YamlGenerate;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -18,8 +17,3 @@ public final class YamlGenerateProcessorTest {
         assertThat(new fooby.Howard().baz(), is(equalTo("stringy!")));
     }
 }
-
-@Deprecated // Check that unrelated annos do not croak the processor
-@YamlGenerate(inputs = {"/foo/*.yml", "classpath:/bar/3.yml"},
-        namespace = "fooby")
-interface YamlGenerateTestClasses {}
