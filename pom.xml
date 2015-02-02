@@ -85,7 +85,8 @@
         <module>xio</module>
         <module>xml</module>
         <module>xprops</module>
-        <module>yaml</module>
+        <module>yaml-runtime</module>
+        <module>yaml-compile</module>
         <module>yaml-test-data</module>
     </modules>
 
@@ -252,7 +253,12 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>binkley-yaml</artifactId>
+                <artifactId>binkley-yaml-runtime</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-yaml-compile</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
