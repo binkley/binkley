@@ -64,6 +64,7 @@ import static javax.lang.model.element.ElementKind.PACKAGE;
  * @todo Parse "freemarker.version" from Maven to construct latest Version
  * @todo Custom configuration of Freemarker
  * @todo Errors in blocks should show source specific to block, not whole
+ * @todo Definition should be the YAML, not a stringified map
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
