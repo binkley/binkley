@@ -16,7 +16,7 @@
         <version>0.6-SNAPSHOT</version>
     </parent>
 
-    <artifactId>binkley-yaml</artifactId>
+    <artifactId>binkley-yaml-runtime</artifactId>
 
     <dependencies>
         <dependency>
