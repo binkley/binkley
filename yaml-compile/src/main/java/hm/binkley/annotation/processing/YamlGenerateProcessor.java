@@ -14,9 +14,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.yaml.snakeyaml.DumperOptions.FlowStyle;
-import org.yaml.snakeyaml.DumperOptions.LineBreak;
-import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
@@ -53,6 +50,8 @@ import static java.util.stream.Collectors.toList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.PACKAGE;
+import static org.yaml.snakeyaml.DumperOptions.FlowStyle.FLOW;
+import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.LITERAL;
 
 /**
  * {@code YamlGenerateProcessor} generates Java source enums and classes from
@@ -77,6 +76,7 @@ public class YamlGenerateProcessor
     private final Map<String, Map<String, Map<String, Object>>> methods
             = new LinkedHashMap<>();
     private final List<String> roots = findRootsOf(getClass());
+    private final YamlHelper.Builder builder = YamlHelper.builder();
     private final Configuration freemarker;
     private Yaml yaml;
     private LoadedTemplate template;
@@ -96,12 +96,12 @@ public class YamlGenerateProcessor
     }
 
     /**
-     * Configures YAML, for example, add implicits.  Default implementation
+     * Configures YAML, for example, to add implicits.  Default implementation
      * returns <var>builder</var>.
      *
      * @param builder the YAML builder
      */
-    protected YamlHelper.Builder setup(final Builder builder) {
+    protected YamlHelper.Builder configure(final Builder builder) {
         return builder;
     }
 
@@ -177,7 +177,7 @@ public class YamlGenerateProcessor
         final String namespace = anno.namespace();
 
         try {
-            yaml = setup(YamlHelper.builder()).build();
+            yaml = configure(builder).build();
             withTemplate(anno.template());
 
             try {
@@ -316,9 +316,9 @@ public class YamlGenerateProcessor
             @Nonnull final Map<String, Map<String, Object>> methods,
             @Nonnull final Loaded<?> loaded) {
         try (final Writer writer = new OutputStreamWriter(
-                processingEnv.getFiler()
-                        .createSourceFile(names.zis.fullName, cause)
-                        .openOutputStream())) {
+                processingEnv.getFiler().
+                        createSourceFile(names.zis.fullName, cause).
+                        openOutputStream())) {
             template.what.process(model(names, methods, loaded), writer);
         } catch (final IOException e) {
             fail(e, names.zis, methods, loaded);
@@ -393,6 +393,11 @@ public class YamlGenerateProcessor
     }
 
     private List<String> toAnnotationValue(final Map<String, Object> props) {
+        final Yaml yaml = builder.build(dumper -> {
+            dumper.setDefaultFlowStyle(FLOW);
+            dumper.setDefaultScalarStyle(LITERAL);
+            dumper.setWidth(Integer.MAX_VALUE);
+        });
         return props.entrySet().stream().
                 map(e -> singletonMap(e.getKey(), e.getValue())).
                 map(yaml::dump).
@@ -637,22 +642,17 @@ public class YamlGenerateProcessor
                 put("r", true);
             }});
         }};
-        final Yaml yaml = YamlHelper.builder().
-                dumper(d -> {
-                    d.setPrettyFlow(true);
-                    d.setWidth(Integer.MAX_VALUE);
-                    d.setDefaultScalarStyle(ScalarStyle.DOUBLE_QUOTED);
-                    d.setDefaultFlowStyle(FlowStyle.FLOW);
-                    d.setLineBreak(LineBreak.UNIX);
-                    d.setTimeZone(null);
-                }).
-                build();
+        final Yaml yaml = YamlHelper.builder().build(options -> {
+            options.setDefaultScalarStyle(LITERAL);
+            options.setDefaultFlowStyle(FLOW);
+            options.setWidth(Integer.MAX_VALUE);
+        });
 
         values.entrySet().stream().
                 map(e -> singletonMap(e.getKey(), e.getValue())).
                 map(yaml::dump).
                 // map(e -> e.substring(0, e.length() - 1)). // chop nl
-                map(StringEscapeUtils::escapeJava).
+                        map(StringEscapeUtils::escapeJava).
                 map(e -> format("\"%s\"", e)).
                 forEach(System.out::println);
     }
