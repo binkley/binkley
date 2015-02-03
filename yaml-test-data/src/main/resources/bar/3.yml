@@ -11,6 +11,9 @@ Baz:
   banana:
     doc: Really big floating point
     value: 1.234567890123456789
+  fancy:
+    doc: 'Complicated\tstring\with "junk".'
+    type: str
 
 Whack Foo:
   bar:
@@ -23,7 +26,7 @@ some.Parent:
 
 Child some.Parent:
   a:
-    value: ['a', 3, 4.2, true]
+    value: [a, 3, 4.2, true]
 
 Empty:
   .meta:

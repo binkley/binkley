@@ -27,6 +27,7 @@ import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
 import static java.util.stream.Collectors.joining;
 import static org.yaml.snakeyaml.DumperOptions.FlowStyle.BLOCK;
+import static org.yaml.snakeyaml.DumperOptions.FlowStyle.FLOW;
 import static org.yaml.snakeyaml.DumperOptions.LineBreak.UNIX;
 import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.PLAIN;
 
@@ -208,6 +209,18 @@ public interface YamlHelper<T> {
                     forEach(e -> yaml
                             .addImplicitResolver(e.getKey(), e.getValue()));
             return yaml;
+        }
+
+        /**
+         * Convenience for {@link #build(Consumer)} to generate simple YAML in
+         * a single line.
+         */
+        public static Consumer<DumperOptions> inOneLine() {
+            return dumper -> {
+                dumper.setDefaultFlowStyle(FLOW);
+                dumper.setDefaultScalarStyle(PLAIN);
+                dumper.setWidth(Integer.MAX_VALUE);
+            };
         }
 
         private static Tag tagFor(final Class<?> type) {

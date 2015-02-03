@@ -10,7 +10,6 @@ import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
 import hm.binkley.util.YamlHelper;
 import hm.binkley.util.YamlHelper.Builder;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -39,10 +38,10 @@ import java.util.Map.Entry;
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
 import static hm.binkley.annotation.processing.MethodDescription.methodDescription;
+import static hm.binkley.util.YamlHelper.Builder.inOneLine;
 import static java.lang.String.format;
 import static java.lang.System.arraycopy;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableMap;
@@ -50,8 +49,7 @@ import static java.util.stream.Collectors.toList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.PACKAGE;
-import static org.yaml.snakeyaml.DumperOptions.FlowStyle.FLOW;
-import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.LITERAL;
+import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 
 /**
  * {@code YamlGenerateProcessor} generates Java source enums and classes from
@@ -345,25 +343,30 @@ public class YamlGenerateProcessor
             return model;
         }
 
+        final Yaml yaml = builder.build(inOneLine());
         final Map<String, Map<String, Object>> loops = new LinkedHashMap<>(
                 values.size());
         model.put(loopKey, loops);
-        model.put("definition", toAnnotationValue(emptyMap()));
+        model.put("definition",
+                toAnnotationValue(yaml, emptyMap()));
 
         for (final Entry<String, Map<String, Object>> method : values
                 .entrySet()) {
             final String name = method.getKey();
             final Map<String, Object> block = block(names, method);
 
-            final List<String> definition = toAnnotationValue(block);
+            final List<String> definition = toAnnotationValue(yaml, block);
             switch (name) {
             case ".meta":
                 // Class details
                 model.put("definition", definition);
                 model.put("doc", block.get("doc"));
+                model.put("escapedDoc", escapeJava((String) block.get("doc")));
                 break;
             default:
                 block.put("definition", definition);
+                if (block.containsKey("doc"))
+                    block.put("escapedDoc", escapeJava((String) block.get("doc")));
                 generate.updateModel(name, model, block, names, methods);
                 loops.put(name, block);
                 break;
@@ -392,17 +395,17 @@ public class YamlGenerateProcessor
         return new LinkedHashMap<>();
     }
 
-    private List<String> toAnnotationValue(final Map<String, Object> props) {
-        final Yaml yaml = builder.build(dumper -> {
-            dumper.setDefaultFlowStyle(FLOW);
-            dumper.setDefaultScalarStyle(LITERAL);
-            dumper.setWidth(Integer.MAX_VALUE);
-        });
+    private static String toQuotedYaml(final Yaml yaml, final Object value) {
+        final String dumped = yaml.dump(value);
+        return format("\"%s\"",
+                escapeJava(dumped.substring(0, dumped.length() - 1)));
+    }
+
+    private static List<String> toAnnotationValue(final Yaml yaml,
+            final Map<String, Object> props) {
         return props.entrySet().stream().
                 map(e -> singletonMap(e.getKey(), e.getValue())).
-                map(yaml::dump).
-                map(StringEscapeUtils::escapeJava).
-                map(e -> format("\"%s\"", e)).
+                map(e -> toQuotedYaml(yaml, e)).
                 collect(toList());
     }
 
@@ -625,35 +628,5 @@ public class YamlGenerateProcessor
                 return null;
             }
         }
-    }
-
-    public static void main(final String... args) {
-        final Map<String, Object> values
-                = new LinkedHashMap<String, Object>() {{
-            put("a", "aaa");
-            put("b", 2);
-            put("c", true);
-            put("d", 3.14159d);
-            put("e", "This is\ta \\gnarly \"string\"!");
-            put("f", asList("a", true, 3));
-            put("g", new LinkedHashMap<String, Object>() {{
-                put("p", "ppp");
-                put("q", 3);
-                put("r", true);
-            }});
-        }};
-        final Yaml yaml = YamlHelper.builder().build(options -> {
-            options.setDefaultScalarStyle(LITERAL);
-            options.setDefaultFlowStyle(FLOW);
-            options.setWidth(Integer.MAX_VALUE);
-        });
-
-        values.entrySet().stream().
-                map(e -> singletonMap(e.getKey(), e.getValue())).
-                map(yaml::dump).
-                // map(e -> e.substring(0, e.length() - 1)). // chop nl
-                        map(StringEscapeUtils::escapeJava).
-                map(e -> format("\"%s\"", e)).
-                forEach(System.out::println);
     }
 }
