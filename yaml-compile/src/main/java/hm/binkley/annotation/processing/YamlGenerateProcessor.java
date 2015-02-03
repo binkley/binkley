@@ -38,16 +38,18 @@ import java.util.Map.Entry;
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
 import static hm.binkley.annotation.processing.MethodDescription.methodDescription;
-import static hm.binkley.annotation.processing.YamlGenerateProcessor.Generate.CLASS;
+import static hm.binkley.annotation.processing.YamlGenerateProcessor.Generate.CLAZZ;
 import static hm.binkley.util.YamlHelper.Builder.inOneLine;
 import static java.lang.String.format;
 import static java.lang.System.arraycopy;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.toList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
+import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 
@@ -142,8 +144,8 @@ public class YamlGenerateProcessor
     @Override
     protected boolean preValidate(final Element element,
             final YamlGenerate anno) {
-        if (INTERFACE != element.getKind()) {
-            out.error("%@ only supported on interfaces");
+        if (!asList(INTERFACE, CLASS).contains(element.getKind())) {
+            out.error("%@ only supported on interfaces and classes");
             return false;
         }
 
@@ -346,7 +348,7 @@ public class YamlGenerateProcessor
             @Nullable final Map<String, Map<String, Object>> values,
             @Nonnull final Loaded<?> loaded) {
         final Generate generate = Generate.from(names);
-        if (CLASS == generate)
+        if (CLAZZ == generate)
             methods.put(names.zis.fullName, immutable(values));
 
         final Map<String, Object> model = commonModel(names, loaded);
@@ -582,7 +584,7 @@ public class YamlGenerateProcessor
                 // Do nothing
             }
         },
-        CLASS("Class", "methods") {
+        CLAZZ("Class", "methods") {
             @Override
             protected void updateModel(final String name,
                     final Map<String, Object> model,
@@ -629,7 +631,7 @@ public class YamlGenerateProcessor
         @Nonnull
         private static Generate from(@Nonnull final ZisZuper names) {
             final Names zuper = names.zuper;
-            return null == zuper || !"Enum".equals(zuper.name) ? CLASS : ENUM;
+            return null == zuper || !"Enum".equals(zuper.name) ? CLAZZ : ENUM;
         }
     }
 
