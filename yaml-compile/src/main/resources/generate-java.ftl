@@ -32,6 +32,7 @@ package ${package};
 </#if>
 <#if doc??>
 /** ${doc} */
+@hm.binkley.annotation.YamlGenerate.Documentation("${escapedDoc}")
 </#if>
 @javax.annotation.Generated(
         value="${generator}",
@@ -88,7 +89,7 @@ public class ${name}<#if parent??> extends ${parent}</#if> {
     </#if>
     <#if methods[key].doc??>
     /** ${methods[key].doc} */
-    @hm.binkley.annotation.YamlGenerate.Documentation("${methods[key].doc}")
+    @hm.binkley.annotation.YamlGenerate.Documentation("${methods[key].escapedDoc}")
     </#if>
     <#if methods[key].override>
     @Override
