@@ -35,7 +35,9 @@ import hm.binkley.annotation.YamlGenerate;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-@SuppressWarnings("all") // Unrelated annos do not croak the processor
-@YamlGenerate(inputs = {"/foo/*.yml", "classpath:/bar/3.yml"},
-        namespace = "fooby")
-interface YamlGenerateTestClasses {}
+public final class CheckInnerInterface {
+    @SuppressWarnings("all") // Unrelated annos do not croak the processor
+    @YamlGenerate(inputs = {"/foo/*.yml", "classpath:/bar/3.yml"},
+            namespace = "fooby")
+    interface YamlGenerateTestClasses {}
+}
