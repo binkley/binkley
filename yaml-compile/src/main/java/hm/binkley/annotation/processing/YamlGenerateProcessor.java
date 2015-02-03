@@ -38,6 +38,7 @@ import java.util.Map.Entry;
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
 import static hm.binkley.annotation.processing.MethodDescription.methodDescription;
+import static hm.binkley.annotation.processing.YamlGenerateProcessor.Generate.CLASS;
 import static hm.binkley.util.YamlHelper.Builder.inOneLine;
 import static java.lang.String.format;
 import static java.lang.System.arraycopy;
@@ -48,7 +49,6 @@ import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.toList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
-import static javax.lang.model.element.ElementKind.PACKAGE;
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 
 /**
@@ -62,7 +62,6 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
  * @todo Needs documentation.
  * @todo Much better, less hacky APi for extension
  * @todo Parse "freemarker.version" from Maven to construct latest Version
- * @todo Custom configuration of Freemarker
  * @todo Errors in blocks should show source specific to block, not whole
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
@@ -76,7 +75,7 @@ public class YamlGenerateProcessor
     private final List<String> roots = findRootsOf(getClass());
     private final YamlHelper.Builder builder = YamlHelper.builder();
     private final Configuration freemarker;
-    private Yaml yaml;
+    private final Yaml yaml;
     private LoadedTemplate template;
 
     // In context, system class loader does not have maven class path
@@ -86,21 +85,42 @@ public class YamlGenerateProcessor
 
     public YamlGenerateProcessor() {
         super(YamlGenerate.class);
-        freemarker = new Configuration(VERSION_2_3_21);
+        final Configuration freemarker = new Configuration(VERSION_2_3_21);
         freemarker.setTemplateLoader(new ResourceTemplateLoader());
         freemarker.setDefaultEncoding(UTF_8.name());
         // Dump stacktrace as only called during compilation, not runtime
         freemarker.setTemplateExceptionHandler(DEBUG_HANDLER);
+        this.freemarker = configure(freemarker);
+        yaml = configure(builder).build();
     }
 
     /**
-     * Configures YAML, for example, to add implicits.  Default implementation
-     * returns <var>builder</var>.
+     * Configures YAML before processing, for example, to add implicits.
+     * Default implementation returns <var>builder</var>, already configured
+     * for standard use.
      *
-     * @param builder the YAML builder
+     * @param builder the YAML builder, never missing
+     *
+     * @return the YAML builder, never missing
      */
-    protected YamlHelper.Builder configure(final Builder builder) {
+    @Nonnull
+    protected YamlHelper.Builder configure(@Nonnull final Builder builder) {
         return builder;
+    }
+
+    /**
+     * Configures Freemarker before processing, for example, to customize
+     * finding templates. Default implementation return <var>freemarker</var>,
+     * already configured for standard use.
+     *
+     * @param freemarker the Freemarker configuration, never missing
+     *
+     * @return the Freemarker configuration, never missing
+     */
+    @Nonnull
+    protected Configuration configure(
+            @Nonnull final Configuration freemarker) {
+        return freemarker;
     }
 
     @Override
@@ -114,20 +134,16 @@ public class YamlGenerateProcessor
      * Checks the annotated <var>element</var> for sanity.  Default
      * implementation checks that {@code &#64;YamlGenerate} is on top-level
      * interfaces.  When overriding, return {@code super.preValidate(elemenet)}
-     * after yuor own checks.
+     * after your own checks.
      *
-     * @todo Is the top-level restriction for &#64;YamlGenerate needed?
+     * @todo Revisit requiring top-level elements
+     * @todo Have generated classes implement/extend interface/class
      */
     @Override
     protected boolean preValidate(final Element element,
             final YamlGenerate anno) {
         if (INTERFACE != element.getKind()) {
             out.error("%@ only supported on interfaces");
-            return false;
-        }
-
-        if (PACKAGE != element.getEnclosingElement().getKind()) {
-            out.error("%@ only supports top-level interfaces");
             return false;
         }
 
@@ -175,7 +191,6 @@ public class YamlGenerateProcessor
         final String namespace = anno.namespace();
 
         try {
-            yaml = configure(builder).build();
             withTemplate(anno.template());
 
             try {
@@ -215,7 +230,7 @@ public class YamlGenerateProcessor
 
                 final ZisZuper names = ZisZuper.from(packaj, key);
                 if (null == names) {
-                    // TODO: Use fail()
+                    // Cannot use `fail` - names is null
                     out.error(
                             "%@ classes have at most one parent for '%s' from '%s'",
                             key, loaded);
@@ -238,25 +253,25 @@ public class YamlGenerateProcessor
      * generation after an internal exception.
      *
      * @param e the exception failing the build, never missing
-     * @param zis the details for the processed class name, never missing
+     * @param names the details for the processed class name, never missing
      * @param value the data details for the class (list for enums, map for
      * classes), never missing
      * @param loaded the loading details for the YAML defining the class,
      * never missing
      */
     protected final void fail(@Nonnull final Exception e,
-            @Nonnull final Names zis, @Nonnull final Object value,
+            @Nonnull final Names names, @Nonnull final Object value,
             @Nullable final Loaded<?> loaded) {
         final String type = value instanceof List ? "enum" : "class";
         out.error(e, "%s: Failed building %s '%s' from '%s' with '%s'", e,
-                type, zis, null == loaded ? "Did not load" : loaded, value);
+                type, names, null == loaded ? "Did not load" : loaded, value);
     }
 
     /**
      * Fails the Javac build with details specific to YAML-to-Java code
      * generation after an internal exception.
      *
-     * @param zis the details for the processed class name, never missing
+     * @param names the details for the processed class name, never missing
      * @param value the data details for the class (list for enums, map for
      * classes), never missing
      * @param loaded the loading details for the YAML defining the class,
@@ -264,14 +279,14 @@ public class YamlGenerateProcessor
      * @param format a printf-style message, optional
      * @param args arguments for <var>format</var>, if any
      */
-    protected final void fail(@Nonnull final Names zis,
+    protected final void fail(@Nonnull final Names names,
             @Nonnull final Object value, @Nullable final Loaded<?> loaded,
             @Nullable final String format, final Object... args) {
         final String type = value instanceof List ? "enum" : "class";
         final Object[] xArgs = new Object[args.length + 4];
         arraycopy(args, 0, xArgs, 0, args.length);
         xArgs[args.length] = type;
-        xArgs[args.length + 1] = zis;
+        xArgs[args.length + 1] = names;
         xArgs[args.length + 2] = null == loaded ? "Did not load" : loaded;
         xArgs[args.length + 3] = value;
         final String xFormat = null == format
@@ -331,7 +346,7 @@ public class YamlGenerateProcessor
             @Nullable final Map<String, Map<String, Object>> values,
             @Nonnull final Loaded<?> loaded) {
         final Generate generate = Generate.from(names);
-        if (Generate.CLASS == generate)
+        if (CLASS == generate)
             methods.put(names.zis.fullName, immutable(values));
 
         final Map<String, Object> model = commonModel(names, loaded);
@@ -347,8 +362,7 @@ public class YamlGenerateProcessor
         final Map<String, Map<String, Object>> loops = new LinkedHashMap<>(
                 values.size());
         model.put(loopKey, loops);
-        model.put("definition",
-                toAnnotationValue(yaml, emptyMap()));
+        model.put("definition", toAnnotationValue(yaml, emptyMap()));
 
         for (final Entry<String, Map<String, Object>> method : values
                 .entrySet()) {
@@ -360,13 +374,17 @@ public class YamlGenerateProcessor
             case ".meta":
                 // Class details
                 model.put("definition", definition);
-                model.put("doc", block.get("doc"));
-                model.put("escapedDoc", escapeJava((String) block.get("doc")));
+                if (block.containsKey("doc")) {
+                    model.put("doc", block.get("doc"));
+                    model.put("escapedDoc",
+                            escapeJava((String) block.get("doc")));
+                }
                 break;
             default:
                 block.put("definition", definition);
                 if (block.containsKey("doc"))
-                    block.put("escapedDoc", escapeJava((String) block.get("doc")));
+                    block.put("escapedDoc",
+                            escapeJava((String) block.get("doc")));
                 generate.updateModel(name, model, block, names, methods);
                 loops.put(name, block);
                 break;
@@ -409,7 +427,7 @@ public class YamlGenerateProcessor
                 collect(toList());
     }
 
-    /** @todo Utility code */
+    /** @todo Utility code - move */
     @SuppressWarnings("unchecked")
     private static <T> T cast(final Object o) {
         return (T) o;
@@ -554,7 +572,7 @@ public class YamlGenerateProcessor
         }
     }
 
-    private enum Generate {
+    enum Generate {
         ENUM("Enum", "values") {
             @Override
             protected void updateModel(final String name,
