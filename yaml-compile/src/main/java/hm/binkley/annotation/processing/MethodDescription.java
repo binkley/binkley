@@ -30,7 +30,7 @@ package hm.binkley.annotation.processing;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import static hm.binkley.annotation.processing.YamlGenerateProcessor.typeOf;
+import static hm.binkley.annotation.processing.Utils.typeOf;
 import static java.lang.String.format;
 
 /**

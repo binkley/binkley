@@ -38,6 +38,8 @@ import java.util.Map.Entry;
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
 import static hm.binkley.annotation.processing.MethodDescription.methodDescription;
+import static hm.binkley.annotation.processing.Utils.cast;
+import static hm.binkley.annotation.processing.Utils.typeOf;
 import static hm.binkley.annotation.processing.YamlGenerateProcessor.Generate.CLAZZ;
 import static hm.binkley.util.YamlHelper.Builder.inOneLine;
 import static java.lang.String.format;
@@ -429,12 +431,6 @@ public class YamlGenerateProcessor
                 collect(toList());
     }
 
-    /** @todo Utility code - move */
-    @SuppressWarnings("unchecked")
-    private static <T> T cast(final Object o) {
-        return (T) o;
-    }
-
     private static Map<String, Map<String, Object>> immutable(
             final Map<String, Map<String, Object>> methods) {
         final Map<String, Map<String, Object>> immutable
@@ -443,27 +439,6 @@ public class YamlGenerateProcessor
                 forEach(e -> immutable
                         .put(e.getKey(), unmodifiableMap(e.getValue())));
         return unmodifiableMap(immutable);
-    }
-
-    /**
-     * @todo Shared with MethodDescription - bad placement
-     * @todo Is this in SnakeYAML?
-     */
-    public static String typeOf(final Object value) {
-        if (value instanceof String)
-            return "str";
-        else if (value instanceof Boolean)
-            return "bool";
-        else if (value instanceof Integer)
-            return "int";
-        else if (value instanceof Double)
-            return "float";
-        else if (value instanceof List)
-            return "seq";
-        else if (value instanceof Map)
-            return "pairs";
-        else
-            return value.getClass().getName();
     }
 
     private Map<String, Object> commonModel(@Nonnull final ZisZuper names,
