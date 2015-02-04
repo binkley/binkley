@@ -65,6 +65,7 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
  * @todo Much better, less hacky APi for extension
  * @todo Parse "freemarker.version" from Maven to construct latest Version
  * @todo Errors in blocks should show source specific to block, not whole
+ * @todo &64;Override for non-YAML base class/interface
  */
 @SupportedAnnotationTypes("hm.binkley.annotation.YamlGenerate")
 @SupportedSourceVersion(RELEASE_8)
@@ -229,8 +230,7 @@ public class YamlGenerateProcessor
 
             for (final Entry<String, Object> each : loaded.what.entrySet()) {
                 final String key = each.getKey();
-
-                final ZisZuper names = ZisZuper.from(packaj, key);
+                final ZisZuper names = ZisZuper.from(packaj, key, cause);
                 if (null == names) {
                     // Cannot use `fail` - names is null
                     out.error(
@@ -591,6 +591,7 @@ public class YamlGenerateProcessor
                     final Map<String, Object> block, final ZisZuper names,
                     final Map<String, Map<String, Map<String, Object>>> methods) {
                 model.put("parent", names.parent());
+                model.put("parentKind", names.kind());
                 final MethodDescription method = methodDescription(name,
                         (String) block.get("type"), block.get("value"));
                 block.put("name", method.name);

@@ -55,7 +55,7 @@ public enum ${name} {
     ${value}<#if value_has_next>,<#else>;</#if>
 </#list>
 <#else>
-public class ${name}<#if parent??> extends ${parent}</#if> {
+public class ${name}<#if parent??> <#if 'class' == parentKind>extends<#else>implements</#if> ${parent}</#if> {
 <#list methods?keys as key>
 <#assign has_init = false/>
 <#if methods[key].value??>
