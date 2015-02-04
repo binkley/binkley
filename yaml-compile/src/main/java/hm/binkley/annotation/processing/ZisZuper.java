@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
+import static javax.lang.model.element.Modifier.FINAL;
 
 /**
  * {@code ZisZuper} <b>needs documentation</b>.
@@ -51,8 +52,20 @@ public final class ZisZuper {
     @Nonnull
     private final Element root;
 
+    /**
+     * Constructs a new {@link ZisZuper} for the given parameters.
+     *
+     * @param packaj the package for <var>key</var>, never missing
+     * @param key the space-separated list of class and optional parent, never
+     * missing
+     * @param root the optional root element, for non-YAML parents
+     *
+     * @return the new {@code ZisZuper}, or {@code null} if <var>key</var> is
+     * invalid
+     */
+    @Nullable
     public static ZisZuper from(@Nonnull final CharSequence packaj,
-            @Nonnull final String key, @Nonnull final Element root) {
+            @Nonnull final String key, @Nullable final Element root) {
         final String name;
         final String parent;
         final String[] names = space.split(key);
@@ -76,7 +89,8 @@ public final class ZisZuper {
     @Nullable
     String parent() {
         if (null == zuper)
-            return root.toString();
+            return root.getModifiers().contains(FINAL) ? null
+                    : root.toString();
         if ("Enum".equals(zuper.name))
             return null;
         return zuper.nameRelativeTo(zis);
