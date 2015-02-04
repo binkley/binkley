@@ -17,8 +17,8 @@
 </@compress></#macro>
 <#macro defn prefix pairs>
 ${prefix}@hm.binkley.annotation.YamlGenerate.Definition({<#if pairs?has_content>
-<#list pairs as each><#if 0 == each_index % 2>${prefix}        ${each},<#else> ${each}<#if each_has_next>,
-</#if></#if></#list></#if>})
+<#list pairs as each>${prefix}        ${each}<#if each_has_next>,
+</#if></#list></#if>})
 </#macro>
 <#--
     TODO: FreeMarker template fixes
