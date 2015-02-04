@@ -29,17 +29,22 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.time.Instant;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
 import static hm.binkley.annotation.processing.MethodDescription.methodDescription;
 import static hm.binkley.annotation.processing.Utils.cast;
 import static hm.binkley.annotation.processing.Utils.typeOf;
+import static hm.binkley.annotation.processing.YamlGenerateProcessor.Definitions.definitions;
 import static hm.binkley.annotation.processing.YamlGenerateProcessor.Generate.CLAZZ;
 import static hm.binkley.util.YamlHelper.Builder.inOneLine;
 import static java.lang.String.format;
@@ -230,7 +235,8 @@ public class YamlGenerateProcessor
         for (final LoadedYaml loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
-            for (final Entry<String, Object> each : loaded.what.entrySet()) {
+            for (final Entry<String, Map<String, Map<String, Object>>> each : definitions(
+                    loaded)) {
                 final String key = each.getKey();
                 final ZisZuper names = ZisZuper.from(packaj, key, cause);
                 if (null == names) {
@@ -241,8 +247,8 @@ public class YamlGenerateProcessor
                     continue;
                 }
 
-                final Map<String, Map<String, Object>> values = cast(
-                        each.getValue());
+                final Map<String, Map<String, Object>> values = each
+                        .getValue();
                 try {
                     build(cause, names, values, loaded);
                 } catch (final RuntimeException e) {
@@ -383,13 +389,14 @@ public class YamlGenerateProcessor
                     model.put("escapedDoc",
                             escapeJava((String) block.get("doc")));
                 }
+                generate.updateModel(model, names);
                 break;
             default:
                 block.put("definition", definition);
                 if (block.containsKey("doc"))
                     block.put("escapedDoc",
                             escapeJava((String) block.get("doc")));
-                generate.updateModel(name, model, block, names, methods);
+                generate.updateBlock(name, block, names, methods);
                 loops.put(name, block);
                 break;
             }
@@ -508,6 +515,59 @@ public class YamlGenerateProcessor
         }
     }
 
+    static class Definitions
+            extends
+            AbstractSet<Entry<String, Map<String, Map<String, Object>>>> {
+        private final LoadedYaml loaded;
+
+        static Set<Entry<String, Map<String, Map<String, Object>>>> definitions(
+                final LoadedYaml loaded) {
+            return new Definitions(loaded);
+        }
+
+        private Definitions(final LoadedYaml loaded) {this.loaded = loaded;}
+
+        @Nonnull
+        @Override
+        public Iterator<Entry<String, Map<String, Map<String, Object>>>> iterator() {
+            return new DefinitionsIterator(loaded);
+        }
+
+        @Override
+        public int size() {
+            return loaded.what.size();
+        }
+
+        private class DefinitionsIterator
+                implements
+                Iterator<Entry<String, Map<String, Map<String, Object>>>> {
+            private final Iterator<Entry<String, Object>> it;
+
+            private DefinitionsIterator(final LoadedYaml loaded) {
+                it = loaded.what.entrySet().iterator();
+            }
+
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @Override
+            public Entry<String, Map<String, Map<String, Object>>> next() {
+                final Entry<String, Object> next = it.next();
+                final Map<String, Map<String, Object>> value = cast(
+                        next.getValue());
+                if (null == value)
+                    return new SimpleImmutableEntry<>(next.getKey(),
+                            singletonMap(".meta", emptyMap()));
+                // TODO: Add missing .meta's to methods also
+                if (!value.containsKey(".meta"))
+                    value.put(".meta", emptyMap());
+                return new SimpleImmutableEntry<>(next.getKey(), value);
+            }
+        }
+    }
+
     protected final class UnLoaded
             extends Loaded<Void> {
         public UnLoaded(final String format, final Object... args) {
@@ -552,8 +612,13 @@ public class YamlGenerateProcessor
     enum Generate {
         ENUM("Enum", "values") {
             @Override
-            protected void updateModel(final String name,
-                    final Map<String, Object> model,
+            protected void updateModel(final Map<String, Object> model,
+                    final ZisZuper names) {
+                // Do nothing
+            }
+
+            @Override
+            protected void updateBlock(final String name,
                     final Map<String, Object> block, final ZisZuper names,
                     final Map<String, Map<String, Map<String, Object>>> methods) {
                 // Do nothing
@@ -561,12 +626,16 @@ public class YamlGenerateProcessor
         },
         CLAZZ("Class", "methods") {
             @Override
-            protected void updateModel(final String name,
-                    final Map<String, Object> model,
-                    final Map<String, Object> block, final ZisZuper names,
-                    final Map<String, Map<String, Map<String, Object>>> methods) {
+            protected void updateModel(final Map<String, Object> model,
+                    final ZisZuper names) {
                 model.put("parent", names.parent());
                 model.put("parentKind", names.kind());
+            }
+
+            @Override
+            protected void updateBlock(final String name,
+                    final Map<String, Object> block, final ZisZuper names,
+                    final Map<String, Map<String, Map<String, Object>>> methods) {
                 final MethodDescription method = methodDescription(name,
                         (String) block.get("type"), block.get("value"));
                 block.put("name", method.name);
@@ -599,8 +668,10 @@ public class YamlGenerateProcessor
             this.loopKey = loopKey;
         }
 
-        protected abstract void updateModel(final String name,
-                final Map<String, Object> model,
+        protected abstract void updateModel(final Map<String, Object> model,
+                final ZisZuper names);
+
+        protected abstract void updateBlock(final String name,
                 final Map<String, Object> block, final ZisZuper names,
                 final Map<String, Map<String, Map<String, Object>>> methods);
 
