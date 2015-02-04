@@ -31,3 +31,5 @@ Child some.Parent:
 Empty:
   .meta:
     doc: Only doc, no methods
+
+VeryEmpty:
