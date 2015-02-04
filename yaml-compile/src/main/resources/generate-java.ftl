@@ -23,8 +23,6 @@ ${prefix}@hm.binkley.annotation.YamlGenerate.Definition({<#if pairs?has_content>
 <#--
     TODO: FreeMarker template fixes
     * Recurive methods types
-    * Get rid of "type" for builtin types
-    * Fix indentation of directives
 -->
 <#if package?has_content>
 package ${package};
