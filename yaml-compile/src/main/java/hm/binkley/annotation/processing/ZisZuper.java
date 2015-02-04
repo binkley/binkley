@@ -29,6 +29,7 @@ package hm.binkley.annotation.processing;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.lang.model.element.Element;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -47,8 +48,11 @@ public final class ZisZuper {
     public final Names zis;
     @Nullable
     public final Names zuper;
+    @Nonnull
+    private final Element root;
 
-    public static ZisZuper from(final CharSequence packaj, final String key) {
+    public static ZisZuper from(@Nonnull final CharSequence packaj,
+            @Nonnull final String key, @Nonnull final Element root) {
         final String name;
         final String parent;
         final String[] names = space.split(key);
@@ -66,24 +70,36 @@ public final class ZisZuper {
         }
         //noinspection ConstantConditions
         return new ZisZuper(Names.from(packaj, name, key),
-                Names.from(packaj, parent, key));
+                Names.from(packaj, parent, key), root);
     }
 
     @Nullable
     String parent() {
-        return null == zuper || "Enum".equals(zuper.name) ? null
-                : zuper.nameRelativeTo(zis);
+        if (null == zuper)
+            return root.toString();
+        if ("Enum".equals(zuper.name))
+            return null;
+        return zuper.nameRelativeTo(zis);
     }
 
+    @Nonnull
+    String kind() {
+        return null == zuper ? root.getKind().name().toLowerCase() : "class";
+    }
+
+    /** @todo Undo hack for non-YAML base class */
     boolean overridden(
             final Map<String, Map<String, Map<String, Object>>> methods,
             final String method) {
+        // Work out root overrides
         return null != zuper && methods.get(zuper.fullName)
                 .containsKey(method);
     }
 
-    private ZisZuper(@Nonnull final Names zis, @Nullable final Names zuper) {
+    private ZisZuper(@Nonnull final Names zis, @Nullable final Names zuper,
+            @Nonnull Element root) {
         this.zis = zis;
         this.zuper = zuper;
+        this.root = root;
     }
 }
