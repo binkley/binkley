@@ -69,7 +69,6 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
- * @todo Much better, less hacky APi for extension
  * @todo Parse "freemarker.version" from Maven to construct latest Version
  * @todo Errors in blocks should show source specific to block, not whole
  * @todo &64;Override for non-YAML base class/interface
@@ -152,12 +151,18 @@ public class YamlGenerateProcessor
     @Override
     protected boolean preValidate(final Element element,
             final YamlGenerate anno) {
+        out.note("Generating Java from YAML for '%s' with %@", element);
+
+        final boolean valid = super.preValidate(element, anno);
+        if (!valid)
+            return false;
+
         if (!asList(INTERFACE, CLASS).contains(element.getKind())) {
             out.error("%@ only supported on interfaces and classes");
             return false;
         }
 
-        return super.preValidate(element, anno);
+        return true;
     }
 
     @Override
