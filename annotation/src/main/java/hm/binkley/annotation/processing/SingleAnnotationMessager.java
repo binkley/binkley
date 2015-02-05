@@ -77,7 +77,8 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
         this.mirror = mirror;
         this.value = value;
 
-        stringx.put('@', annoType.getName());
+        stringx.put('@',
+                null == mirror ? annoType.getName() : mirror.toString());
     }
 
     public abstract M withAnnotation(final AnnotationMirror mirror,
