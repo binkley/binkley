@@ -19,7 +19,12 @@ Whack Foo:
   bar:
     value: 7
 
-some.Parent:
+some.Grandparent:
+  feast:
+    doc: XXX
+    type: int
+
+some.Parent some.Grandparent:
   a:
     doc: Cool beans
     value: []
@@ -27,6 +32,8 @@ some.Parent:
 Child some.Parent:
   a:
     value: [a, 3, 4.2, true]
+  feast:
+    value: 13
 
 Empty:
   .meta:
