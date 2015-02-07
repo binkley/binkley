@@ -153,9 +153,9 @@ public final class YModel {
         private YMethod(final Map.Entry<String, Map<String, Object>> raw) {
             super(raw);
             final Map<String, Object> values = raw.getValue();
-            rtype = (String) values
-                    .getOrDefault("type", typeFor(values.get("value")));
-            value = values.getOrDefault("value", valueFor(rtype));
+            rtype = (String) values.computeIfAbsent("type",
+                    k -> typeFor(values.get("value")));
+            value = values.computeIfAbsent("value", k -> valueFor(rtype));
             properties = unmodifiableList(values.entrySet().stream().
                     map(YProperty::new).
                     collect(toList()));
