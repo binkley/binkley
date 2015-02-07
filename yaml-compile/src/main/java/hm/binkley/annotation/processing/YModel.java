@@ -1,12 +1,16 @@
 package hm.binkley.annotation.processing;
 
+import hm.binkley.annotation.processing.YModel.YType;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
+import java.util.AbstractList;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.AbstractSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +23,7 @@ import java.util.regex.Pattern;
 
 import static hm.binkley.annotation.processing.Utils.typeFor;
 import static hm.binkley.annotation.processing.Utils.valueFor;
+import static hm.binkley.annotation.processing.YGenerate.ENUM;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.regex.Pattern.compile;
@@ -38,7 +43,43 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Enums
  */
-public final class YModel {
+public final class YModel
+        extends AbstractList<YType> {
+    private static final Map<Names, Map<String, YMethod>> methods
+            = new HashMap<>();
+
+    private final List<YType> types;
+    private final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>>
+            out;
+
+    public YModel(@Nonnull final Element root, @Nonnull final Name packaj,
+            @Nonnull final Map<String, Map<String, Map<String, Object>>> raw,
+            @Nonnull
+            final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
+        this.out = out;
+        // No need to wrap in immutableList - AbstractList base is immutable
+        // Caution - peek for side effect; DO NOT parallelize
+        types = raw.entrySet().stream().
+                peek(e -> out.accept(o -> o.atYamlBlock(e))).
+                map(e -> yType(root, packaj, e)).
+                collect(toList());
+    }
+
+    @Override
+    public YType get(final int index) {
+        return types.get(index);
+    }
+
+    @Override
+    public int size() {
+        return types.size();
+    }
+
+    @Override
+    public Iterator<YType> iterator() {
+        return types.iterator();
+    }
+
     private static abstract class YDocumented {
         private static final Pattern DQUOTE = compile("\"");
         public final String name;
@@ -53,86 +94,57 @@ public final class YModel {
         }
     }
 
-    public static List<YType> classes(@Nonnull final Element root,
-            @Nonnull final Name packaj,
-            @Nonnull final Map<String, Map<String, Map<String, Object>>> raw,
-            @Nonnull
-            final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
-        return unmodifiableList(raw.entrySet().stream().
-                map(e -> {
-                    out.accept(o -> o.atYamlBlock(e));
+    private YType yType(final Element root, final Name packaj,
+            final Entry<String, Map<String, Map<String, Object>>> e) {
+        final ZisZuper names = ZisZuper.from(packaj, e.getKey(), root);
+        final YGenerate type = YGenerate.from(names);
+        final Map<String, Map<String, Object>> rawValue = e.getValue();
+        final WithMetaMap value = new WithMetaMap(
+                null == rawValue ? emptyMap() : rawValue);
+        return new YType(names, type, value);
+    }
 
-                    final ZisZuper names = ZisZuper
-                            .from(packaj, e.getKey(), root);
-                    return YGenerate.ENUM == YGenerate.from(names) ? YEnum
-                            .of(names, e.getValue(), out)
-                            : YClass.of(names, e.getValue(), out);
-                }).
+    private List<YNode> yNodes(final Map<String, Map<String, Object>> raw,
+            final Function<Entry<String, Map<String, Object>>, YNode> ctor) {
+        // Caution - peek for side effect; DO NOT parallelize
+        return unmodifiableList(raw.entrySet().stream().
+                filter(e -> !".meta".equals(e.getKey())).
+                peek(e -> out.accept(o -> o.atYamlBlock(e))).
+                map(ctor::apply).
                 collect(toList()));
     }
 
-    public static abstract class YType
-            extends YDocumented {
+    public final class YType
+            extends YDocumented
+            implements Iterable<YNode> {
         public final ZisZuper names;
         public final YGenerate type;
+        public final List<YNode> nodes;
 
-        protected YType(final ZisZuper names,
+        protected YType(final ZisZuper names, final YGenerate type,
                 final Map<String, Map<String, Object>> raw) {
             super(names.zis.fullName, (String) raw.get(".meta").get("doc"));
             this.names = names;
-            type = YGenerate.from(names);
-        }
-    }
-
-    public static final class YEnum
-            extends YType
-            implements Iterable<YValue> {
-        private final List<YValue> values;
-
-        public static YEnum of(final ZisZuper names,
-                final Map<String, Map<String, Object>> raw,
-                final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
-            return new YEnum(names,
-                    new WithMetaMap(null == raw ? emptyMap() : raw), out);
-        }
-
-        private YEnum(final ZisZuper names,
-                final Map<String, Map<String, Object>> raw,
-                final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
-            super(names, raw);
-            values = YNode.asList(raw, YValue::new, out);
+            this.type = type;
+            nodes = yNodes(raw, ENUM == type ? YValue::new : YMethod::new);
         }
 
         @Override
-        public Iterator<YValue> iterator() {
-            return values.iterator();
+        public final Iterator<YNode> iterator() {
+            return nodes.iterator();
         }
     }
 
-    public static final class YClass
-            extends YType
-            implements Iterable<YMethod> {
-        private final List<YMethod> methods;
-
-        @Nonnull
-        public static YClass of(@Nonnull final ZisZuper names,
-                @Nullable final Map<String, Map<String, Object>> raw,
-                final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
-            return new YClass(names,
-                    new WithMetaMap(null == raw ? emptyMap() : raw), out);
+    private static abstract class YNode
+            extends YDocumented {
+        protected YNode(final Map.Entry<String, Map<String, Object>> raw) {
+            super(raw.getKey(), doc(raw));
         }
 
-        private YClass(final ZisZuper names,
-                final Map<String, Map<String, Object>> raw,
-                final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
-            super(names, raw);
-            this.methods = YNode.asList(raw, YMethod::new, out);
-        }
-
-        @Nonnull
-        @Override
-        public Iterator<YMethod> iterator() {
-            return methods.iterator();
+        private static String doc(
+                final Map.Entry<String, Map<String, Object>> raw) {
+            final Map<String, Object> properties = raw.getValue();
+            return null == properties ? null : (String) properties.get("doc");
         }
     }
 
@@ -168,39 +180,14 @@ public final class YModel {
         }
     }
 
-    private static abstract class YNode
-            extends YDocumented {
-        protected YNode(final Map.Entry<String, Map<String, Object>> raw) {
-            super(raw.getKey(), doc(raw));
-        }
-
-        private static String doc(
-                final Map.Entry<String, Map<String, Object>> raw) {
-            final Map<String, Object> properties = raw.getValue();
-            return null == properties ? null : (String) properties.get("doc");
-        }
-
-        private static <T extends YNode> List<T> asList(
-                final Map<String, Map<String, Object>> raw,
-                final Function<Entry<String, Map<String, Object>>, T> ctor,
-                final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
-            return unmodifiableList(raw.entrySet().stream().
-                    filter(e -> !".meta".equals(e.getKey())).
-                    map(e -> {
-                        out.accept(o -> o.atYamlBlock(e));
-                        return ctor.apply(e);
-                    }).
-                    collect(toList()));
-        }
-    }
-
-    public static final class YProperty
-            extends YDocumented {
+    public static final class YProperty {
+        @Nonnull
+        public final String name;
         @Nullable
         public final Object value;
 
         private YProperty(final Map.Entry<String, Object> raw) {
-            super(raw.getKey(), null);
+            name = raw.getKey();
             this.value = raw.getValue();
         }
     }

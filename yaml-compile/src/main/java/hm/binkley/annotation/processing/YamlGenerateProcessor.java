@@ -7,7 +7,6 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
-import hm.binkley.annotation.processing.YModel.YClass;
 import hm.binkley.annotation.processing.YModel.YType;
 import hm.binkley.util.YamlHelper;
 import hm.binkley.util.YamlHelper.Builder;
@@ -44,7 +43,6 @@ import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
 import static hm.binkley.annotation.processing.Utils.cast;
 import static hm.binkley.annotation.processing.YGenerate.CLAZZ;
-import static hm.binkley.annotation.processing.YModel.classes;
 import static hm.binkley.annotation.processing.YamlGenerateProcessor.Definitions.definitions;
 import static hm.binkley.util.YamlHelper.Builder.inOneLine;
 import static java.lang.String.format;
@@ -81,7 +79,7 @@ public class YamlGenerateProcessor
 
     private final Map<String, Map<String, Map<String, Object>>> methods
             = new LinkedHashMap<>();
-    private final List<YType> classes = new ArrayList<>();
+    private final List<YType> types = new ArrayList<>();
     private final List<String> roots = findRootsOf(getClass());
     private final YamlHelper.Builder builder = YamlHelper.builder();
     private final Configuration freemarker;
@@ -243,7 +241,7 @@ public class YamlGenerateProcessor
         for (final LoadedYaml loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
-            classes.addAll(classes(root, packaj, loaded.what,
+            types.addAll(new YModel(root, packaj, loaded.what,
                     update -> out = update.apply(out)));
 
             for (final Entry<String, Map<String, Map<String, Object>>> each : definitions(
@@ -336,7 +334,7 @@ public class YamlGenerateProcessor
     }
 
     protected final void build(@Nonnull final Element root,
-            @Nonnull final YClass type, @Nonnull final LoadedYaml loaded) {
+            @Nonnull final YType type, @Nonnull final LoadedYaml loaded) {
         try (final Writer writer = new OutputStreamWriter(
                 processingEnv.getFiler().createSourceFile(type.name, root)
                         .openOutputStream())) {
