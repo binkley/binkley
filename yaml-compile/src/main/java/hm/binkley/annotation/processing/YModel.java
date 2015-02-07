@@ -185,7 +185,7 @@ public final class YModel {
                 final Function<Entry<String, Map<String, Object>>, T> ctor,
                 final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
             return unmodifiableList(raw.entrySet().stream().
-                    filter(e -> ".meta".equals(e.getKey())).
+                    filter(e -> !".meta".equals(e.getKey())).
                     map(e -> {
                         out.accept(o -> o.atYamlBlock(e));
                         return ctor.apply(e);
