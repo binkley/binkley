@@ -10,7 +10,7 @@ import java.util.Map;
 
 import static hm.binkley.annotation.processing.MethodDescription.methodDescription;
 import static hm.binkley.annotation.processing.Utils.cast;
-import static hm.binkley.annotation.processing.Utils.typeOf;
+import static hm.binkley.annotation.processing.Utils.typeFor;
 
 /**
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
@@ -51,14 +51,14 @@ enum YGenerate {
                 final List<Map<String, ?>> value = new ArrayList<>(
                         elements.size());
                 elements.forEach(v -> value
-                        .add(ImmutableMap.of("value", v, "type", typeOf(v))));
+                        .add(ImmutableMap.of("value", v, "type", typeFor(v))));
                 block.put("value", value);
             } else if ("pairs".equals(method.type)) {
                 final Map<String, ?> elements = cast(method.value);
                 final Map<String, Map<String, ?>> value = new LinkedHashMap<>(
                         elements.size());
                 elements.forEach((k, v) -> value.put(k,
-                        ImmutableMap.of("value", v, "type", typeOf(v))));
+                        ImmutableMap.of("value", v, "type", typeFor(v))));
                 block.put("value", value);
             } else
                 block.put("value", method.value);

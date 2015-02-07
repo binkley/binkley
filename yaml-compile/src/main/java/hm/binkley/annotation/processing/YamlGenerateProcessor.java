@@ -8,6 +8,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
 import hm.binkley.annotation.processing.YModel.YClass;
+import hm.binkley.annotation.processing.YModel.YType;
 import hm.binkley.util.YamlHelper;
 import hm.binkley.util.YamlHelper.Builder;
 import org.springframework.core.io.Resource;
@@ -80,7 +81,7 @@ public class YamlGenerateProcessor
 
     private final Map<String, Map<String, Map<String, Object>>> methods
             = new LinkedHashMap<>();
-    private final List<YClass> classes = new ArrayList<>();
+    private final List<YType> classes = new ArrayList<>();
     private final List<String> roots = findRootsOf(getClass());
     private final YamlHelper.Builder builder = YamlHelper.builder();
     private final Configuration freemarker;
@@ -200,7 +201,7 @@ public class YamlGenerateProcessor
     }
 
     @Override
-    protected final void process(final Element element,
+    protected final void process(final Element root,
             final YamlGenerate anno) {
         final String[] inputs = anno.inputs();
         final String namespace = anno.namespace();
@@ -213,7 +214,7 @@ public class YamlGenerateProcessor
                         .getName(namespace);
 
                 for (final String input : inputs)
-                    process(element, packaj, input);
+                    process(root, packaj, input);
             } catch (final Exception e) {
                 out.error(e, "%@ cannot process");
             }
@@ -232,20 +233,23 @@ public class YamlGenerateProcessor
     protected void withTemplate(@Nonnull final String path)
             throws IOException {
         template = loadTemplate(path);
-        out = out.withTemplate(template.whence);
+        out = out.
+                withTemplate(template.whence).
+                atTemplateSource(template.what);
     }
 
-    private void process(final Element cause, final Name packaj,
+    private void process(final Element root, final Name packaj,
             final String input) {
         for (final LoadedYaml loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
-            classes.addAll(classes(cause, packaj, loaded.what));
+            classes.addAll(classes(root, packaj, loaded.what,
+                    update -> out = update.apply(out)));
 
             for (final Entry<String, Map<String, Map<String, Object>>> each : definitions(
                     loaded)) {
                 final String key = each.getKey();
-                final ZisZuper names = ZisZuper.from(packaj, key, cause);
+                final ZisZuper names = ZisZuper.from(packaj, key, root);
                 if (null == names) {
                     // Cannot use `fail` - names is null
                     out.error(
@@ -257,7 +261,7 @@ public class YamlGenerateProcessor
                 final Map<String, Map<String, Object>> values = each
                         .getValue();
                 try {
-                    build(cause, names, values, loaded);
+                    build(root, names, values, loaded);
                 } catch (final RuntimeException e) {
                     fail(e, names.zis, values, loaded);
                 }
@@ -337,13 +341,7 @@ public class YamlGenerateProcessor
                 processingEnv.getFiler().createSourceFile(type.name, root)
                         .openOutputStream())) {
             template.what.process(type, writer);
-        } catch (final IOException e) {
-            fail(e, type.names.zis, type, loaded);
-        } catch (final TemplateException e) {
-            final String source = template.what
-                    .getSource(e.getColumnNumber(), e.getLineNumber(),
-                            e.getEndColumnNumber(), e.getEndLineNumber());
-            out.error("Do something with <%s>", source);
+        } catch (final IOException | TemplateException e) {
             fail(e, type.names.zis, type, loaded);
         }
     }

@@ -30,7 +30,7 @@ package hm.binkley.annotation.processing;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import static hm.binkley.annotation.processing.Utils.typeOf;
+import static hm.binkley.annotation.processing.Utils.typeFor;
 import static java.lang.String.format;
 
 /**
@@ -67,7 +67,7 @@ public final class MethodDescription {
                 return new MethodDescription(name, type, null);
             }
         } else if (null != type) {
-            final String actualType = typeOf(value);
+            final String actualType = typeFor(value);
             switch (type) {
             case "str":
             case "bool":
@@ -84,7 +84,7 @@ public final class MethodDescription {
             }
         }
 
-        return new MethodDescription(name, typeOf(value), value);
+        return new MethodDescription(name, typeFor(value), value);
     }
 
     private MethodDescription(final String name, final String type,
