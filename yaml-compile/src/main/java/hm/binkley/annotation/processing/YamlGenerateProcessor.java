@@ -1,6 +1,5 @@
 package hm.binkley.annotation.processing;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ResourceInfo;
 import freemarker.cache.URLTemplateLoader;
@@ -8,6 +7,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
+import hm.binkley.annotation.processing.YModel.YClass;
 import hm.binkley.util.YamlHelper;
 import hm.binkley.util.YamlHelper.Builder;
 import org.springframework.core.io.Resource;
@@ -41,11 +41,10 @@ import java.util.Set;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
-import static hm.binkley.annotation.processing.MethodDescription.methodDescription;
 import static hm.binkley.annotation.processing.Utils.cast;
-import static hm.binkley.annotation.processing.Utils.typeOf;
+import static hm.binkley.annotation.processing.YGenerate.CLAZZ;
+import static hm.binkley.annotation.processing.YModel.classes;
 import static hm.binkley.annotation.processing.YamlGenerateProcessor.Definitions.definitions;
-import static hm.binkley.annotation.processing.YamlGenerateProcessor.Generate.CLAZZ;
 import static hm.binkley.util.YamlHelper.Builder.inOneLine;
 import static java.lang.String.format;
 import static java.lang.System.arraycopy;
@@ -81,6 +80,7 @@ public class YamlGenerateProcessor
 
     private final Map<String, Map<String, Map<String, Object>>> methods
             = new LinkedHashMap<>();
+    private final List<YClass> classes = new ArrayList<>();
     private final List<String> roots = findRootsOf(getClass());
     private final YamlHelper.Builder builder = YamlHelper.builder();
     private final Configuration freemarker;
@@ -240,6 +240,8 @@ public class YamlGenerateProcessor
         for (final LoadedYaml loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
+            classes.addAll(classes(cause, packaj, loaded.what));
+
             for (final Entry<String, Map<String, Map<String, Object>>> each : definitions(
                     loaded)) {
                 final String key = each.getKey();
@@ -329,6 +331,23 @@ public class YamlGenerateProcessor
         build(cause, names, methods, new UnLoaded(format, args));
     }
 
+    protected final void build(@Nonnull final Element root,
+            @Nonnull final YClass type, @Nonnull final LoadedYaml loaded) {
+        try (final Writer writer = new OutputStreamWriter(
+                processingEnv.getFiler().createSourceFile(type.name, root)
+                        .openOutputStream())) {
+            template.what.process(type, writer);
+        } catch (final IOException e) {
+            fail(e, type.names.zis, type, loaded);
+        } catch (final TemplateException e) {
+            final String source = template.what
+                    .getSource(e.getColumnNumber(), e.getLineNumber(),
+                            e.getEndColumnNumber(), e.getEndLineNumber());
+            out.error("Do something with <%s>", source);
+            fail(e, type.names.zis, type, loaded);
+        }
+    }
+
     /**
      * Builds a Java class from the given parameters using <var>loaded</var>
      * as the YAML source.  Used for classes generated from YAML files.
@@ -360,7 +379,7 @@ public class YamlGenerateProcessor
     private Map<String, Object> model(@Nonnull final ZisZuper names,
             @Nullable final Map<String, Map<String, Object>> values,
             @Nonnull final Loaded<?> loaded) {
-        final Generate generate = Generate.from(names);
+        final YGenerate generate = YGenerate.from(names);
         if (CLAZZ == generate)
             methods.put(names.zis.fullName, immutable(values));
 
@@ -546,7 +565,8 @@ public class YamlGenerateProcessor
         private class DefinitionsIterator
                 implements
                 Iterator<Entry<String, Map<String, Map<String, Object>>>> {
-            private final Iterator<Entry<String, Object>> it;
+            private final Iterator<Entry<String, Map<String, Map<String, Object>>>>
+                    it;
 
             private DefinitionsIterator(final LoadedYaml loaded) {
                 it = loaded.what.entrySet().iterator();
@@ -559,9 +579,10 @@ public class YamlGenerateProcessor
 
             @Override
             public Entry<String, Map<String, Map<String, Object>>> next() {
-                final Entry<String, Object> next = it.next();
-                final Map<String, Map<String, Object>> value = cast(
-                        next.getValue());
+                final Entry<String, Map<String, Map<String, Object>>> next
+                        = it.next();
+                final Map<String, Map<String, Object>> value = next
+                        .getValue();
                 if (null == value)
                     return new SimpleImmutableEntry<>(next.getKey(),
                             singletonMap(".meta", emptyMap()));
@@ -591,7 +612,7 @@ public class YamlGenerateProcessor
     }
 
     protected static final class LoadedYaml
-            extends Loaded<Map<String, Object>> {
+            extends Loaded<Map<String, Map<String, Map<String, Object>>>> {
         public final String path;
 
         @Override
@@ -600,7 +621,8 @@ public class YamlGenerateProcessor
         }
 
         private LoadedYaml(final String pathPattern, final Resource whence,
-                final Map<String, Object> yaml, final List<String> roots)
+                final Map<String, Map<String, Map<String, Object>>> yaml,
+                final List<String> roots)
                 throws IOException {
             super(pathPattern, whence, yaml);
             path = path(pathPattern, whence, roots);
@@ -611,79 +633,6 @@ public class YamlGenerateProcessor
             final String whence = this.whence.getDescription();
             return whence.equals(where) ? format("%s: %s", whence, what)
                     : format("%s(%s): %s", whence, where, what);
-        }
-    }
-
-    enum Generate {
-        ENUM("Enum", "values") {
-            @Override
-            protected void updateModel(final Map<String, Object> model,
-                    final ZisZuper names) {
-                // Do nothing
-            }
-
-            @Override
-            protected void updateBlock(final String name,
-                    final Map<String, Object> block, final ZisZuper names,
-                    final Map<String, Map<String, Map<String, Object>>> methods) {
-                // Do nothing
-            }
-        },
-        CLAZZ("Class", "methods") {
-            @Override
-            protected void updateModel(final Map<String, Object> model,
-                    final ZisZuper names) {
-                model.put("parent", names.parent());
-                model.put("parentKind", names.kind());
-            }
-
-            @Override
-            protected void updateBlock(final String name,
-                    final Map<String, Object> block, final ZisZuper names,
-                    final Map<String, Map<String, Map<String, Object>>> methods) {
-                final MethodDescription method = methodDescription(name,
-                        (String) block.get("type"), block.get("value"));
-                block.put("name", method.name);
-                block.put("type", method.type);
-                if ("seq".equals(method.type)) {
-                    final List<?> elements = cast(method.value);
-                    final List<Map<String, ?>> value = new ArrayList<>(
-                            elements.size());
-                    elements.forEach(v -> value.add(ImmutableMap
-                            .of("value", v, "type", typeOf(v))));
-                    block.put("value", value);
-                } else if ("pairs".equals(method.type)) {
-                    final Map<String, ?> elements = cast(method.value);
-                    final Map<String, Map<String, ?>> value
-                            = new LinkedHashMap<>(elements.size());
-                    elements.forEach((k, v) -> value.put(k,
-                            ImmutableMap.of("value", v, "type", typeOf(v))));
-                    block.put("value", value);
-                } else
-                    block.put("value", method.value);
-                block.put("override", names.overridden(methods, name));
-            }
-        };
-
-        private final String typeKey;
-        private final String loopKey;
-
-        Generate(final String typeKey, final String loopKey) {
-            this.typeKey = typeKey;
-            this.loopKey = loopKey;
-        }
-
-        protected abstract void updateModel(final Map<String, Object> model,
-                final ZisZuper names);
-
-        protected abstract void updateBlock(final String name,
-                final Map<String, Object> block, final ZisZuper names,
-                final Map<String, Map<String, Map<String, Object>>> methods);
-
-        @Nonnull
-        private static Generate from(@Nonnull final ZisZuper names) {
-            final Names zuper = names.zuper;
-            return null == zuper || !"Enum".equals(zuper.name) ? CLAZZ : ENUM;
         }
     }
 

@@ -77,10 +77,11 @@ public final class MethodDescription {
             case "pairs":
                 if (!actualType.equals(type))
                     throw new IllegalStateException(
-                            format("Conflicting type and value for '%s': '%s' vs '%s'",
-                                    name, type, actualType));
+                            format("Conflicting type and value for '%s': expected '%s' but found '%s' (%s)",
+                                    name, type, actualType, value));
+            default:
+                // TODO: How to check UDTs? - WARNING
             }
-            // TODO: How to check UDTs?
         }
 
         return new MethodDescription(name, typeOf(value), value);
