@@ -7,16 +7,11 @@ import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
 import java.util.AbstractList;
-import java.util.AbstractMap;
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.AbstractSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -189,79 +184,6 @@ public final class YModel
         private YProperty(final Map.Entry<String, Object> raw) {
             name = raw.getKey();
             this.value = raw.getValue();
-        }
-    }
-
-    private static class WithMetaMap
-            extends AbstractMap<String, Map<String, Object>> {
-        private final Map<String, Map<String, Object>> raw;
-
-        private WithMetaMap(final Map<String, Map<String, Object>> raw) {
-            this.raw = raw;
-        }
-
-        @Nonnull
-        @Override
-        public Set<Entry<String, Map<String, Object>>> entrySet() {
-            return new WithMetaSet(raw.entrySet(),
-                    raw.containsKey(".meta") ? raw.size() : raw.size() + 1);
-        }
-    }
-
-    private static class WithMetaSet
-            extends AbstractSet<Entry<String, Map<String, Object>>> {
-        private final Set<Entry<String, Map<String, Object>>> raw;
-        private final int size;
-
-        private WithMetaSet(final Set<Entry<String, Map<String, Object>>> raw,
-                final int size) {
-            this.raw = raw;
-            this.size = size;
-        }
-
-        @Nonnull
-        @Override
-        public Iterator<Entry<String, Map<String, Object>>> iterator() {
-            return new WithMetaIterator(raw.iterator());
-        }
-
-        @Override
-        public int size() {
-            return size;
-        }
-    }
-
-    private static class WithMetaIterator
-            implements Iterator<Entry<String, Map<String, Object>>> {
-        private static final Entry<String, Map<String, Object>> meta
-                = new SimpleImmutableEntry<>(".meta", emptyMap());
-
-        private final Iterator<Entry<String, Map<String, Object>>> it;
-
-        private boolean sawMeta;
-
-        private WithMetaIterator(
-                final Iterator<Entry<String, Map<String, Object>>> it) {
-            this.it = it;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return it.hasNext() || !sawMeta;
-        }
-
-        @Nonnull
-        @Override
-        public Entry<String, Map<String, Object>> next() {
-            try {
-                final Entry<String, Map<String, Object>> next = it.next();
-                if (".meta".equals(next.getKey()))
-                    sawMeta = true;
-                return next;
-            } catch (final NoSuchElementException e) {
-                sawMeta = true;
-                return meta;
-            }
         }
     }
 }
