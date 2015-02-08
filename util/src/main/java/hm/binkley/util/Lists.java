@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@code Lists} has methods on {@code java.util.List}l
+ * {@code Lists} has methods on {@code java.util.List}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
