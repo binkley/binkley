@@ -241,8 +241,9 @@ public class YamlGenerateProcessor
         for (final LoadedYaml loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
-            types.addAll(new YModel(root, packaj, loaded.what,
-                    update -> out = update.apply(out)));
+            final YModel yModel = new YModel(root, packaj, loaded.what,
+                    update -> out = update.apply(out));
+            types.addAll(yModel);
 
             for (final Entry<String, Map<String, Map<String, Object>>> each : definitions(
                     loaded)) {
@@ -264,6 +265,8 @@ public class YamlGenerateProcessor
                     fail(e, names.zis, values, loaded);
                 }
             }
+
+            out = out.clearYamlBlock();
         }
     }
 
@@ -444,18 +447,18 @@ public class YamlGenerateProcessor
         return new LinkedHashMap<>();
     }
 
-    private static String toQuotedYaml(final Yaml yaml, final Object value) {
-        final String dumped = yaml.dump(value);
-        return format("\"%s\"",
-                escapeJava(dumped.substring(0, dumped.length() - 1)));
-    }
-
     private static List<String> toAnnotationValue(final Yaml yaml,
             final Map<String, Object> props) {
         return props.entrySet().stream().
                 map(e -> singletonMap(e.getKey(), e.getValue())).
                 map(e -> toQuotedYaml(yaml, e)).
                 collect(toList());
+    }
+
+    private static String toQuotedYaml(final Yaml yaml, final Object value) {
+        final String dumped = yaml.dump(value);
+        return format("\"%s\"",
+                escapeJava(dumped.substring(0, dumped.length() - 1)));
     }
 
     private static Map<String, Map<String, Object>> immutable(
