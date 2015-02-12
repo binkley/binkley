@@ -46,6 +46,8 @@ public final class ZisZuper {
     private static final Pattern space = compile("\\s+");
 
     @Nonnull
+    public final String key;
+    @Nonnull
     public final Names zis;
     @Nullable
     public final Names zuper;
@@ -82,7 +84,7 @@ public final class ZisZuper {
             return null;
         }
         //noinspection ConstantConditions
-        return new ZisZuper(Names.from(packaj, name, key),
+        return new ZisZuper(key, Names.from(packaj, name, key),
                 Names.from(packaj, parent, key), root);
     }
 
@@ -110,8 +112,9 @@ public final class ZisZuper {
                 .containsKey(method);
     }
 
-    private ZisZuper(@Nonnull final Names zis, @Nullable final Names zuper,
-            @Nonnull Element root) {
+    private ZisZuper(@Nonnull final String key, @Nonnull final Names zis,
+            @Nullable final Names zuper, @Nonnull Element root) {
+        this.key = key;
         this.zis = zis;
         this.zuper = zuper;
         this.root = root;

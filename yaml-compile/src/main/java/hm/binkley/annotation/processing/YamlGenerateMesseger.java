@@ -73,6 +73,11 @@ public final class YamlGenerateMesseger
                 yml, block, template);
     }
 
+    public YamlGenerateMesseger clearYamlBlock() {
+        return new YamlGenerateMesseger(messager, element, mirror, value, ftl,
+                yml, null, template);
+    }
+
     public YamlGenerateMesseger atTemplateSource(final Template template) {
         return new YamlGenerateMesseger(messager, element, mirror, value, ftl,
                 yml, block, template);
