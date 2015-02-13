@@ -1,8 +1,6 @@
 package hm.binkley.annotation.processing;
 
 import hm.binkley.annotation.processing.YModel.YType;
-import hm.binkley.annotation.processing.YamlGenerateProcessor.LoadedTemplate;
-import hm.binkley.annotation.processing.YamlGenerateProcessor.LoadedYaml;
 import hm.binkley.util.YamlHelper;
 import org.yaml.snakeyaml.Yaml;
 
