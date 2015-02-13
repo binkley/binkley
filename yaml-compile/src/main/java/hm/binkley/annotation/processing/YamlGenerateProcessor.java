@@ -7,7 +7,7 @@ import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
 import hm.binkley.annotation.processing.y.YModel;
-import hm.binkley.annotation.processing.y.YModel.YType;
+import hm.binkley.annotation.processing.y.YType;
 import hm.binkley.util.YamlHelper;
 import hm.binkley.util.YamlHelper.Builder;
 import org.springframework.core.io.Resource;
@@ -63,6 +63,7 @@ public class YamlGenerateProcessor
         extends
         SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {
 
+    // TODO: BROKEN, passed to subclass, never acutally populated
     private final Map<String, Map<String, Map<String, Object>>> methods
             = new LinkedHashMap<>();
     private final List<String> roots = findRootsOf(getClass());
