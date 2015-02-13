@@ -43,7 +43,7 @@ import static java.lang.String.format;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-public abstract class Loaded<T> {
+abstract class Loaded<T> {
     public final String where;
     public final Resource whence;
     public final T what;

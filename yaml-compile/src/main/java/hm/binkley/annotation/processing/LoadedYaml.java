@@ -14,7 +14,7 @@ import static java.lang.String.format;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-final class LoadedYaml
+public final class LoadedYaml
         extends Loaded<Map<String, Map<String, Map<String, Object>>>> {
     public final String path;
 

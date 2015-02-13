@@ -6,7 +6,7 @@ package hm.binkley.annotation.processing;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-final class UnLoaded
+public final class UnLoaded
         extends Loaded<Void> {
     UnLoaded(final YamlGenerateMesseger out, final String format,
             final Object... args) {

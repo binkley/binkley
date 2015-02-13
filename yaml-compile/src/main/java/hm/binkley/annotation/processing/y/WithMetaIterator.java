@@ -1,4 +1,4 @@
-package hm.binkley.annotation.processing;
+package hm.binkley.annotation.processing.y;
 
 import javax.annotation.Nonnull;
 import java.util.AbstractMap.SimpleImmutableEntry;

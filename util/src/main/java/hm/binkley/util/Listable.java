@@ -1,4 +1,4 @@
-package hm.binkley.annotation.processing;
+package hm.binkley.util;
 
 import javax.annotation.Nonnull;
 import java.util.List;

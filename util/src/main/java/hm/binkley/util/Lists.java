@@ -28,8 +28,10 @@
 package hm.binkley.util;
 
 import javax.annotation.Nonnull;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntSupplier;
 
 /**
  * {@code Lists} has methods on {@code java.util.List}.
@@ -38,8 +40,9 @@ import java.util.List;
  */
 public final class Lists {
     /**
-     * Partitions the given <var>list</var> into <var>n</var> buckets as evenly as possible. Buckets
-     * are contiguous sublists of <var>list</var>.
+     * Partitions the given <var>list</var> into <var>n</var> buckets as
+     * evenly as possible. Buckets are contiguous sublists of
+     * <var>list</var>.
      *
      * @param list the list to partition, never missing
      * @param n the bucket count, always positive
@@ -48,9 +51,11 @@ public final class Lists {
      * @return the list of buckets, never missing
      */
     @Nonnull
-    public static <T> List<List<T>> partition(@Nonnull final List<T> list, final int n) {
+    public static <T> List<List<T>> partition(@Nonnull final List<T> list,
+            final int n) {
         if (1 > n)
-            throw new IllegalArgumentException("Non-positive bucket count: " + n);
+            throw new IllegalArgumentException(
+                    "Non-positive bucket count: " + n);
         final int size = list.size();
         final int div = size / n;
         final int mod = size % n;
@@ -70,6 +75,39 @@ public final class Lists {
         return buckets;
     }
 
+    @Nonnull
+    public static <T> List<T> list(@Nonnull final FromIntFunction<T> get,
+            @Nonnull final IntSupplier size) {
+        return new ListList<>(get, size);
+    }
+
     private Lists() {
+    }
+
+    @FunctionalInterface
+    public interface FromIntFunction<T> {
+        T apply(final int i);
+    }
+
+    private static final class ListList<T>
+            extends AbstractList<T> {
+        private final FromIntFunction<T> get;
+        private final IntSupplier size;
+
+        public ListList(final FromIntFunction<T> get,
+                final IntSupplier size) {
+            this.get = get;
+            this.size = size;
+        }
+
+        @Override
+        public T get(final int index) {
+            return get.apply(index);
+        }
+
+        @Override
+        public int size() {
+            return size.getAsInt();
+        }
     }
 }
