@@ -1,6 +1,13 @@
-package hm.binkley.annotation.processing;
+package hm.binkley.annotation.processing.y;
 
-import hm.binkley.annotation.processing.YModel.YType;
+import hm.binkley.annotation.processing.LoadedTemplate;
+import hm.binkley.annotation.processing.LoadedYaml;
+import hm.binkley.annotation.processing.Names;
+import hm.binkley.annotation.processing.YamlGenerateMesseger;
+import hm.binkley.annotation.processing.YamlGenerateProcessor;
+import hm.binkley.annotation.processing.y.YModel.YType;
+import hm.binkley.util.Listable;
+import hm.binkley.util.Lists;
 import hm.binkley.util.YamlHelper;
 import org.yaml.snakeyaml.Yaml;
 
@@ -9,7 +16,6 @@ import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
 import java.time.Instant;
-import java.util.AbstractList;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,7 +51,6 @@ import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.PLAIN;
  *     value: 0</pre>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Replace List subtype with Stream factory method?
  */
 public final class YModel
         implements Listable<YType> {
@@ -80,17 +85,7 @@ public final class YModel
     @Nonnull
     @Override
     public List<YType> list() {
-        return new AbstractList<YType>() {
-            @Override
-            public YType get(final int index) {
-                return types.get(index);
-            }
-
-            @Override
-            public int size() {
-                return types.size();
-            }
-        };
+        return Lists.list(types::get, types::size);
     }
 
     private static abstract class YDocumented {
@@ -265,24 +260,15 @@ public final class YModel
             this.names = names;
             this.type = type;
             // TODO: Regularize toString() vs where()
-            comments = format("From '%s' using '%s'", loaded.where(), template);
+            comments = format("From '%s' using '%s'", loaded.where(),
+                    template);
             blocks = yBlocks(type, raw);
         }
 
         @Nonnull
         @Override
         public List<YBlock> list() {
-            return new AbstractList<YBlock>() {
-                @Override
-                public YBlock get(final int index) {
-                    return blocks.get(index);
-                }
-
-                @Override
-                public int size() {
-                    return blocks.size();
-                }
-            };
+            return Lists.list(blocks::get, blocks::size);
         }
 
         public Map<String, ?> asMap() {
@@ -344,17 +330,7 @@ public final class YModel
         @Nonnull
         @Override
         public List<YProperty> list() {
-            return new AbstractList<YProperty>() {
-                @Override
-                public YProperty get(final int index) {
-                    return properties.get(index);
-                }
-
-                @Override
-                public int size() {
-                    return properties.size();
-                }
-            };
+            return Lists.list(properties::get, properties::size);
         }
 
         @Override

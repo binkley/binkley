@@ -11,7 +11,7 @@ import static java.lang.String.format;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  */
-final class LoadedTemplate
+public final class LoadedTemplate
         extends Loaded<Template> {
     LoadedTemplate(final String path, final Resource whence,
             final Template template) {

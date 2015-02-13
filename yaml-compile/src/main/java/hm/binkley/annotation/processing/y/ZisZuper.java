@@ -25,7 +25,9 @@
  * For more information, please refer to <http://unlicense.org/>.
  */
 
-package hm.binkley.annotation.processing;
+package hm.binkley.annotation.processing.y;
+
+import hm.binkley.annotation.processing.Names;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
