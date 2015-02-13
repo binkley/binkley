@@ -245,23 +245,23 @@ public class YamlGenerateProcessor
             final YModel yModel = new YModel(root, template, loaded, packaj,
                     setter -> out = setter.apply(out));
             types.addAll(yModel.list());
-
+if(true)
             for (final YType type : yModel.list())
                 try {
                     build(root, type, loaded);
                 } catch (final RuntimeException e) {
-                    this.out.error(e, "Failed building '%s' from '%s'", e,
+                    out.error(e, "Failed building '%s' from '%s'", e,
                             type, loaded);
                     continue LOAD;
                 }
-if (false)
+else
             for (final Entry<String, Map<String, Map<String, Object>>> each : definitions(
                     loaded)) {
                 final String key = each.getKey();
                 final ZisZuper names = ZisZuper.from(packaj, key, root);
                 if (null == names) {
                     // Cannot use `fail` - names is null
-                    this.out.error(
+                    out.error(
                             "%@ classes have at most one parent for '%s' from '%s'",
                             key, loaded);
                     continue;
@@ -349,8 +349,9 @@ if (false)
     protected final void build(@Nonnull final Element root,
             @Nonnull final YType type, @Nonnull final LoadedYaml loaded) {
         try (final Writer writer = new OutputStreamWriter(
-                processingEnv.getFiler().createSourceFile(type.name, root)
-                        .openOutputStream())) {
+                processingEnv.getFiler().
+                        createSourceFile(type.names.zis.fullName, root).
+                        openOutputStream())) {
             final Map<String, ?> x = type.asMap();
             System.err.println("XXX = " + x);
             template.what.process(x, writer);

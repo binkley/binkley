@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 import static hm.binkley.annotation.processing.Utils.typeFor;
 import static hm.binkley.annotation.processing.Utils.valueFor;
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
@@ -50,6 +51,9 @@ import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.PLAIN;
  */
 public final class YModel
         implements Listable<YType> {
+    private static final Map<String, List<String>> methods
+            = new LinkedHashMap<>();
+
     @Nonnull
     private final Yaml yaml = YamlHelper.builder().build(dumper -> {
         dumper.setDefaultFlowStyle(FLOW);
@@ -99,12 +103,12 @@ public final class YModel
         public final List<String> definition;
 
         protected YDocumented(final String name, final String doc,
-                final Yaml yaml, final Map<String, ?> raw) {
+                final Yaml yaml, final Map<String, ?> block) {
             this.name = name;
             this.doc = doc;
             escapedDoc = null == doc ? null
                     : DQUOTE.matcher(escapeJava(doc)).replaceAll("\\\"");
-            definition = toAnnotationValue(yaml, raw);
+            definition = toAnnotationValue(yaml, block);
         }
 
         protected void putInto(final Map<String, Object> model) {
@@ -116,7 +120,7 @@ public final class YModel
 
         private static List<String> toAnnotationValue(final Yaml yaml,
                 final Map<String, ?> props) {
-            return props.entrySet().stream().
+            return null == props ? emptyList() : props.entrySet().stream().
                     map(e -> singletonMap(e.getKey(), e.getValue())).
                     map(e -> toQuotedYaml(yaml, e)).
                     collect(toList());
@@ -222,9 +226,6 @@ public final class YModel
             }
         };
 
-        private static final Map<String, List<String>> methods
-                = new LinkedHashMap<>();
-
         private final BiFunction<Yaml, Map.Entry<String, Map<String, Object>>, YBlock>
                 ctor;
 
@@ -255,7 +256,6 @@ public final class YModel
         public final ZisZuper names;
         public final YGenerate type;
         public final String comments;
-        public final String packaj;
         public final List<YBlock> blocks;
 
         protected YType(final LoadedTemplate template,
@@ -266,9 +266,8 @@ public final class YModel
                     raw.get(".meta"));
             this.names = names;
             this.type = type;
-            comments = format("From '%s' using '%s'", loaded.where(),
-                    template.where());
-            packaj = names.zis.packaj;
+            // TODO: Regularize toString() vs where()
+            comments = format("From '%s' using '%s'", loaded.where(), template);
             blocks = yBlocks(type, raw);
         }
 
@@ -382,8 +381,7 @@ public final class YModel
             extends YDocumented {
         protected YBlock(final Yaml yaml,
                 final Map.Entry<String, Map<String, Object>> raw) {
-            super(raw.getKey(), doc(raw), yaml,
-                    singletonMap(raw.getKey(), raw.getValue()));
+            super(raw.getKey(), doc(raw), yaml, raw.getValue());
         }
 
         private static String doc(
