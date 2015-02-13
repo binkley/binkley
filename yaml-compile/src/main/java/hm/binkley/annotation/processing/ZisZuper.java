@@ -95,17 +95,6 @@ public final class ZisZuper {
         return zz;
     }
 
-    boolean override(final ZisZuper names, final String method,
-            final Map<String, List<String>> methods) {
-        methods.computeIfAbsent(names.zis.fullName, k -> new ArrayList<>())
-                .add(method);
-        for (ZisZuper parent = classes.get(names.parent()); null != parent;
-                parent = classes.get(parent.parent()))
-            if (methods.get(parent.zis.fullName).contains(method))
-                return true;
-        return false;
-    }
-
     @Nullable
     String parent() {
         if (null == zuper)
@@ -121,13 +110,15 @@ public final class ZisZuper {
         return null == zuper ? root.getKind().name().toLowerCase() : "class";
     }
 
-    /** @todo Undo hack for non-YAML base class */
-    boolean overridden(
-            final Map<String, Map<String, Map<String, Object>>> methods,
-            final String method) {
-        // Work out root overrides
-        return null != zuper && methods.get(zuper.fullName)
-                .containsKey(method);
+    boolean override(final ZisZuper names, final String method,
+            final Map<String, List<String>> methods) {
+        methods.computeIfAbsent(names.zis.fullName, k -> new ArrayList<>())
+                .add(method);
+        for (ZisZuper parent = classes.get(names.parent()); null != parent;
+                parent = classes.get(parent.parent()))
+            if (methods.get(parent.zis.fullName).contains(method))
+                return true;
+        return false;
     }
 
     private ZisZuper(@Nonnull final String key, @Nonnull final Names zis,
