@@ -238,20 +238,30 @@ public class YamlGenerateProcessor
 
     private void process(final Element root, final Name packaj,
             final String input) {
+        LOAD:
         for (final LoadedYaml loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
-            final YModel yModel = new YModel(root, packaj, loaded.what,
-                    update -> out = update.apply(out));
-            types.addAll(yModel);
+            final YModel yModel = new YModel(root, template, loaded, packaj,
+                    setter -> out = setter.apply(out));
+            types.addAll(yModel.list());
 
+            for (final YType type : yModel.list())
+                try {
+                    build(root, type, loaded);
+                } catch (final RuntimeException e) {
+                    this.out.error(e, "Failed building '%s' from '%s'", e,
+                            type, loaded);
+                    continue LOAD;
+                }
+if (false)
             for (final Entry<String, Map<String, Map<String, Object>>> each : definitions(
                     loaded)) {
                 final String key = each.getKey();
                 final ZisZuper names = ZisZuper.from(packaj, key, root);
                 if (null == names) {
                     // Cannot use `fail` - names is null
-                    out.error(
+                    this.out.error(
                             "%@ classes have at most one parent for '%s' from '%s'",
                             key, loaded);
                     continue;
@@ -341,7 +351,9 @@ public class YamlGenerateProcessor
         try (final Writer writer = new OutputStreamWriter(
                 processingEnv.getFiler().createSourceFile(type.name, root)
                         .openOutputStream())) {
-            template.what.process(type, writer);
+            final Map<String, ?> x = type.asMap();
+            System.err.println("XXX = " + x);
+            template.what.process(x, writer);
         } catch (final IOException | TemplateException e) {
             fail(e, type.names.zis, type, loaded);
         }

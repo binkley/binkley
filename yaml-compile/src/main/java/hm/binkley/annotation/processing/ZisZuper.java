@@ -30,6 +30,9 @@ package hm.binkley.annotation.processing;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -44,6 +47,8 @@ import static javax.lang.model.element.Modifier.FINAL;
  */
 public final class ZisZuper {
     private static final Pattern space = compile("\\s+");
+    private static final Map<String, ZisZuper> classes
+            = new LinkedHashMap<>();
 
     @Nonnull
     public final String key;
@@ -84,8 +89,21 @@ public final class ZisZuper {
             return null;
         }
         //noinspection ConstantConditions
-        return new ZisZuper(key, Names.from(packaj, name, key),
+        final ZisZuper zz = new ZisZuper(key, Names.from(packaj, name, key),
                 Names.from(packaj, parent, key), root);
+        classes.put(zz.zis.fullName, zz);
+        return zz;
+    }
+
+    boolean override(final ZisZuper names, final String method,
+            final Map<String, List<String>> methods) {
+        methods.computeIfAbsent(names.zis.fullName, k -> new ArrayList<>())
+                .add(method);
+        for (ZisZuper parent = classes.get(names.parent()); null != parent;
+                parent = classes.get(parent.parent()))
+            if (methods.get(parent.zis.fullName).contains(method))
+                return true;
+        return false;
     }
 
     @Nullable
