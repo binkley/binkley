@@ -20,10 +20,6 @@ ${prefix}@hm.binkley.annotation.YamlGenerate.Definition({<#if pairs?has_content>
 <#list pairs as each>${prefix}        ${each}<#if each_has_next>,
 </#if></#list></#if>})
 </#macro>
-<#--
-    TODO: FreeMarker template fixes
-    * Recurive methods types
--->
 <#if package?has_content>
 package ${package};
 
