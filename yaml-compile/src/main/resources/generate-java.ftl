@@ -40,10 +40,10 @@ public enum ${name} {
     /** ${values[value].doc} */
     <#else>
     /**
-    * @{code ${value}} is undocumented.
-    *
-    * @todo Documentation
-    */
+     * @{code ${value}} is undocumented.
+     *
+     * @todo Documentation
+     */
     </#if>
     <@defn prefix="    " pairs=values[value].definition/>
     ${value}<#if value_has_next>,<#else>;</#if>
