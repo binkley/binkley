@@ -112,7 +112,7 @@ public final class ZisZuper {
         return null == zuper ? root.getKind().name().toLowerCase() : "class";
     }
 
-    boolean override(final YMethod method) {
+    boolean overriddenBy(final YMethod method) {
         YModel.methods.computeIfAbsent(this, k -> new ArrayList<>())
                 .add(method);
         for (ZisZuper parent = classes.get(parent()); null != parent;

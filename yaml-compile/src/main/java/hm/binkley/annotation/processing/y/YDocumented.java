@@ -2,6 +2,8 @@ package hm.binkley.annotation.processing.y;
 
 import org.yaml.snakeyaml.Yaml;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -14,20 +16,31 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 
 /**
- * {@code YDocumented} <b>needs documentation</b>.
+ * {@code YDocumented} is the base of generated models.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 abstract class YDocumented {
     private static final Pattern DQUOTE = compile("\"");
+    /** The simple name, never missing. */
+    @Nonnull
     public final String name;
+    /** The literal doc string, optional. */
+    @Nullable
     public final String doc;
+    /**
+     * The escaped doc string, optional, suitable for double-quoting.  If
+     * {@link #doc} is present, so is <var>escapedDoc</var>, and vice versa.
+     */
+    @Nullable
     public final String escapedDoc;
+    /** The original YAML pairs, never missing but posibly empty. */
+    @Nonnull
     public final List<String> definition;
 
-    protected YDocumented(final String name, final String doc,
-            final Yaml yaml, final Map<String, ?> block) {
+    protected YDocumented(@Nonnull final String name,
+            @Nullable final String doc, final Yaml yaml,
+            final Map<String, ?> block) {
         this.name = name;
         this.doc = doc;
         escapedDoc = null == doc ? null
@@ -35,7 +48,12 @@ abstract class YDocumented {
         definition = toAnnotationValue(yaml, block);
     }
 
-    protected void putInto(final Map<String, Object> model) {
+    /**
+     * Updates the supplied <var>model</var> with documentation.
+     *
+     * @param model the model, never missing
+     */
+    protected void putInto(@Nonnull final Map<String, Object> model) {
         model.put("name", name);
         model.put("doc", doc);
         model.put("escapedDoc", escapedDoc);

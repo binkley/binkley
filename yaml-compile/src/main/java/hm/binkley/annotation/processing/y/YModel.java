@@ -35,6 +35,7 @@ import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.PLAIN;
  *     value: 0</pre>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Documentation
  */
 public final class YModel
         implements Listable<YType> {

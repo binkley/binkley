@@ -5,10 +5,9 @@ import org.yaml.snakeyaml.Yaml;
 import java.util.Map;
 
 /**
- * {@code YBlock} <b>needs documentation</b>.
+ * {@code YBlock} models enum values and methods.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 abstract class YBlock
         extends YDocumented {
