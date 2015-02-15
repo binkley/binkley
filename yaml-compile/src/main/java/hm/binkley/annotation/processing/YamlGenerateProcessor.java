@@ -223,7 +223,8 @@ public class YamlGenerateProcessor
         for (final LoadedYaml loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
-            for (final YType type : new YModel(root, template, loaded, packaj,
+            for (final YType type : new YModel(getClass().getName(), root,
+                    template, loaded, packaj,
                     setter -> out = setter.apply(out)).list())
                 try {
                     build(root, type, loaded);

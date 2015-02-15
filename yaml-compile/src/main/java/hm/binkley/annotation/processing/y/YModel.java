@@ -42,6 +42,8 @@ public final class YModel
     public static final Map<ZisZuper, List<YMethod>> methods
             = new LinkedHashMap<>();
 
+    private final String generator;
+
     @Nonnull
     private final Yaml yaml = YamlHelper.builder().build(dumper -> {
         dumper.setDefaultFlowStyle(FLOW);
@@ -53,11 +55,12 @@ public final class YModel
             out;
     private final List<YType> types;
 
-    public YModel(@Nonnull final Element root,
+    public YModel(final String generator, @Nonnull final Element root,
             @Nonnull final LoadedTemplate template,
             @Nonnull final LoadedYaml loaded, @Nonnull final Name packaj,
             @Nonnull
             final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
+        this.generator = generator;
         this.out = out;
         // No need to wrap in immutableList - AbstractList base is immutable
         // Caution - peek for side effect; DO NOT parallelize
@@ -91,7 +94,7 @@ public final class YModel
         final WithMetaMap value = new WithMetaMap(
                 null == rawValue ? emptyMap() : rawValue);
 
-        return new YType(yaml, template, loaded, names, YGenerate.from(names),
-                value, out);
+        return new YType(generator, yaml, template, loaded, names,
+                YGenerate.from(names), value, out);
     }
 }
