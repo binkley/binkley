@@ -1,5 +1,6 @@
 package hm.binkley.annotation.processing;
 
+import fooby.Howard;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -14,6 +15,6 @@ import static org.junit.Assert.assertThat;
 public final class YamlGenerateProcessorTest {
     @Test
     public void shouldGenerate() {
-        assertThat(new fooby.Howard().baz(), is(equalTo("stringy!")));
+        assertThat(new Howard().baz(), is(equalTo("stringy!")));
     }
 }

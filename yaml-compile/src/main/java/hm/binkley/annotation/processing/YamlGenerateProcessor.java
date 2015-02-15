@@ -1,13 +1,15 @@
 package hm.binkley.annotation.processing;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ResourceInfo;
 import freemarker.cache.URLTemplateLoader;
 import freemarker.template.Configuration;
-import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
+import hm.binkley.annotation.processing.y.YMethod;
+import hm.binkley.annotation.processing.y.YModel;
+import hm.binkley.annotation.processing.y.YType;
+import hm.binkley.annotation.processing.y.ZisZuper;
 import hm.binkley.util.YamlHelper;
 import hm.binkley.util.YamlHelper.Builder;
 import org.springframework.core.io.Resource;
@@ -28,37 +30,19 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
-import java.time.Instant;
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.AbstractSet;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
-import static hm.binkley.annotation.processing.MethodDescription.methodDescription;
 import static hm.binkley.annotation.processing.Utils.cast;
-import static hm.binkley.annotation.processing.Utils.typeOf;
-import static hm.binkley.annotation.processing.YamlGenerateProcessor.Definitions.definitions;
-import static hm.binkley.annotation.processing.YamlGenerateProcessor.Generate.CLAZZ;
-import static hm.binkley.util.YamlHelper.Builder.inOneLine;
-import static java.lang.String.format;
-import static java.lang.System.arraycopy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonMap;
-import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.toList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
-import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 
 /**
  * {@code YamlGenerateProcessor} generates Java source enums and classes from
@@ -78,11 +62,7 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 public class YamlGenerateProcessor
         extends
         SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {
-
-    private final Map<String, Map<String, Map<String, Object>>> methods
-            = new LinkedHashMap<>();
     private final List<String> roots = findRootsOf(getClass());
-    private final YamlHelper.Builder builder = YamlHelper.builder();
     private final Configuration freemarker;
     private final Yaml yaml;
     private LoadedTemplate template;
@@ -100,7 +80,7 @@ public class YamlGenerateProcessor
         // Dump stacktrace as only called during compilation, not runtime
         freemarker.setTemplateExceptionHandler(DEBUG_HANDLER);
         this.freemarker = configure(freemarker);
-        yaml = configure(builder).build();
+        yaml = configure(YamlHelper.builder()).build();
     }
 
     /**
@@ -188,19 +168,19 @@ public class YamlGenerateProcessor
     @SuppressWarnings("UnusedParameters")
     protected boolean postValidate(final Element element,
             final YamlGenerate anno,
-            final Map<String, Map<String, Map<String, Object>>> methods) {
+            final Map<ZisZuper, List<YMethod>> methods) {
         return true;
     }
 
     @Override
     protected final boolean postValidate(final Element element,
             final YamlGenerate anno) {
-        return postValidate(element, anno, unmodifiableMap(methods)) && super
+        return postValidate(element, anno, YModel.methods) && super
                 .postValidate(element, anno);
     }
 
     @Override
-    protected final void process(final Element element,
+    protected final void process(final Element root,
             final YamlGenerate anno) {
         final String[] inputs = anno.inputs();
         final String namespace = anno.namespace();
@@ -213,7 +193,7 @@ public class YamlGenerateProcessor
                         .getName(namespace);
 
                 for (final String input : inputs)
-                    process(element, packaj, input);
+                    process(root, packaj, input);
             } catch (final Exception e) {
                 out.error(e, "%@ cannot process");
             }
@@ -232,34 +212,29 @@ public class YamlGenerateProcessor
     protected void withTemplate(@Nonnull final String path)
             throws IOException {
         template = loadTemplate(path);
-        out = out.withTemplate(template.whence);
+        out = out.
+                withTemplate(template.whence).
+                atTemplateSource(template.what);
     }
 
-    private void process(final Element cause, final Name packaj,
+    private void process(final Element root, final Name packaj,
             final String input) {
+        LOAD:
         for (final LoadedYaml loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
-            for (final Entry<String, Map<String, Map<String, Object>>> each : definitions(
-                    loaded)) {
-                final String key = each.getKey();
-                final ZisZuper names = ZisZuper.from(packaj, key, cause);
-                if (null == names) {
-                    // Cannot use `fail` - names is null
-                    out.error(
-                            "%@ classes have at most one parent for '%s' from '%s'",
-                            key, loaded);
-                    continue;
+            for (final YType type : new YModel(getClass().getName(), root,
+                    template, loaded, packaj,
+                    setter -> out = setter.apply(out)).list())
+                try {
+                    build(root, type, loaded);
+                } catch (final RuntimeException e) {
+                    out.error(e, "Failed building '%s' from '%s'", e, type,
+                            loaded);
+                    continue LOAD;
                 }
 
-                final Map<String, Map<String, Object>> values = each
-                        .getValue();
-                try {
-                    build(cause, names, values, loaded);
-                } catch (final RuntimeException e) {
-                    fail(e, names.zis, values, loaded);
-                }
-            }
+            out = out.clearYamlBlock();
         }
     }
 
@@ -282,187 +257,18 @@ public class YamlGenerateProcessor
                 type, names, null == loaded ? "Did not load" : loaded, value);
     }
 
-    /**
-     * Fails the Javac build with details specific to YAML-to-Java code
-     * generation after an internal exception.
-     *
-     * @param names the details for the processed class name, never missing
-     * @param value the data details for the class (list for enums, map for
-     * classes), never missing
-     * @param loaded the loading details for the YAML defining the class,
-     * never missing
-     * @param format a printf-style message, optional
-     * @param args arguments for <var>format</var>, if any
-     */
-    protected final void fail(@Nonnull final Names names,
-            @Nonnull final Object value, @Nullable final Loaded<?> loaded,
-            @Nullable final String format, final Object... args) {
-        final String type = value instanceof List ? "enum" : "class";
-        final Object[] xArgs = new Object[args.length + 4];
-        arraycopy(args, 0, xArgs, 0, args.length);
-        xArgs[args.length] = type;
-        xArgs[args.length + 1] = names;
-        xArgs[args.length + 2] = null == loaded ? "Did not load" : loaded;
-        xArgs[args.length + 3] = value;
-        final String xFormat = null == format
-                ? "Failed building %s '%s' from '%s' with '%s'"
-                : format + ": Failed building %s '%s' from '%s' with '%s'";
-        out.error(xFormat, xArgs);
-    }
-
-    /**
-     * Builds a Java class from the given parameters using
-     * <var>description</var> as the YAML source.  Used for classes generated
-     * programmatically rather than from YAML.
-     *
-     * @param cause the element annotated with {@link YamlGenerate}, never
-     * missing
-     * @param names the class and superclass names, never missing
-     * @param methods the methods, never missing
-     * @param format the programmatic source description, never missing
-     * @param args any formatting arguments for <var>format</var>
-     */
-    protected final void build(@Nonnull final Element cause,
-            @Nonnull final ZisZuper names,
-            @Nonnull final Map<String, Map<String, Object>> methods,
-            @Nonnull final String format, final Object... args) {
-        build(cause, names, methods, new UnLoaded(format, args));
-    }
-
-    /**
-     * Builds a Java class from the given parameters using <var>loaded</var>
-     * as the YAML source.  Used for classes generated from YAML files.
-     *
-     * @param cause the element annotated with {@link YamlGenerate}, never
-     * missing
-     * @param names the class and superclass names, never missing
-     * @param methods the methods, never missing
-     * @param loaded the loaded YAML source, never missing
-     */
-    protected final void build(@Nonnull final Element cause,
-            @Nonnull final ZisZuper names,
-            @Nonnull final Map<String, Map<String, Object>> methods,
-            @Nonnull final Loaded<?> loaded) {
+    protected final void build(@Nonnull final Element root,
+            @Nonnull final YType type, @Nonnull final LoadedYaml loaded) {
         try (final Writer writer = new OutputStreamWriter(
                 processingEnv.getFiler().
-                        createSourceFile(names.zis.fullName, cause).
+                        createSourceFile(type.names.zis.fullName, root).
                         openOutputStream())) {
-            template.what.process(model(names, methods, loaded), writer);
-        } catch (final IOException e) {
-            fail(e, names.zis, methods, loaded);
-        } catch (final TemplateException e) {
-            template.what.getSource(e.getColumnNumber(), e.getLineNumber(),
-                    e.getEndColumnNumber(), e.getEndLineNumber());
-            fail(e, names.zis, methods, loaded);
+            final Map<String, ?> x = type.asMap();
+            System.err.println("XXX = " + x);
+            template.what.process(x, writer);
+        } catch (final IOException | TemplateException e) {
+            fail(e, type.names.zis, type, loaded);
         }
-    }
-
-    private Map<String, Object> model(@Nonnull final ZisZuper names,
-            @Nullable final Map<String, Map<String, Object>> values,
-            @Nonnull final Loaded<?> loaded) {
-        final Generate generate = Generate.from(names);
-        if (CLAZZ == generate)
-            methods.put(names.zis.fullName, immutable(values));
-
-        final Map<String, Object> model = commonModel(names, loaded);
-        model.put("type", generate.typeKey);
-
-        final String loopKey = generate.loopKey;
-        if (null == values) {
-            model.put(loopKey, emptyMap());
-            return model;
-        }
-
-        final Yaml yaml = builder.build(inOneLine());
-        final Map<String, Map<String, Object>> loops = new LinkedHashMap<>(
-                values.size());
-        model.put(loopKey, loops);
-        model.put("definition", toAnnotationValue(yaml, emptyMap()));
-
-        for (final Entry<String, Map<String, Object>> method : values
-                .entrySet()) {
-            final String name = method.getKey();
-            final Map<String, Object> block = block(names, method);
-
-            final List<String> definition = toAnnotationValue(yaml, block);
-            switch (name) {
-            case ".meta":
-                // Class details
-                model.put("definition", definition);
-                if (block.containsKey("doc")) {
-                    model.put("doc", block.get("doc"));
-                    model.put("escapedDoc",
-                            escapeJava((String) block.get("doc")));
-                }
-                generate.updateModel(model, names);
-                break;
-            default:
-                block.put("definition", definition);
-                if (block.containsKey("doc"))
-                    block.put("escapedDoc",
-                            escapeJava((String) block.get("doc")));
-                generate.updateBlock(name, block, names, methods);
-                loops.put(name, block);
-                break;
-            }
-        }
-
-        return model;
-    }
-
-    /**
-     * Strategy: <ol><li>If there are values, use them.</li> <li>If this is
-     * ".meta" and there is a supertype, use the supertype values.</li>
-     * <li>Use empty values.</li></ol>
-     */
-    private Map<String, Object> block(final ZisZuper names,
-            final Entry<String, Map<String, Object>> method) {
-        final Map<String, Object> values = method.getValue();
-        if (null != values)
-            // Clone to leave original YAML alone
-            return new LinkedHashMap<>(values);
-        final String name = method.getKey();
-        if (null != names.zuper && ".meta".equals(name)) {
-            methods.get(names.zuper.fullName).get(name);
-            return new LinkedHashMap<>();
-        }
-        return new LinkedHashMap<>();
-    }
-
-    private static String toQuotedYaml(final Yaml yaml, final Object value) {
-        final String dumped = yaml.dump(value);
-        return format("\"%s\"",
-                escapeJava(dumped.substring(0, dumped.length() - 1)));
-    }
-
-    private static List<String> toAnnotationValue(final Yaml yaml,
-            final Map<String, Object> props) {
-        return props.entrySet().stream().
-                map(e -> singletonMap(e.getKey(), e.getValue())).
-                map(e -> toQuotedYaml(yaml, e)).
-                collect(toList());
-    }
-
-    private static Map<String, Map<String, Object>> immutable(
-            final Map<String, Map<String, Object>> methods) {
-        final Map<String, Map<String, Object>> immutable
-                = new LinkedHashMap<>();
-        methods.entrySet().
-                forEach(e -> immutable
-                        .put(e.getKey(), unmodifiableMap(e.getValue())));
-        return unmodifiableMap(immutable);
-    }
-
-    private Map<String, Object> commonModel(@Nonnull final ZisZuper names,
-            @Nonnull final Loaded<?> loaded) {
-        final LinkedHashMap<String, Object> model = new LinkedHashMap<>();
-        model.put("generator", getClass().getName());
-        model.put("now", Instant.now().toString());
-        model.put("comments",
-                format("From '%s' using '%s'", loaded.where(), template));
-        model.put("package", names.zis.packaj);
-        model.put("name", names.zis.name);
-        return model;
     }
 
     private List<LoadedYaml> loadAll(final String pattern) {
@@ -497,194 +303,6 @@ public class YamlGenerateProcessor
         final Resource ftl = loader.getResource(path);
         return new LoadedTemplate(path, ftl,
                 freemarker.getTemplate(ftl.getURI().toString()));
-    }
-
-    protected static final class LoadedTemplate
-            extends Loaded<Template> {
-        private LoadedTemplate(final String path, final Resource whence,
-                final Template template) {
-            super(path, whence, template);
-        }
-
-        @Override
-        public String where() {
-            return where;
-        }
-
-        @Override
-        public String toString() {
-            final String whence = this.whence.getDescription();
-            final String where = where();
-            return whence.equals(where) ? whence
-                    : format("%s(%s)", whence, where);
-        }
-    }
-
-    static class Definitions
-            extends
-            AbstractSet<Entry<String, Map<String, Map<String, Object>>>> {
-        private final LoadedYaml loaded;
-
-        static Set<Entry<String, Map<String, Map<String, Object>>>> definitions(
-                final LoadedYaml loaded) {
-            return new Definitions(loaded);
-        }
-
-        private Definitions(final LoadedYaml loaded) {this.loaded = loaded;}
-
-        @Nonnull
-        @Override
-        public Iterator<Entry<String, Map<String, Map<String, Object>>>> iterator() {
-            return new DefinitionsIterator(loaded);
-        }
-
-        @Override
-        public int size() {
-            return loaded.what.size();
-        }
-
-        private class DefinitionsIterator
-                implements
-                Iterator<Entry<String, Map<String, Map<String, Object>>>> {
-            private final Iterator<Entry<String, Object>> it;
-
-            private DefinitionsIterator(final LoadedYaml loaded) {
-                it = loaded.what.entrySet().iterator();
-            }
-
-            @Override
-            public boolean hasNext() {
-                return it.hasNext();
-            }
-
-            @Override
-            public Entry<String, Map<String, Map<String, Object>>> next() {
-                final Entry<String, Object> next = it.next();
-                final Map<String, Map<String, Object>> value = cast(
-                        next.getValue());
-                if (null == value)
-                    return new SimpleImmutableEntry<>(next.getKey(),
-                            singletonMap(".meta", emptyMap()));
-                // TODO: Add missing .meta's to methods also
-                if (!value.containsKey(".meta"))
-                    value.put(".meta", emptyMap());
-                return new SimpleImmutableEntry<>(next.getKey(), value);
-            }
-        }
-    }
-
-    protected final class UnLoaded
-            extends Loaded<Void> {
-        public UnLoaded(final String format, final Object... args) {
-            super(out.annoFormat(format, args), null, null);
-        }
-
-        @Override
-        public String where() {
-            return where;
-        }
-
-        @Override
-        public String toString() {
-            return where();
-        }
-    }
-
-    protected static final class LoadedYaml
-            extends Loaded<Map<String, Object>> {
-        public final String path;
-
-        @Override
-        public String where() {
-            return path;
-        }
-
-        private LoadedYaml(final String pathPattern, final Resource whence,
-                final Map<String, Object> yaml, final List<String> roots)
-                throws IOException {
-            super(pathPattern, whence, yaml);
-            path = path(pathPattern, whence, roots);
-        }
-
-        @Override
-        public String toString() {
-            final String whence = this.whence.getDescription();
-            return whence.equals(where) ? format("%s: %s", whence, what)
-                    : format("%s(%s): %s", whence, where, what);
-        }
-    }
-
-    enum Generate {
-        ENUM("Enum", "values") {
-            @Override
-            protected void updateModel(final Map<String, Object> model,
-                    final ZisZuper names) {
-                // Do nothing
-            }
-
-            @Override
-            protected void updateBlock(final String name,
-                    final Map<String, Object> block, final ZisZuper names,
-                    final Map<String, Map<String, Map<String, Object>>> methods) {
-                // Do nothing
-            }
-        },
-        CLAZZ("Class", "methods") {
-            @Override
-            protected void updateModel(final Map<String, Object> model,
-                    final ZisZuper names) {
-                model.put("parent", names.parent());
-                model.put("parentKind", names.kind());
-            }
-
-            @Override
-            protected void updateBlock(final String name,
-                    final Map<String, Object> block, final ZisZuper names,
-                    final Map<String, Map<String, Map<String, Object>>> methods) {
-                final MethodDescription method = methodDescription(name,
-                        (String) block.get("type"), block.get("value"));
-                block.put("name", method.name);
-                block.put("type", method.type);
-                if ("seq".equals(method.type)) {
-                    final List<?> elements = cast(method.value);
-                    final List<Map<String, ?>> value = new ArrayList<>(
-                            elements.size());
-                    elements.forEach(v -> value.add(ImmutableMap
-                            .of("value", v, "type", typeOf(v))));
-                    block.put("value", value);
-                } else if ("pairs".equals(method.type)) {
-                    final Map<String, ?> elements = cast(method.value);
-                    final Map<String, Map<String, ?>> value
-                            = new LinkedHashMap<>(elements.size());
-                    elements.forEach((k, v) -> value.put(k,
-                            ImmutableMap.of("value", v, "type", typeOf(v))));
-                    block.put("value", value);
-                } else
-                    block.put("value", method.value);
-                block.put("override", names.overridden(methods, name));
-            }
-        };
-
-        private final String typeKey;
-        private final String loopKey;
-
-        Generate(final String typeKey, final String loopKey) {
-            this.typeKey = typeKey;
-            this.loopKey = loopKey;
-        }
-
-        protected abstract void updateModel(final Map<String, Object> model,
-                final ZisZuper names);
-
-        protected abstract void updateBlock(final String name,
-                final Map<String, Object> block, final ZisZuper names,
-                final Map<String, Map<String, Map<String, Object>>> methods);
-
-        @Nonnull
-        private static Generate from(@Nonnull final ZisZuper names) {
-            final Names zuper = names.zuper;
-            return null == zuper || !"Enum".equals(zuper.name) ? CLAZZ : ENUM;
-        }
     }
 
     private class ResourceTemplateLoader

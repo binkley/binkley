@@ -27,10 +27,9 @@
 
 package hm.binkley.annotation.processing;
 
-import lombok.EqualsAndHashCode;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 /**
  * {@code Names} finds the final full name, package name and simple class name
@@ -39,12 +38,10 @@ import javax.annotation.Nullable;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-@EqualsAndHashCode
 public final class Names {
     public final String fullName;
     public final String packaj;
     public final String name;
-    public final Object diagnostic;
 
     /**
      * Creates a new {@code Names} from the given <var>packaj</var> and
@@ -58,7 +55,7 @@ public final class Names {
      */
     @Nullable
     public static Names from(@Nonnull final CharSequence packaj,
-            @Nullable final String name, @Nullable final Object diagnostic) {
+            @Nullable final String name) {
         if (null == name)
             return null;
 
@@ -83,20 +80,14 @@ public final class Names {
             className = name.substring(x + 1);
         }
 
-        return new Names(fullName, packageName, className, diagnostic);
-    }
-
-    public Names withDiagnostic(final Object diagnostic) {
-        return new Names(fullName, packaj, name, diagnostic);
+        return new Names(fullName, packageName, className);
     }
 
     private Names(@Nonnull final String fullName,
-            @Nonnull final String packaj, @Nonnull final String name,
-            @Nullable final Object diagnostic) {
+            @Nonnull final String packaj, @Nonnull final String name) {
         this.fullName = fullName;
         this.packaj = packaj;
         this.name = name;
-        this.diagnostic = diagnostic;
     }
 
     /**
@@ -113,7 +104,21 @@ public final class Names {
 
     @Override
     public String toString() {
-        return null == diagnostic ? fullName
-                : fullName + "(" + diagnostic + ")";
+        return fullName;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        final Names that = (Names) o;
+        return Objects.equals(fullName, that.fullName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fullName);
     }
 }

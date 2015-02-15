@@ -25,12 +25,17 @@
  * For more information, please refer to <http://unlicense.org/>.
  */
 
-package hm.binkley.annotation.processing;
+package hm.binkley.annotation.processing.y;
+
+import hm.binkley.annotation.processing.Names;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
@@ -44,7 +49,11 @@ import static javax.lang.model.element.Modifier.FINAL;
  */
 public final class ZisZuper {
     private static final Pattern space = compile("\\s+");
+    private static final Map<String, ZisZuper> classes
+            = new LinkedHashMap<>();
 
+    @Nonnull
+    public final String key;
     @Nonnull
     public final Names zis;
     @Nullable
@@ -82,8 +91,10 @@ public final class ZisZuper {
             return null;
         }
         //noinspection ConstantConditions
-        return new ZisZuper(Names.from(packaj, name, key),
-                Names.from(packaj, parent, key), root);
+        final ZisZuper zz = new ZisZuper(key, Names.from(packaj, name),
+                Names.from(packaj, parent), root);
+        classes.put(zz.zis.fullName, zz);
+        return zz;
     }
 
     @Nullable
@@ -101,17 +112,35 @@ public final class ZisZuper {
         return null == zuper ? root.getKind().name().toLowerCase() : "class";
     }
 
-    /** @todo Undo hack for non-YAML base class */
-    boolean overridden(
-            final Map<String, Map<String, Map<String, Object>>> methods,
-            final String method) {
-        // Work out root overrides
-        return null != zuper && methods.get(zuper.fullName)
-                .containsKey(method);
+    boolean overriddenBy(final YMethod method) {
+        YModel.methods.computeIfAbsent(this, k -> new ArrayList<>())
+                .add(method);
+        for (ZisZuper parent = classes.get(parent()); null != parent;
+                parent = classes.get(parent.parent()))
+            if (YModel.methods.get(parent).contains(method))
+                return true;
+        return false;
     }
 
-    private ZisZuper(@Nonnull final Names zis, @Nullable final Names zuper,
-            @Nonnull Element root) {
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        final ZisZuper that = (ZisZuper) o;
+        return Objects.equals(zis, that.zis) && Objects
+                .equals(zuper, that.zuper);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(zis, zuper);
+    }
+
+    private ZisZuper(@Nonnull final String key, @Nonnull final Names zis,
+            @Nullable final Names zuper, @Nonnull Element root) {
+        this.key = key;
         this.zis = zis;
         this.zuper = zuper;
         this.root = root;

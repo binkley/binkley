@@ -20,10 +20,6 @@ ${prefix}@hm.binkley.annotation.YamlGenerate.Definition({<#if pairs?has_content>
 <#list pairs as each>${prefix}        ${each}<#if each_has_next>,
 </#if></#list></#if>})
 </#macro>
-<#--
-    TODO: FreeMarker template fixes
-    * Recurive methods types
--->
 <#if package?has_content>
 package ${package};
 
@@ -44,10 +40,10 @@ public enum ${name} {
     /** ${values[value].doc} */
     <#else>
     /**
-    * @{code ${value}} is undocumented.
-    *
-    * @todo Documentation
-    */
+     * @{code ${value}} is undocumented.
+     *
+     * @todo Documentation
+     */
     </#if>
     <@defn prefix="    " pairs=values[value].definition/>
     ${value}<#if value_has_next>,<#else>;</#if>
