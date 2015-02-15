@@ -4,6 +4,7 @@ import hm.binkley.util.Listable;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,15 +16,18 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
 /**
- * {@code YMethod} <b>needs documentation</b>.
+ * {@code YMethod} models methods.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public final class YMethod
         extends YBlock
         implements Listable<YProperty> {
+    /** The YAML return type. */
+    @Nonnull
     public final String rtype;
+    /** The fixed value. */
+    @Nullable
     public final Object value;
     private final List<YProperty> properties;
 
@@ -39,6 +43,11 @@ public final class YMethod
                 collect(toList());
     }
 
+    /**
+     * Gets the unmodifiable list of properties for the method.
+     *
+     * @return the properties, never missing or empty
+     */
     @Nonnull
     @Override
     public List<YProperty> list() {

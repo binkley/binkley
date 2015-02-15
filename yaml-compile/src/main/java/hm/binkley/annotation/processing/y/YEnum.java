@@ -7,10 +7,9 @@ import java.util.Map;
 import static java.lang.String.format;
 
 /**
- * {@code YEnum} <b>needs documentation</b>.
+ * {@code YEnum} models enums.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public final class YEnum
         extends YBlock {

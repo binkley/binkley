@@ -12,14 +12,16 @@ import java.util.Map.Entry;
 import java.util.function.BiFunction;
 
 import static hm.binkley.annotation.processing.Utils.typeFor;
+import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 /**
- * {@code YGenerate} <b>needs documentation</b>.
+ * {@code YGenerate} models the differences between enums and classes for code
+ * generation.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
+ * @todo Not clear this is the best approach
  */
 public enum YGenerate {
     ENUM(YEnum::new) {
@@ -28,12 +30,7 @@ public enum YGenerate {
                 final Map<String, Object> model,
                 final List<? extends YBlock> blocks) {
             model.put("type", "Enum");
-            model.put("values", new LinkedHashMap<String, Object>() {{
-                for (final YEnum block : (List<YEnum>) blocks)
-                    put(block.name, new LinkedHashMap<String, Object>() {{
-                        block.putInto(this);
-                    }});
-            }});
+            model.put("values", unmodifiableMap(new EnumsMap(blocks)));
         }
     }, CLASS(YMethod::new) {
         @Override
@@ -43,44 +40,28 @@ public enum YGenerate {
             model.put("type", "Class");
             model.put("parent", names.parent());
             model.put("parentKind", names.kind());
-            model.put("methods", new LinkedHashMap<String, Object>() {{
-                for (final YMethod block : (List<YMethod>) blocks)
-                    put(block.name, new LinkedHashMap<String, Object>() {{
-                        block.putInto(this);
-                        put("override", names.override(block));
-                        put("type", block.rtype);
-                        switch (block.rtype) {
-                        case "seq":
-                            put("value", seq(block.value));
-                            break;
-                        case "pairs":
-                            put("value", pairs(block.value));
-                            break;
-                        default:
-                            put("value", block.value);
-                        }
-                    }});
-            }});
+            model.put("methods",
+                    unmodifiableMap(new MethodsMap(names, blocks)));
         }
     };
 
     private final BiFunction<Yaml, Entry<String, Map<String, Object>>, YBlock>
             ctor;
 
+    @Nonnull
+    static YGenerate from(@Nonnull final ZisZuper names) {
+        final Names zuper = names.zuper;
+        return null == zuper || !"Enum".equals(zuper.name) ? CLASS : ENUM;
+    }
+
     YGenerate(
             final BiFunction<Yaml, Entry<String, Map<String, Object>>, YBlock> ctor) {
         this.ctor = ctor;
     }
 
-    public final YBlock block(final Yaml yaml,
+    final YBlock block(final Yaml yaml,
             final Entry<String, Map<String, Object>> raw) {
         return ctor.apply(yaml, raw);
-    }
-
-    @Nonnull
-    public static YGenerate from(@Nonnull final ZisZuper names) {
-        final Names zuper = names.zuper;
-        return null == zuper || !"Enum".equals(zuper.name) ? CLASS : ENUM;
     }
 
     protected abstract void putInto(final ZisZuper names,
@@ -107,5 +88,48 @@ public enum YGenerate {
                                 }})).
                         collect(toMap(Map.Entry::getKey,
                                 Map.Entry::getValue));
+    }
+
+    private static class EnumsMap
+            extends LinkedHashMap<String, Object> {
+        EnumsMap(final List<? extends YBlock> blocks) {
+            for (final YEnum block : (List<YEnum>) blocks)
+                put(block.name, new EnumMap(block));
+        }
+    }
+
+    private static class EnumMap
+            extends LinkedHashMap<String, Object> {
+        EnumMap(final YEnum block) {
+            block.putInto(this);
+        }
+    }
+
+    private static class MethodsMap
+            extends LinkedHashMap<String, Object> {
+        MethodsMap(final ZisZuper names,
+                final List<? extends YBlock> blocks) {
+            for (final YMethod block : (List<YMethod>) blocks)
+                put(block.name, new MethodMap(names, block));
+        }
+    }
+
+    private static class MethodMap
+            extends LinkedHashMap<String, Object> {
+        MethodMap(final ZisZuper names, final YMethod block) {
+            block.putInto(this);
+            put("override", names.overriddenBy(block));
+            put("type", block.rtype);
+            switch (block.rtype) {
+            case "seq":
+                put("value", seq(block.value));
+                break;
+            case "pairs":
+                put("value", pairs(block.value));
+                break;
+            default:
+                put("value", block.value);
+            }
+        }
     }
 }

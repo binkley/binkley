@@ -5,14 +5,15 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
- * {@code YProperty} <b>needs documentation</b>.
+ * {@code YProperty} models properties for methods.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public final class YProperty {
+    /** The property name, never missing. */
     @Nonnull
     public final String name;
+    /** The optional property value. */
     @Nullable
     public final Object value;
 

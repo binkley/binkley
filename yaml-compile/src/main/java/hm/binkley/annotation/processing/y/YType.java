@@ -19,22 +19,30 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
 /**
- * {@code YType} <b>needs documentation</b>.
+ * {@code YType} models enum types and classes.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation.
  */
 public final class YType
         extends YDocumented
         implements Listable<YBlock> {
+    /** The class name and parent details, never missing. */
+    @Nonnull
     public final ZisZuper names;
+    /** Code generation specific to enum or class, never missing. */
+    @Nonnull
     public final YGenerate type;
+    /** The code generation comments, never missing. */
+    @Nonnull
     public final String comments;
+    /** The list of enum values or class methods, never missing. */
+    @Nonnull
     public final List<YBlock> blocks;
     private final String generator;
 
-    YType(final String generator, final Yaml yaml, final LoadedTemplate template,
-            final LoadedYaml loaded, final ZisZuper names, final YGenerate type,
+    YType(final String generator, final Yaml yaml,
+            final LoadedTemplate template, final LoadedYaml loaded,
+            @Nonnull final ZisZuper names, @Nonnull final YGenerate type,
             final Map<String, Map<String, Object>> raw,
             final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
         super(names.zis.name, (String) raw.get(".meta").get("doc"), yaml,
