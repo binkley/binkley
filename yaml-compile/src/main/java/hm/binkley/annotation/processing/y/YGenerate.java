@@ -47,7 +47,7 @@ public enum YGenerate {
                 for (final YMethod block : (List<YMethod>) blocks)
                     put(block.name, new LinkedHashMap<String, Object>() {{
                         block.putInto(this);
-                        put("override", override(names, block.name));
+                        put("override", names.override(block));
                         put("type", block.rtype);
                         switch (block.rtype) {
                         case "seq":
@@ -83,11 +83,6 @@ public enum YGenerate {
         return null == zuper || !"Enum".equals(zuper.name) ? CLASS : ENUM;
     }
 
-    protected static boolean override(final ZisZuper names,
-            final String method) {
-        return names.override(names, method, YModel.methods);
-    }
-
     protected abstract void putInto(final ZisZuper names,
             final Map<String, Object> model,
             final List<? extends YBlock> blocks);
@@ -110,7 +105,7 @@ public enum YGenerate {
                                     put("type", typeFor(e.getValue()));
                                     put("value", e.getValue());
                                 }})).
-                        collect(toMap(SimpleImmutableEntry::getKey,
-                                SimpleImmutableEntry::getValue));
+                        collect(toMap(Map.Entry::getKey,
+                                Map.Entry::getValue));
     }
 }
