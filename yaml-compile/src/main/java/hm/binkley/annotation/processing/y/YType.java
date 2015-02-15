@@ -3,7 +3,6 @@ package hm.binkley.annotation.processing.y;
 import hm.binkley.annotation.processing.LoadedTemplate;
 import hm.binkley.annotation.processing.LoadedYaml;
 import hm.binkley.annotation.processing.YamlGenerateMesseger;
-import hm.binkley.annotation.processing.YamlGenerateProcessor;
 import hm.binkley.util.Listable;
 import org.yaml.snakeyaml.Yaml;
 
@@ -32,13 +31,15 @@ public final class YType
     public final YGenerate type;
     public final String comments;
     public final List<YBlock> blocks;
+    private final String generator;
 
-    YType(final Yaml yaml, final LoadedTemplate template,
-            final LoadedYaml loaded, final ZisZuper names,
-            final YGenerate type, final Map<String, Map<String, Object>> raw,
+    YType(final String generator, final Yaml yaml, final LoadedTemplate template,
+            final LoadedYaml loaded, final ZisZuper names, final YGenerate type,
+            final Map<String, Map<String, Object>> raw,
             final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
         super(names.zis.name, (String) raw.get(".meta").get("doc"), yaml,
                 raw.get(".meta"));
+        this.generator = generator;
         this.names = names;
         this.type = type;
         // TODO: Regularize toString() vs where()
@@ -54,8 +55,7 @@ public final class YType
 
     public Map<String, ?> asMap() {
         return new LinkedHashMap<String, Object>() {{
-            // TODO: Why should YModel know about the processor?
-            put("generator", YamlGenerateProcessor.class.getName());
+            put("generator", generator);
             put("now", Instant.now().toString());
             put("comments", comments);
             put("package", names.zis.packaj);
