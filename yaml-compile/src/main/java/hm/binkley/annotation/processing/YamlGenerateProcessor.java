@@ -263,9 +263,7 @@ public class YamlGenerateProcessor
                 processingEnv.getFiler().
                         createSourceFile(type.names.zis.fullName, root).
                         openOutputStream())) {
-            final Map<String, ?> x = type.asMap();
-            System.err.println("XXX = " + x);
-            template.what.process(x, writer);
+            template.what.process(type.asMap(), writer);
         } catch (final IOException | TemplateException e) {
             fail(e, type.names.zis, type, loaded);
         }
