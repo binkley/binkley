@@ -5,7 +5,6 @@ import hm.binkley.annotation.processing.LoadedYaml;
 import hm.binkley.annotation.processing.YamlGenerateMesseger;
 import hm.binkley.annotation.processing.YamlGenerateProcessor;
 import hm.binkley.util.Listable;
-import hm.binkley.util.Lists;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
@@ -50,7 +49,7 @@ public final class YType
     @Nonnull
     @Override
     public List<YBlock> list() {
-        return Lists.list(blocks::get, blocks::size);
+        return unmodifiableList(blocks);
     }
 
     public Map<String, ?> asMap() {

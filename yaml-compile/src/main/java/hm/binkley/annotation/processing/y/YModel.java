@@ -4,7 +4,6 @@ import hm.binkley.annotation.processing.LoadedTemplate;
 import hm.binkley.annotation.processing.LoadedYaml;
 import hm.binkley.annotation.processing.YamlGenerateMesseger;
 import hm.binkley.util.Listable;
-import hm.binkley.util.Lists;
 import hm.binkley.util.YamlHelper;
 import org.yaml.snakeyaml.Yaml;
 
@@ -20,6 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 import static org.yaml.snakeyaml.DumperOptions.FlowStyle.FLOW;
 import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.PLAIN;
@@ -39,7 +39,8 @@ import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.PLAIN;
 public final class YModel
         implements Listable<YType> {
     // TODO: Some less gross place for this global
-    static final Map<String, List<String>> methods = new LinkedHashMap<>();
+    public static final Map<ZisZuper, List<YMethod>> methods
+            = new LinkedHashMap<>();
 
     @Nonnull
     private final Yaml yaml = YamlHelper.builder().build(dumper -> {
@@ -69,7 +70,7 @@ public final class YModel
     @Nonnull
     @Override
     public List<YType> list() {
-        return Lists.list(types::get, types::size);
+        return unmodifiableList(types);
     }
 
     @Nullable

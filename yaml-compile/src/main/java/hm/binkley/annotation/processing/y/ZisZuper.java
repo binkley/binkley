@@ -34,8 +34,8 @@ import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
@@ -91,8 +91,8 @@ public final class ZisZuper {
             return null;
         }
         //noinspection ConstantConditions
-        final ZisZuper zz = new ZisZuper(key, Names.from(packaj, name, key),
-                Names.from(packaj, parent, key), root);
+        final ZisZuper zz = new ZisZuper(key, Names.from(packaj, name),
+                Names.from(packaj, parent), root);
         classes.put(zz.zis.fullName, zz);
         return zz;
     }
@@ -112,15 +112,30 @@ public final class ZisZuper {
         return null == zuper ? root.getKind().name().toLowerCase() : "class";
     }
 
-    boolean override(final ZisZuper names, final String method,
-            final Map<String, List<String>> methods) {
-        methods.computeIfAbsent(names.zis.fullName, k -> new ArrayList<>())
+    boolean override(final YMethod method) {
+        YModel.methods.computeIfAbsent(this, k -> new ArrayList<>())
                 .add(method);
-        for (ZisZuper parent = classes.get(names.parent()); null != parent;
+        for (ZisZuper parent = classes.get(parent()); null != parent;
                 parent = classes.get(parent.parent()))
-            if (methods.get(parent.zis.fullName).contains(method))
+            if (YModel.methods.get(parent).contains(method))
                 return true;
         return false;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        final ZisZuper that = (ZisZuper) o;
+        return Objects.equals(zis, that.zis) && Objects
+                .equals(zuper, that.zuper);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(zis, zuper);
     }
 
     private ZisZuper(@Nonnull final String key, @Nonnull final Names zis,

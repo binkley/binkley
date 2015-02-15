@@ -6,8 +6,10 @@ import freemarker.cache.URLTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
+import hm.binkley.annotation.processing.y.YMethod;
 import hm.binkley.annotation.processing.y.YModel;
 import hm.binkley.annotation.processing.y.YType;
+import hm.binkley.annotation.processing.y.ZisZuper;
 import hm.binkley.util.YamlHelper;
 import hm.binkley.util.YamlHelper.Builder;
 import org.springframework.core.io.Resource;
@@ -29,7 +31,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +39,6 @@ import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
 import static hm.binkley.annotation.processing.Utils.cast;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.toList;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.CLASS;
@@ -62,10 +62,6 @@ import static javax.lang.model.element.ElementKind.INTERFACE;
 public class YamlGenerateProcessor
         extends
         SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {
-
-    // TODO: BROKEN, passed to subclass, never acutally populated
-    private final Map<String, Map<String, Map<String, Object>>> methods
-            = new LinkedHashMap<>();
     private final List<String> roots = findRootsOf(getClass());
     private final Configuration freemarker;
     private final Yaml yaml;
@@ -172,14 +168,14 @@ public class YamlGenerateProcessor
     @SuppressWarnings("UnusedParameters")
     protected boolean postValidate(final Element element,
             final YamlGenerate anno,
-            final Map<String, Map<String, Map<String, Object>>> methods) {
+            final Map<ZisZuper, List<YMethod>> methods) {
         return true;
     }
 
     @Override
     protected final boolean postValidate(final Element element,
             final YamlGenerate anno) {
-        return postValidate(element, anno, unmodifiableMap(methods)) && super
+        return postValidate(element, anno, YModel.methods) && super
                 .postValidate(element, anno);
     }
 
