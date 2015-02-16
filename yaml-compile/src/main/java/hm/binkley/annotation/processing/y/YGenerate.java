@@ -5,11 +5,11 @@ import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.BiFunction;
 
 import static hm.binkley.annotation.processing.Utils.typeFor;
 import static java.util.Collections.unmodifiableMap;
@@ -24,7 +24,7 @@ import static java.util.stream.Collectors.toMap;
  * @todo Not clear this is the best approach
  */
 public enum YGenerate {
-    ENUM(YEnum::new) {
+    ENUM() {
         @Override
         protected void putInto(final ZisZuper names,
                 final Map<String, Object> model,
@@ -32,7 +32,13 @@ public enum YGenerate {
             model.put("type", "Enum");
             model.put("values", unmodifiableMap(new EnumsMap(blocks)));
         }
-    }, CLASS(YMethod::new) {
+
+        @Override
+        YBlock block(final Yaml yaml, final ZisZuper names,
+                final Entry<String, Map<String, Object>> raw) {
+            return new YEnum(yaml, raw);
+        }
+    }, CLASS() {
         @Override
         protected void putInto(final ZisZuper names,
                 final Map<String, Object> model,
@@ -43,10 +49,18 @@ public enum YGenerate {
             model.put("methods",
                     unmodifiableMap(new MethodsMap(names, blocks)));
         }
-    };
 
-    private final BiFunction<Yaml, Entry<String, Map<String, Object>>, YBlock>
-            ctor;
+        @Override
+        YBlock block(final Yaml yaml, final ZisZuper names,
+                final Entry<String, Map<String, Object>> raw) {
+            // TODO: Some less gross place for this global
+            final YMethod method = new YMethod(yaml, raw);
+            YModel.methods.
+                    computeIfAbsent(names, ignored -> new ArrayList<>()).
+                    add(method);
+            return method;
+        }
+    };
 
     @Nonnull
     static YGenerate from(@Nonnull final ZisZuper names) {
@@ -54,15 +68,8 @@ public enum YGenerate {
         return null == zuper || !"Enum".equals(zuper.name) ? CLASS : ENUM;
     }
 
-    YGenerate(
-            final BiFunction<Yaml, Entry<String, Map<String, Object>>, YBlock> ctor) {
-        this.ctor = ctor;
-    }
-
-    final YBlock block(final Yaml yaml,
-            final Entry<String, Map<String, Object>> raw) {
-        return ctor.apply(yaml, raw);
-    }
+    abstract YBlock block(final Yaml yaml, final ZisZuper names,
+            final Entry<String, Map<String, Object>> raw);
 
     protected abstract void putInto(final ZisZuper names,
             final Map<String, Object> model,

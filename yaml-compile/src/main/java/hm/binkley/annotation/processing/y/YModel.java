@@ -8,7 +8,6 @@ import hm.binkley.util.YamlHelper;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
 import java.util.LinkedHashMap;
@@ -63,7 +62,6 @@ public final class YModel
             final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
         this.generator = generator;
         this.out = out;
-        // No need to wrap in immutableList - AbstractList base is immutable
         // Caution - peek for side effect; DO NOT parallelize
         types = loaded.what.entrySet().stream().
                 peek(e -> out.accept(o -> o.atYamlBlock(e))).
@@ -77,25 +75,40 @@ public final class YModel
         return unmodifiableList(types);
     }
 
-    @Nullable
+    @Nonnull
     private YType yType(final Element root, final LoadedTemplate template,
             final LoadedYaml loaded, final Name packaj,
             final Entry<String, Map<String, Map<String, Object>>> e) {
         final ZisZuper names = ZisZuper.from(packaj, e.getKey(), root);
         if (null == names) {
             out.accept(o -> {
-                o.error("%@ classes have at most one parent for '%s'",
+                o.error("'%s' classes have at most one parent for '%s'",
                         e.getKey());
                 return o;
             });
-            return null;
+            throw new IllegalStateException("Failed YAML");
+        }
+
+        final YGenerate type = YGenerate.from(names);
+        switch (type) {
+        case CLASS:
+            if (null != names.zuper && !methods.keySet().stream().
+                    filter(zz -> zz.zis.equals(names.zuper)).
+                    findAny().
+                    isPresent()) {
+                out.accept(o -> {
+                    o.error("Undefined parent for '%s'", e.getKey());
+                    return o;
+                });
+                throw new IllegalStateException("Failed YAML");
+            }
         }
 
         final Map<String, Map<String, Object>> rawValue = e.getValue();
         final WithMetaMap value = new WithMetaMap(
                 null == rawValue ? emptyMap() : rawValue);
 
-        return new YType(generator, yaml, template, loaded, names,
-                YGenerate.from(names), value, out);
+        return new YType(generator, yaml, template, loaded, names, type,
+                value, out);
     }
 }

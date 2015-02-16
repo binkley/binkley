@@ -52,7 +52,7 @@ public final class YType
         this.type = type;
         // TODO: Regularize toString() vs where()
         comments = format("From '%s' using '%s'", loaded.where(), template);
-        blocks = yBlocks(yaml, type, raw, out);
+        blocks = yBlocks(yaml, names, type, raw, out);
     }
 
     @Nonnull
@@ -72,14 +72,14 @@ public final class YType
         }};
     }
 
-    private static List<YBlock> yBlocks(final Yaml yaml, final YGenerate type,
-            final Map<String, Map<String, Object>> raw,
+    private static List<YBlock> yBlocks(final Yaml yaml, final ZisZuper names,
+            final YGenerate type, final Map<String, Map<String, Object>> raw,
             final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
         // Caution - peek for side effect; DO NOT parallelize
         return unmodifiableList(raw.entrySet().stream().
                 filter(e -> !".meta".equals(e.getKey())).
                 peek(e -> out.accept(o -> o.atYamlBlock(e))).
-                map(e -> type.block(yaml, e)).
+                map(e -> type.block(yaml, names, e)).
                 collect(toList()));
     }
 }
