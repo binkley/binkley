@@ -109,7 +109,9 @@ public final class YamlGenerateMesseger
                     build(inOneLine()).
                     dump(singletonMap(block.getKey(), block.getValue()));
             // Chop trailing newline
-            xArgs[xArgs.length - 1] = yaml.substring(0, yaml.length() - 2);
+            if (yaml.endsWith("\n"))
+                xArgs[xArgs.length - 1] = yaml
+                        .substring(0, yaml.length() - 2);
         } else if (null != template && cause instanceof TemplateException) {
             xFormat = "%s(%s): " + format + " at template source: %s";
             xArgs = new Object[3 + args.length];

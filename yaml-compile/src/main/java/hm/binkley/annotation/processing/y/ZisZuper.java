@@ -123,6 +123,11 @@ public final class ZisZuper {
     }
 
     @Override
+    public String toString() {
+        return key;
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o)
             return true;
