@@ -287,7 +287,9 @@ public class YamlGenerateProcessor
     private static List<String> findRootsOf(
             final Class<? extends YamlGenerateProcessor> relativeTo) {
         try {
-            return ClassPath.from(relativeTo.getClassLoader()).
+            final ClassPath x = ClassPath
+                    .from(relativeTo.getClassLoader());
+            return x.
                     getResources().stream().
                     map(ResourceInfo::getResourceName).
                     collect(toList());
