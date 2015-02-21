@@ -27,6 +27,10 @@
 
 package hm.binkley.util;
 
+import javax.annotation.Nonnull;
+import java.lang.reflect.Array;
+import java.util.Collection;
+
 /**
  * {@code Arrays} holds simple functions for working with arrays.
  *
@@ -35,17 +39,38 @@ package hm.binkley.util;
  */
 public final class Arrays {
     /**
-     * Returns the variadic parameter list as an array, relying on <a href="https://docs.oracle
-     * .com/javase/specs/jls/se7/html/jls-15.html#jls-15.12.4.2">the compiler to pack the parameters
-     * into an array</a>.
+     * Returns the variadic parameter list as an array, relying on <a
+     * href="https://docs.oracle .com/javase/specs/jls/se7/html/jls-15.html#jls-15.12.4.2">the
+     * compiler to pack the parameters into an array</a>.
      *
      * @param elements the elements, never missin
      * @param <T> the element type
      *
      * @return the parameters as an array, never missing
      */
+    @Nonnull
     @SafeVarargs
     public static <T> T[] array(final T... elements) {
         return elements;
+    }
+
+    /**
+     * Returns the <var>elements</var> as an array using reflection to
+     * construct the containing array.
+     *
+     * @param elements the elements, never missing
+     * @param type the array component type token, never missing
+     * @param <U> the array component type
+     * @param <T> the collection element type
+     *
+     * @return the collection as an array, never missing
+     */
+    @Nonnull
+    @SuppressWarnings("unchecked")
+    public static <U, T extends U> U[] array(
+            @Nonnull final Collection<T> elements,
+            @Nonnull final Class<U> type) {
+        return elements
+                .toArray((U[]) Array.newInstance(type, elements.size()));
     }
 }
