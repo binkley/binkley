@@ -14,6 +14,7 @@ import static hm.binkley.annotation.processing.Utils.valueFor;
 import static java.lang.String.format;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * {@code YMethod} models methods.
@@ -52,6 +53,12 @@ public final class YMethod
     @Override
     public List<YProperty> list() {
         return unmodifiableList(properties);
+    }
+
+    @Nonnull
+    public Map<String, Object> asMap() {
+        return properties.stream().
+                collect(toMap(YProperty::name, YProperty::value));
     }
 
     @Override

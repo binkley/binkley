@@ -1,6 +1,9 @@
 package hm.binkley.annotation.processing.y;
 
+import hm.binkley.annotation.processing.LoadedTemplate;
+import hm.binkley.annotation.processing.LoadedYaml;
 import hm.binkley.annotation.processing.Names;
+import hm.binkley.annotation.processing.YamlGenerateMesseger;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
@@ -10,8 +13,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static hm.binkley.annotation.processing.Utils.typeFor;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -24,7 +30,7 @@ import static java.util.stream.Collectors.toMap;
  * @todo Not clear this is the best approach
  */
 public enum YGenerate {
-    ENUM() {
+    YENUM() {
         @Override
         protected void putInto(final ZisZuper names,
                 final Map<String, Object> model,
@@ -38,7 +44,7 @@ public enum YGenerate {
                 final Entry<String, Map<String, Object>> raw) {
             return new YEnum(yaml, raw);
         }
-    }, CLASS() {
+    }, YCLASS() {
         @Override
         protected void putInto(final ZisZuper names,
                 final Map<String, Object> model,
@@ -65,7 +71,7 @@ public enum YGenerate {
     @Nonnull
     static YGenerate from(@Nonnull final ZisZuper names) {
         final Names zuper = names.zuper;
-        return null == zuper || !"Enum".equals(zuper.name) ? CLASS : ENUM;
+        return null == zuper || !"Enum".equals(zuper.name) ? YCLASS : YENUM;
     }
 
     abstract YBlock block(final Yaml yaml, final ZisZuper names,
@@ -74,6 +80,14 @@ public enum YGenerate {
     protected abstract void putInto(final ZisZuper names,
             final Map<String, Object> model,
             final List<? extends YBlock> blocks);
+
+    public YType yType(final Yaml yaml, final LoadedTemplate template,
+            final LoadedYaml loaded, final ZisZuper names,
+            final Map<String, Map<String, Object>> raw,
+            final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
+        return new YType(getClass().getName(), yaml, template, loaded, names,
+                this, new WithMetaMap(null == raw ? emptyMap() : raw), out);
+    }
 
     private static List<Map<String, Object>> seq(final Object value) {
         return null == value ? null : ((List<Object>) value).stream().

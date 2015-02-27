@@ -21,4 +21,22 @@ public final class YProperty {
         name = raw.getKey();
         value = raw.getValue();
     }
+
+    /**
+     * Convenience for method reference.
+     *
+     * @return {@link #name}
+     */
+    public String name() {
+        return name;
+    }
+
+    /**
+     * Convenience for method reference.
+     *
+     * @return {@link #value}
+     */
+    public Object value() {
+        return value;
+    }
 }

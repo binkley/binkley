@@ -20,7 +20,7 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-abstract class YDocumented {
+public abstract class YDocumented {
     private static final Pattern DQUOTE = compile("\"");
     /** The simple name, never missing. */
     @Nonnull
@@ -38,9 +38,20 @@ abstract class YDocumented {
     @Nonnull
     public final List<String> definition;
 
+    /**
+     * Constructs a new {@code YDocumented} for the given parameters.
+     * <p>
+     * <var>yaml</var> is nullable in support of extensions which generate
+     * code without an underlying YAML definition.
+     *
+     * @param name the item name, never missing
+     * @param doc the defined doc string, if any
+     * @param yaml the source YAML, if any
+     * @param block the item definition, {@code null} for empty items
+     */
     protected YDocumented(@Nonnull final String name,
-            @Nullable final String doc, final Yaml yaml,
-            final Map<String, ?> block) {
+            @Nullable final String doc, @Nullable final Yaml yaml,
+            @Nullable final Map<String, ?> block) {
         this.name = name;
         this.doc = doc;
         escapedDoc = null == doc ? null
@@ -60,12 +71,22 @@ abstract class YDocumented {
         model.put("definition", definition);
     }
 
+    /**
+     * Convenience for method reference.
+     *
+     * @return {@link #name}
+     */
+    public final String name() {
+        return name;
+    }
+
     private static List<String> toAnnotationValue(final Yaml yaml,
-            final Map<String, ?> props) {
-        return null == props ? emptyList() : props.entrySet().stream().
-                map(e -> singletonMap(e.getKey(), e.getValue())).
-                map(e -> toQuotedYaml(yaml, e)).
-                collect(toList());
+            final Map<String, ?> block) {
+        return null == yaml || null == block ? emptyList()
+                : block.entrySet().stream().
+                        map(e -> singletonMap(e.getKey(), e.getValue())).
+                        map(e -> toQuotedYaml(yaml, e)).
+                        collect(toList());
     }
 
     private static String toQuotedYaml(final Yaml yaml, final Object value) {
