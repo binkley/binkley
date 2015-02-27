@@ -39,6 +39,7 @@ import java.util.function.BinaryOperator;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
+import static hm.binkley.annotation.processing.UnLoaded.unLoaded;
 import static hm.binkley.annotation.processing.Utils.cast;
 import static hm.binkley.annotation.processing.y.YGenerate.YCLASS;
 import static java.lang.String.format;
@@ -262,11 +263,11 @@ public class YamlGenerateProcessor
                 type, names, null == loaded ? "Did not load" : loaded, value);
     }
 
-    protected final void build(@Nonnull final Element root,
-            @Nonnull final ZisZuper names,
+    protected final void build(@Nonnull final String where,
+            @Nonnull final Element root, @Nonnull final ZisZuper names,
             @Nonnull final List<YMethod> methods) {
-        build(root,
-                YCLASS.yType(yaml, template, null, names, methods.stream().
+        build(root, YCLASS.yType(yaml, template, unLoaded(out, where), names,
+                        methods.stream().
                                 collect(toMap(YDocumented::name,
                                         YMethod::asMap, throwingMerger(),
                                         LinkedHashMap::new)),

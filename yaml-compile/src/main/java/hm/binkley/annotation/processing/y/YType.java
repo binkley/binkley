@@ -1,7 +1,7 @@
 package hm.binkley.annotation.processing.y;
 
+import hm.binkley.annotation.processing.Loaded;
 import hm.binkley.annotation.processing.LoadedTemplate;
-import hm.binkley.annotation.processing.LoadedYaml;
 import hm.binkley.annotation.processing.YamlGenerateMesseger;
 import hm.binkley.util.Listable;
 import org.yaml.snakeyaml.Yaml;
@@ -42,7 +42,7 @@ public final class YType
     private final String generator;
 
     YType(final String generator, final Yaml yaml,
-            final LoadedTemplate template, final LoadedYaml loaded,
+            final LoadedTemplate template, @Nonnull final Loaded<?> loaded,
             @Nonnull final ZisZuper names, @Nonnull final YGenerate type,
             final Map<String, Map<String, Object>> raw,
             final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
