@@ -8,7 +8,6 @@ import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,9 +60,7 @@ public enum YGenerate {
                 final Entry<String, Map<String, Object>> raw) {
             // TODO: Some less gross place for this global
             final YMethod method = new YMethod(yaml, raw);
-            YModel.methods.
-                    computeIfAbsent(names, ignored -> new ArrayList<>()).
-                    add(method);
+            YModel.methods.get(names).add(method);
             return method;
         }
     };
