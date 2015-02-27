@@ -1,5 +1,7 @@
 package hm.binkley.annotation.processing;
 
+import org.springframework.core.io.DescriptiveResource;
+
 /**
  * {@code UnLoaded} <b>needs documentation</b>.
  *
@@ -8,9 +10,14 @@ package hm.binkley.annotation.processing;
  */
 public final class UnLoaded
         extends Loaded<Void> {
-    UnLoaded(final YamlGenerateMesseger out, final String format,
-            final Object... args) {
-        super(out.annoFormat(format, args), null, null);
+    public static UnLoaded unLoaded(final YamlGenerateMesseger out,
+            final String format, final Object... args) {
+        final String where = out.annoFormat(format, args);
+        return new UnLoaded(where);
+    }
+
+    private UnLoaded(final String where) {
+        super(where, new DescriptiveResource(where), null);
     }
 
     @Override

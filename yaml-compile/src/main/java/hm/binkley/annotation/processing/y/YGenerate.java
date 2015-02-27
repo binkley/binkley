@@ -1,7 +1,7 @@
 package hm.binkley.annotation.processing.y;
 
+import hm.binkley.annotation.processing.Loaded;
 import hm.binkley.annotation.processing.LoadedTemplate;
-import hm.binkley.annotation.processing.LoadedYaml;
 import hm.binkley.annotation.processing.Names;
 import hm.binkley.annotation.processing.YamlGenerateMesseger;
 import org.yaml.snakeyaml.Yaml;
@@ -79,7 +79,7 @@ public enum YGenerate {
             final List<? extends YBlock> blocks);
 
     public YType yType(final Yaml yaml, final LoadedTemplate template,
-            final LoadedYaml loaded, final ZisZuper names,
+            final Loaded<?> loaded, final ZisZuper names,
             final Map<String, Map<String, Object>> raw,
             final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
         return new YType(getClass().getName(), yaml, template, loaded, names,
