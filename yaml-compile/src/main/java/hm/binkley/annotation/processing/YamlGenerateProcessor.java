@@ -6,6 +6,7 @@ import freemarker.cache.URLTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import hm.binkley.annotation.YamlGenerate;
+import hm.binkley.annotation.processing.y.YDocumented;
 import hm.binkley.annotation.processing.y.YMethod;
 import hm.binkley.annotation.processing.y.YModel;
 import hm.binkley.annotation.processing.y.YType;
@@ -31,15 +32,20 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BinaryOperator;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
 import static hm.binkley.annotation.processing.Utils.cast;
+import static hm.binkley.annotation.processing.y.YGenerate.YCLASS;
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
@@ -62,7 +68,7 @@ import static javax.lang.model.element.ElementKind.INTERFACE;
 public class YamlGenerateProcessor
         extends
         SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {
-    private final List<String> roots = findRootsOf(getClass());
+    private final List<String> roots = rootsOf(getClass());
     private final Configuration freemarker;
     private final Yaml yaml;
     private LoadedTemplate template;
@@ -212,8 +218,7 @@ public class YamlGenerateProcessor
     protected void withTemplate(@Nonnull final String path)
             throws IOException {
         template = loadTemplate(path);
-        out = out.
-                withTemplate(template.whence).
+        out = out.withTemplate(template.whence).
                 atTemplateSource(template.what);
     }
 
@@ -258,7 +263,18 @@ public class YamlGenerateProcessor
     }
 
     protected final void build(@Nonnull final Element root,
-            @Nonnull final YType type, @Nonnull final LoadedYaml loaded) {
+            @Nonnull final ZisZuper names,
+            @Nonnull final List<YMethod> methods) {
+        build(root,
+                YCLASS.yType(yaml, template, null, names, methods.stream().
+                                collect(toMap(YDocumented::name,
+                                        YMethod::asMap, throwingMerger(),
+                                        LinkedHashMap::new)),
+                        setter -> setter.apply(out)), null);
+    }
+
+    protected final void build(@Nonnull final Element root,
+            @Nonnull final YType type, @Nullable final LoadedYaml loaded) {
         try (final Writer writer = new OutputStreamWriter(
                 processingEnv.getFiler().
                         createSourceFile(type.names.zis.fullName, root).
@@ -267,6 +283,13 @@ public class YamlGenerateProcessor
         } catch (final IOException | TemplateException e) {
             fail(e, type.names.zis, type, loaded);
         }
+    }
+
+    protected final LoadedTemplate loadTemplate(final String path)
+            throws IOException {
+        final Resource ftl = loader.getResource(path);
+        return new LoadedTemplate(path, ftl,
+                freemarker.getTemplate(ftl.getURI().toString()));
     }
 
     private List<LoadedYaml> loadAll(final String pattern) {
@@ -284,7 +307,7 @@ public class YamlGenerateProcessor
         return docs;
     }
 
-    private static List<String> findRootsOf(
+    private static List<String> rootsOf(
             final Class<? extends YamlGenerateProcessor> relativeTo) {
         try {
             return ClassPath.from(relativeTo.getClassLoader()).
@@ -296,11 +319,12 @@ public class YamlGenerateProcessor
         }
     }
 
-    protected LoadedTemplate loadTemplate(final String path)
-            throws IOException {
-        final Resource ftl = loader.getResource(path);
-        return new LoadedTemplate(path, ftl,
-                freemarker.getTemplate(ftl.getURI().toString()));
+    /** @todo throwingMerger private in Collectors */
+    @Nonnull
+    private static BinaryOperator<Map<String, Object>> throwingMerger() {
+        return (u, v) -> {
+            throw new IllegalStateException(format("Duplicate key %s", u));
+        };
     }
 
     private class ResourceTemplateLoader

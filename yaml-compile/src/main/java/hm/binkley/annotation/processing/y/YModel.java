@@ -91,7 +91,7 @@ public final class YModel
 
         final YGenerate type = YGenerate.from(names);
         switch (type) {
-        case CLASS:
+        case YCLASS:
             if (null != names.zuper && !methods.keySet().stream().
                     filter(zz -> zz.zis.equals(names.zuper)).
                     findAny().
