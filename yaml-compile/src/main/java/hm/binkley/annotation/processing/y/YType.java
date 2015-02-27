@@ -8,6 +8,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,8 @@ public final class YType
     private static List<YBlock> yBlocks(final Yaml yaml, final ZisZuper names,
             final YGenerate type, final Map<String, Map<String, Object>> raw,
             final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
+        // Create this eagerly so even empty classes have an entry
+        YModel.methods.putIfAbsent(names, new ArrayList<>());
         // Caution - peek for side effect; DO NOT parallelize
         return unmodifiableList(raw.entrySet().stream().
                 filter(e -> !".meta".equals(e.getKey())).
