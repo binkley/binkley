@@ -45,7 +45,8 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
-import static java.lang.System.arraycopy;
+import static com.google.common.base.Throwables.getRootCause;
+import static hm.binkley.util.Arrays.cat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.regex.Pattern.compile;
 import static javax.tools.Diagnostic.Kind.ERROR;
@@ -142,10 +143,10 @@ public abstract class SingleAnnotationMessager<A extends Annotation, M extends S
             xFormat = margs.format;
             xArgs = margs.args;
         } else {
-            xFormat = margs.format + ": %s";
-            xArgs = new Object[margs.args.length + 1];
-            arraycopy(margs.args, 0, xArgs, 0, margs.args.length);
-            xArgs[xArgs.length - 1] = cause;
+            xFormat = margs.format + ": %s at %s";
+            // Include nearest location, e.g., NPE which has no details
+            xArgs = cat(margs.args, cause,
+                    getRootCause(cause).getStackTrace()[0]);
         }
 
         return annoFormat(xFormat, xArgs);

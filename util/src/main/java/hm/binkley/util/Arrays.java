@@ -31,6 +31,8 @@ import javax.annotation.Nonnull;
 import java.lang.reflect.Array;
 import java.util.Collection;
 
+import static java.lang.System.arraycopy;
+
 /**
  * {@code Arrays} holds simple functions for working with arrays.
  *
@@ -52,6 +54,29 @@ public final class Arrays {
     @SafeVarargs
     public static <T> T[] array(final T... elements) {
         return elements;
+    }
+
+    /**
+     * Returns the catenation onto <var>initial</var> of <var>rest</var>.
+     *
+     * @param initial the initial elements, never missing
+     * @param rest the elements to catenate
+     * @param <T> the array type
+     *
+     * @return the catenated array, never missing
+     */
+    @Nonnull
+    @SafeVarargs
+    @SuppressWarnings("unchecked")
+    public static <T> T[] cat(@Nonnull final T[] initial, final T... rest) {
+        if (0 == rest.length)
+            return initial;
+        final T[] array = (T[]) Array
+                .newInstance(initial.getClass().getComponentType(),
+                        initial.length + rest.length);
+        arraycopy(initial, 0, array, 0, initial.length);
+        arraycopy(rest, 0, array, initial.length, rest.length);
+        return array;
     }
 
     /**
