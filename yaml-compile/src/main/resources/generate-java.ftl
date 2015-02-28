@@ -1,9 +1,3 @@
-<#macro rvalue type value="\n"><@compress>
-    <#if value?is_string>
-        <#if "\n" == value>null<#else>"${value}"</#if>
-    <#elseif value?is_boolean || value?is_number>${value?c}<#if "float" == type>d</#if>
-    <#else>${type}.valueOf("${value}")</#if>
-</@compress></#macro>
 <#macro lvalue type><@compress>
     <#if "str" == type>String
     <#-- int is int -->
@@ -14,6 +8,12 @@
     <#elseif "pairs" == type>
     java.util.Map<String, Object>
     <#else>${type}</#if>
+</@compress></#macro>
+<#macro rvalue type value="\n"><@compress>
+    <#if value?is_string>
+        <#if "\n" == value>null<#else>"${value}"</#if>
+    <#elseif value?is_boolean || value?is_number>${value?c}<#if "float" == type>d</#if>
+    <#else>${type}.valueOf("${value}")</#if>
 </@compress></#macro>
 <#macro defn prefix pairs>
 ${prefix}@hm.binkley.annotation.YamlGenerate.Definition({<#if pairs?has_content>
