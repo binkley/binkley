@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 import static hm.binkley.util.Mixin.newMixin;
+import static hm.binkley.util.MixinTest.DefaultMethodValue.defaultValue;
 import static hm.binkley.util.MixinTest.Duck.QUACKERS;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
@@ -108,8 +109,8 @@ public class MixinTest {
     @Test
     public void shouldPassThroughMethodAnnotationsOnInterfaces()
             throws NoSuchMethodException {
-        for (final Class<?> itf : newMixin(Testy.class, new UnBob()).getClass()
-                .getInterfaces())
+        for (final Class<?> itf : newMixin(Testy.class, new UnBob())
+                .getClass().getInterfaces())
             if (null != itf.getMethod("throwDown", String.class)
                     .getAnnotation(Cool.class))
                 return;
@@ -130,6 +131,21 @@ public class MixinTest {
     @Test
     public void shouldFindDefaultMethodsOnTwoInterfaces() {
         newMixin(DescendantWithDefaultMethod.class).bar();
+    }
+
+    @Test
+    public void shouldUseDefaultValue() {
+        assertThat(newMixin(DefaultMethodValue.class).foo(),
+                is(equalTo(defaultValue)));
+    }
+
+    @Test
+    public void shouldOverrideDefaultValue() {
+        assertThat(newMixin(DefaultMethodValue.class, new Object() {
+                    public int foo() {
+                        return 6;
+                    }
+                }).foo(), is(equalTo(6)));
     }
 
     @Test(expected = IllegalAccessError.class)
@@ -164,6 +180,14 @@ public class MixinTest {
 
     public interface DefaultMethodOther {
         default void bar() {
+        }
+    }
+
+    public interface DefaultMethodValue {
+        int defaultValue = 3;
+
+        default int foo() {
+            return defaultValue;
         }
     }
 
