@@ -10,7 +10,7 @@ import hm.binkley.annotation.YamlGenerate;
  */
 @SuppressWarnings("all") // Unrelated annos do not croak the processor
 @YamlGenerate(inputs = {"/foo/*.yml", "classpath:/bar/3.yml",
-        "classpath:/bar/inheritance.yml"},
+        "classpath:/cases/**/*.yml"},
         namespace = "fooby")
 public interface YamlGenerateTestClasses {
     default int someCommonThing() { return -42; }

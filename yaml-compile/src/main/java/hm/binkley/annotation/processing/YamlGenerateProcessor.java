@@ -36,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BinaryOperator;
+import java.util.function.Function;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
@@ -196,8 +197,9 @@ public class YamlGenerateProcessor
             withTemplate(anno.template());
 
             try {
-                final Name packaj = processingEnv.getElementUtils()
-                        .getName(namespace);
+                final Name packaj = processingEnv.
+                        getElementUtils().
+                        getName(namespace);
 
                 for (final String input : inputs)
                     process(root, packaj, input);
@@ -225,12 +227,14 @@ public class YamlGenerateProcessor
 
     private void process(final Element root, final Name packaj,
             final String input) {
+        final Function<CharSequence, Name> getName = processingEnv
+                .getElementUtils()::getName;
         LOAD:
         for (final LoadedYaml loaded : loadAll(input)) {
             out = out.withYaml(loaded.whence);
 
             for (final YType type : new YModel(getClass().getName(), root,
-                    template, loaded, packaj,
+                    template, loaded, packaj, getName,
                     setter -> out = setter.apply(out)).list())
                 try {
                     build(root, type, loaded);
@@ -267,11 +271,10 @@ public class YamlGenerateProcessor
             @Nonnull final Element root, @Nonnull final ZisZuper names,
             @Nonnull final List<YMethod> methods) {
         build(root, YCLASS.yType(yaml, template, unLoaded(out, where), names,
-                        methods.stream().
-                                collect(toMap(YDocumented::name,
-                                        YMethod::asMap, throwingMerger(),
-                                        LinkedHashMap::new)),
-                        setter -> setter.apply(out)), null);
+                methods.stream().
+                        collect(toMap(YDocumented::name, YMethod::asMap,
+                                throwingMerger(), LinkedHashMap::new)),
+                setter -> setter.apply(out)), null);
     }
 
     protected final void build(@Nonnull final Element root,
