@@ -51,8 +51,8 @@ public final class YType
         this.generator = generator;
         this.names = names;
         this.type = type;
-        // TODO: Regularize toString() vs where()
-        comments = format("From '%s' using '%s'", loaded.where(), template);
+        comments = format("From '%s' using '%s'", loaded.describe(),
+                template.describe());
         blocks = yBlocks(yaml, names, type, raw, out);
     }
 

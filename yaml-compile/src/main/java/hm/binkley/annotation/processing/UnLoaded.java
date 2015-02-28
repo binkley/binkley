@@ -24,9 +24,4 @@ public final class UnLoaded
     public String where() {
         return where;
     }
-
-    @Override
-    public String toString() {
-        return where();
-    }
 }

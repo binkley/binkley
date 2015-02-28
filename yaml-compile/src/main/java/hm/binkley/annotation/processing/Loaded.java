@@ -33,7 +33,9 @@ import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
@@ -44,6 +46,7 @@ import static java.lang.String.format;
  * @todo Needs documentation.
  */
 public abstract class Loaded<T> {
+    private static final Pattern BACKSLASH = Pattern.compile("\\\\");
     public final String where;
     public final Resource whence;
     public final T what;
@@ -67,6 +70,29 @@ public abstract class Loaded<T> {
             return format("%s(%s)", whence.getURI().toString(), pattern);
     }
 
+    public abstract String where();
+
+    public final FormatArgs describe() {
+        final FormatArgs fa = new FormatArgs();
+        final String whence = BACKSLASH.matcher(this.whence.getDescription()).
+                replaceAll("/");
+        fa.add("%s", whence);
+        // Ignore leading SLASH when checking if path already in description
+        if (!whence.contains(where.substring(1)))
+            fa.add("(%s)", where);
+
+        return fa;
+    }
+
+    @Override
+    public final String toString() {
+        final FormatArgs fa = describe();
+        if (null != what)
+            fa.add(": %s", what);
+
+        return fa.toString();
+    }
+
     private static String shorten(final URI uri, final List<String> roots) {
         final String path = uri.getPath();
         return roots.stream().
@@ -76,8 +102,18 @@ public abstract class Loaded<T> {
                 orElse(uri.toString());
     }
 
-    public abstract String where();
+    private static final class FormatArgs {
+        private final StringBuilder format = new StringBuilder();
+        private final List<Object> args = new ArrayList<>();
 
-    @Override
-    public abstract String toString();
+        public void add(final String format, final Object arg) {
+            this.format.append(format);
+            args.add(arg);
+        }
+
+        @Override
+        public String toString() {
+            return format(format.toString(), args.toArray());
+        }
+    }
 }
