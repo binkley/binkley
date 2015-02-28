@@ -58,14 +58,25 @@ public final class YModel
     public YModel(final String generator, @Nonnull final Element root,
             @Nonnull final LoadedTemplate template,
             @Nonnull final LoadedYaml loaded, @Nonnull final Name packaj,
-            @Nonnull
-            final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
+            @Nonnull final Function<CharSequence, Name> getName, @Nonnull
+    final Consumer<Function<YamlGenerateMesseger, YamlGenerateMesseger>> out) {
         this.generator = generator;
         this.out = out;
+
+        final Name ns = loaded.what.entrySet().stream().
+                filter(e -> ".meta".equals(e.getKey())).
+                map(e -> (Map<String, Object>) (Map) e.getValue()).
+                flatMap(m -> m.entrySet().stream()).
+                filter(e -> "namespace".equals(e.getKey())).
+                map(Entry::getValue).
+                map(v -> getName.apply(packaj + "." + v)).
+                findFirst().
+                orElse(packaj);
         // Caution - peek for side effect; DO NOT parallelize
         types = loaded.what.entrySet().stream().
+                filter(e -> !".meta".equals(e.getKey())).
                 peek(e -> out.accept(o -> o.atYamlBlock(e))).
-                map(e -> yType(root, template, loaded, packaj, e)).
+                map(e -> yType(root, template, loaded, ns, e)).
                 collect(toList());
     }
 
