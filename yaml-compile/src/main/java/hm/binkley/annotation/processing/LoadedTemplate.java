@@ -3,8 +3,6 @@ package hm.binkley.annotation.processing;
 import freemarker.template.Template;
 import org.springframework.core.io.Resource;
 
-import static java.lang.String.format;
-
 /**
  * {@code LoadedTemplate} <b>needs documentation</b>.
  *
@@ -21,13 +19,5 @@ public final class LoadedTemplate
     @Override
     public String where() {
         return where;
-    }
-
-    @Override
-    public String toString() {
-        final String whence = this.whence.getDescription();
-        final String where = where();
-        return whence.equals(where) ? whence
-                : format("%s(%s)", whence, where);
     }
 }

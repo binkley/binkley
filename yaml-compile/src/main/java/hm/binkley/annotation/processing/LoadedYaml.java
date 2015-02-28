@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.String.format;
-
 /**
  * {@code LoadedYaml} <b>needs documentation</b>.
  *
@@ -29,12 +27,5 @@ public final class LoadedYaml
     @Override
     public String where() {
         return path;
-    }
-
-    @Override
-    public String toString() {
-        final String whence = this.whence.getDescription();
-        return whence.equals(where) ? format("%s: %s", whence, what)
-                : format("%s(%s): %s", whence, where, what);
     }
 }
