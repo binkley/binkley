@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
@@ -22,6 +23,8 @@ import static hm.binkley.util.MixinTest.Duck.QUACKERS;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.lang.invoke.MethodHandles.constant;
+import static java.lang.invoke.MethodType.methodType;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
@@ -58,8 +61,8 @@ public class MixinTest {
             throws IOException {
         final int firstRoll = 14;
         assertThat(newMixin(Testy.class, (Bob) ignored -> firstRoll,
-                (Bob) ignored -> firstRoll - 1).throwDown("Hoe down!"),
-                is(equalTo(firstRoll)));
+                        (Bob) ignored -> firstRoll - 1)
+                        .throwDown("Hoe down!"), is(equalTo(firstRoll)));
     }
 
     @Test
@@ -142,10 +145,10 @@ public class MixinTest {
     @Test
     public void shouldOverrideDefaultValue() {
         assertThat(newMixin(DefaultMethodValue.class, new Object() {
-                    public int foo() {
-                        return 6;
-                    }
-                }).foo(), is(equalTo(6)));
+            public int foo() {
+                return 6;
+            }
+        }).foo(), is(equalTo(6)));
     }
 
     @Test(expected = IllegalAccessError.class)
@@ -166,6 +169,26 @@ public class MixinTest {
         // Check twice - once lookup, second cached
         assertThat(threads.submit(() -> 3).get(), is(equalTo(3)));
         assertThat(threads.submit(() -> 3).get(), is(equalTo(3)));
+    }
+
+    @Test
+    public void shouldCombineResults() {
+        assertThat(newMixin(ReturnsInt.class, delegates -> Optional
+                        .of(delegates
+                                .reduce(constant(int.class, 0), (a, b) -> {
+                                    try {
+                                        return constant(int.class,
+                                                (int) a.asType(
+                                                        methodType(int.class))
+                                                        .invoke() + (int) b
+                                                        .asType(methodType(
+                                                                int.class))
+                                                        .invoke());
+                                    } catch (final Throwable e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                })), (ReturnsInt) () -> 1,
+                (ReturnsInt) () -> 2).foo(), is(equalTo(3)));
     }
 
     public interface DefaultMethodPublic {
@@ -193,6 +216,11 @@ public class MixinTest {
 
     public interface DescendantWithDefaultMethod
             extends DefaultMethodPublic, DefaultMethodOther {}
+
+    @FunctionalInterface
+    public interface ReturnsInt {
+        int foo();
+    }
 
     interface Testy
             extends Bob, Mixin {

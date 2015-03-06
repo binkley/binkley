@@ -27,6 +27,7 @@
 
 package hm.binkley.util;
 
+import hm.binkley.util.Mixin.CallStrategy;
 import lombok.SneakyThrows;
 
 import javax.annotation.Nonnull;
@@ -52,9 +53,12 @@ final class MixinHandler<T>
         implements InvocationHandler {
     private static final Lookup LOOKUP = MethodHandles.lookup();
     private final ConcurrentMap<Method, MethodHandle> matches;
+    private final CallStrategy strategy;
     private final List<Object> delegates;
 
-    MixinHandler(final Class<T> as, final List<Object> delegates) {
+    MixinHandler(final Class<T> as, final CallStrategy strategy,
+            final List<Object> delegates) {
+        this.strategy = strategy;
         this.delegates = delegates(as, delegates);
         matches = new ConcurrentHashMap<>(as.getMethods().length);
     }
@@ -90,9 +94,7 @@ final class MixinHandler<T>
                         findVirtual(delegate.getClass(), method.getName(),
                                 unreflected.type()).
                         bindTo(delegate);
-                final Object value = bound.invokeWithArguments(args);
-                matches.put(method, bound);
-                return value;
+                return call(method, bound, args);
             } catch (final IllegalAccessException e) {
                 if (!method.getDeclaringClass().
                         isAssignableFrom(delegate.getClass()))
@@ -100,9 +102,7 @@ final class MixinHandler<T>
                 // Try reflection, less efficient but more general
                 method.setAccessible(true);
                 final MethodHandle bound = unreflected.bindTo(delegate);
-                final Object value = bound.invokeWithArguments(args);
-                matches.put(method, bound);
-                return value;
+                return call(method, bound, args);
             } catch (final NoSuchMethodException e) {
                 // Try next method
             }
@@ -118,15 +118,26 @@ final class MixinHandler<T>
                     continue;
                 final MethodHandle bound = LOOKUP.unreflect(quack).
                         bindTo(delegate);
-                final Object value = bound.invokeWithArguments(args);
-                matches.put(method, bound);
-                return value;
+                return call(method, bound, args);
             } catch (final NoSuchMethodException ignored) {
                 // Try next delegate
             }
         }
-        throw new AbstractMethodError(
-                format("BUG: Missing implementation for <%s> among %s.", method,
-                        delegates));
+        throw notFound(method);
+    }
+
+    private Object call(final @Nonnull Method method,
+            final MethodHandle bound, final Object... args)
+            throws Throwable {
+        final Object value = bound.invokeWithArguments(args);
+        matches.put(method, bound);
+        return value;
+    }
+
+    @Nonnull
+    private AbstractMethodError notFound(final @Nonnull Method method) {
+        return new AbstractMethodError(
+                format("BUG: Missing implementation for <%s> among %s.",
+                        method, delegates));
     }
 }
