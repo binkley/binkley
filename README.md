@@ -39,6 +39,7 @@ Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkl
 * Added annotation module.
 * Added yaml module.
 * Completable executors can unwrap interrupts.
+* Added `Matching` for DSL akin to lesser pattern matching (no implicit destructuring)
 
 ### 0.5
 
