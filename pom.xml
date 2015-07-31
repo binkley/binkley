@@ -75,6 +75,7 @@
         <module>guice</module>
         <module>spring</module>
         <module>mixin</module>
+        <module>net</module>
         <module>util</module>
         <module>annotation</module>
         <module>concurrent</module>
@@ -129,6 +130,7 @@
         <maven.version>3.1</maven.version>
         <metainf-services.version>1.5</metainf-services.version>
         <owner.version>1.0.6</owner.version>
+        <okhttp.version>2.4.0</okhttp.version>
         <pojo-mbean.version>1.1</pojo-mbean.version>
         <project.build.outputEncoding>${java.charset}
         </project.build.outputEncoding>
@@ -225,6 +227,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-mixin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-net</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -403,6 +410,11 @@
                 </exclusions>
             </dependency>
 
+            <dependency>
+                <groupId>com.squareup.okhttp</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.ini4j</groupId>
