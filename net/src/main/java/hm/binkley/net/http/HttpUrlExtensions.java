@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
+import static java.util.Arrays.spliterator;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
@@ -22,6 +22,7 @@ import static java.util.regex.Pattern.compile;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
+import static java.util.stream.StreamSupport.stream;
 
 /**
  * {@code HttpUrlExtensions} is a Lombok <a href="https://projectlombok.org/features/experimental/ExtensionMethod.html">method
@@ -35,6 +36,14 @@ public final class HttpUrlExtensions {
      * Creates a list of path segments for the given <var>url</var>, each
      * segment being a mapping of a named path component to any path
      * parameters (matrix parameters).
+     *
+     * @see <a href="http://tools.ietf.org/html/std66#section-3.3" title="STD
+     * 66 - Uniform Resource Identifier (URI): Generic Syntax, &sect;3.3
+     * Path"><cite>STD 66 - Uniform Resource Identifier (URI): Generic Syntax,
+     * &sect;3.3 Path</cite></a>
+     * @see <a href="http://doriantaylor.com/policy/http-url-path-parameter-syntax"
+     * title="HTTP URL Path Parameter Syntax"><cite>HTTP URL Path Parameter
+     * Syntax</cite></a>
      */
     @Nonnull
     public static List<PathSegment> pathSegmentMap(
@@ -84,18 +93,17 @@ public final class HttpUrlExtensions {
         /** @todo Dirty code */
         private PathSegment(final int position, final String segment) {
             this.position = position;
-            final List<String> lumps = asList(semicolon.split(segment));
 
-            if (lumps.isEmpty()) {
+            final String[] lumps = semicolon.split(segment);
+            if (0 == lumps.length) {
                 name = segment;
                 params = emptyMap();
                 return;
             }
-
-            name = lumps.get(0);
+            name = lumps[0];
 
             final Map<String, List<String>> params = new LinkedHashMap<>();
-            lumps.subList(1, lumps.size()).stream().
+            stream(spliterator(lumps, 1, lumps.length), false).
                     map(l -> equals.split(l, 2)).
                     forEach(p -> params.
                             computeIfAbsent(p[0], k -> new ArrayList<>()).
