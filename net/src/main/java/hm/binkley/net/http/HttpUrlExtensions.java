@@ -81,6 +81,7 @@ public final class HttpUrlExtensions {
             this.params = params;
         }
 
+        /** @todo Dirty code */
         private PathSegment(final int position, final String segment) {
             this.position = position;
             final List<String> lumps = asList(semicolon.split(segment));
