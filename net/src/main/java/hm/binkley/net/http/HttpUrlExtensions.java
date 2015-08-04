@@ -6,32 +6,24 @@ import lombok.experimental.ExtensionMethod;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
-import java.util.AbstractMap.SimpleImmutableEntry;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.Arrays.spliterator;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.function.Function.identity;
 import static java.util.regex.Pattern.compile;
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
-import static java.util.stream.StreamSupport.stream;
 
 /**
  * {@code HttpUrlExtensions} is a Lombok <a href="https://projectlombok.org/features/experimental/ExtensionMethod.html">method
@@ -103,56 +95,28 @@ public final class HttpUrlExtensions {
             this.parameters = parameters;
         }
 
-        /** @todo Dirty code */
         private PathSegment(final int position, final String segment) {
             this.position = position;
 
-            final String[] pathAndPairs = semicolon.split(segment);
+            final String[] pathAndPairs = makePathAndPairs(segment);
             if (0 == pathAndPairs.length) {
                 name = segment;
                 parameters = emptyMap();
                 return;
             }
-            name = pathAndPairs[0];
+            name = pathOf(pathAndPairs);
 
-            final String method = System.getenv("method");
-            switch (null == method ? "middle" : method) {
-            case "fancy":
-                System.out.println("Fancy");
-                parameters = crazyComplicatedWay(pathAndPairs);
-                break;
-            default:
-                System.out.println("Middle");
-                final Map<String, List<String>> parameters
-                        = new LinkedHashMap<>();
-                streamPairs(pathAndPairs).
-                        map(PathSegment::makePair).
-                        forEach(addTo(parameters));
-                parameters.entrySet().stream().
-                        forEach(PathSegment::unmodifiableValue);
-                this.parameters = unmodifiableMap(parameters);
-                break;
-            case "simple":
-                System.out.println("Simple");
-                throw new UnsupportedOperationException(
-                        "NEEDS IMPLEMENTATION");
+            final Map<String, List<String>> parameters
+                    = new LinkedHashMap<>();
+            for (int i = 1; i < pathAndPairs.length; ++i) {
+                final String[] pair = makePair(pathAndPairs[i]);
+                parameters.
+                        computeIfAbsent(keyOf(pair), k -> new ArrayList<>()).
+                        add(valueOrNull(pair));
             }
-        }
-
-        @Nonnull
-        private static Map<String, List<String>> crazyComplicatedWay(
-                final String[] pathAndPairs) {
-            return unmodifiableMap(streamPairs(pathAndPairs).
-                    map(PathSegment::makePair).
-                    collect(groupingBy(pair -> pair[0])).
-                    entrySet().stream().
-                    map(e -> new SimpleImmutableEntry<>(e.getKey(),
-                            e.getValue().stream().
-                                    map(v -> 2 == v.length ? v[1] : null).
-                                    collect(collectingAndThen(toList(),
-                                            (Function<List<String>, List<String>>) list -> unmodifiableList(
-                                                    list))))).
-                    collect(toMap(Entry::getKey, Entry::getValue)));
+            for (final Entry<String, List<String>> e : parameters.entrySet())
+                e.setValue(unmodifiableList(e.getValue()));
+            this.parameters = unmodifiableMap(parameters);
         }
 
         /** The position of this path segment in the URL, 0-based. */
@@ -183,27 +147,28 @@ public final class HttpUrlExtensions {
         }
 
         @Nonnull
-        private static Stream<String> streamPairs(
-                final String[] pathAndPairs) {
-            return stream(spliterator(pathAndPairs, 1, pathAndPairs.length),
-                    false);
+        private static String[] makePathAndPairs(final String segment) {
+            return semicolon.split(segment, -1);
         }
 
+        @Nonnull
+        private static String pathOf(final String[] pathAndPairs) {
+            return pathAndPairs[0];
+        }
+
+        @Nonnull
         private static String[] makePair(final String pair) {
             return equals.split(pair, 2);
         }
 
         @Nonnull
-        private static Consumer<String[]> addTo(
-                final Map<String, List<String>> parameters) {
-            return pair -> parameters.
-                    computeIfAbsent(pair[0], k -> new ArrayList<>()).
-                    add(2 == pair.length ? pair[1] : null);
+        private static String keyOf(final String[] key) {
+            return key[0];
         }
 
-        private static void unmodifiableValue(
-                final Entry<String, List<String>> pair) {
-            pair.setValue(unmodifiableList(pair.getValue()));
+        @Nullable
+        private static String valueOrNull(final String[] v) {
+            return 2 == v.length ? v[1] : null;
         }
     }
 }

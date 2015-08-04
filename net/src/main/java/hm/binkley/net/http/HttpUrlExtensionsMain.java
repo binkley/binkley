@@ -17,7 +17,7 @@ import static java.util.stream.Collectors.joining;
 public final class HttpUrlExtensionsMain {
     public static void main(final String... args) {
         final HttpUrl url = HttpUrl
-                .parse("http://%3a:X@foo/%3b/bar;a=2,3;a=4;b%3bc;c/baz/qux;d/%3ba/?p=1,2&p=3&q&q");
+                .parse("http://%3a:X@foo/%3b/bar;a=2,3;a=4;b%3bc;c/baz/qux;d/%3ba/mess;=EEP;=;?p=1,2&p=3&q&q");
         out.println("url = " + url);
         out.println("username = " + url.username());
         out.println("password = " + url.password());
