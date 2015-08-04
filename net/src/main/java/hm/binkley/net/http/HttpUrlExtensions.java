@@ -112,16 +112,11 @@ public final class HttpUrlExtensions {
                     = new LinkedHashMap<>();
             for (int i = 1; i < pathAndPairs.length; ++i) {
                 final String[] pair = makePair(pathAndPairs[i]);
-                final List<String> previousValues = parameters.
-                        computeIfAbsent(keyOf(pair), k -> new ArrayList<>());
-                final List<String> pairValues = valuesOrNull(pair);
-                if (null == pairValues)
-                    previousValues.add(null);
-                else
-                    previousValues.addAll(pairValues);
+                final List<String> previous = previousValues(parameters,
+                        pair);
+                addValues(previous, valuesOrNull(pair));
             }
-            for (final Entry<String, List<String>> e : parameters.entrySet())
-                e.setValue(unmodifiableList(e.getValue()));
+            unmodifiableValues(parameters);
             this.parameters = unmodifiableMap(parameters);
         }
 
@@ -175,6 +170,28 @@ public final class HttpUrlExtensions {
         @Nullable
         private static List<String> valuesOrNull(final String[] v) {
             return 2 == v.length ? asList(comma.split(v[1])) : null;
+        }
+
+        @Nonnull
+        private static List<String> previousValues(
+                final Map<String, List<String>> parameters,
+                final String[] pair) {
+            return parameters.
+                    computeIfAbsent(keyOf(pair), k -> new ArrayList<>());
+        }
+
+        private static void addValues(final List<String> previousValues,
+                final List<String> pairValues) {
+            if (null == pairValues)
+                previousValues.add(null);
+            else
+                previousValues.addAll(pairValues);
+        }
+
+        private static void unmodifiableValues(
+                final Map<String, List<String>> parameters) {
+            for (final Entry<String, List<String>> e : parameters.entrySet())
+                e.setValue(unmodifiableList(e.getValue()));
         }
     }
 }
