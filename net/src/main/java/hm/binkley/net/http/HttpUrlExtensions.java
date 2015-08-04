@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
@@ -82,6 +83,7 @@ public final class HttpUrlExtensions {
     public static final class PathSegment {
         private static final Pattern semicolon = compile(";");
         private static final Pattern equals = compile("=");
+        private static final Pattern comma = compile(",");
 
         private final int position;
         private final String name;
@@ -110,9 +112,13 @@ public final class HttpUrlExtensions {
                     = new LinkedHashMap<>();
             for (int i = 1; i < pathAndPairs.length; ++i) {
                 final String[] pair = makePair(pathAndPairs[i]);
-                parameters.
-                        computeIfAbsent(keyOf(pair), k -> new ArrayList<>()).
-                        add(valueOrNull(pair));
+                final List<String> previousValues = parameters.
+                        computeIfAbsent(keyOf(pair), k -> new ArrayList<>());
+                final List<String> pairValues = valuesOrNull(pair);
+                if (null == pairValues)
+                    previousValues.add(null);
+                else
+                    previousValues.addAll(pairValues);
             }
             for (final Entry<String, List<String>> e : parameters.entrySet())
                 e.setValue(unmodifiableList(e.getValue()));
@@ -167,8 +173,8 @@ public final class HttpUrlExtensions {
         }
 
         @Nullable
-        private static String valueOrNull(final String[] v) {
-            return 2 == v.length ? v[1] : null;
+        private static List<String> valuesOrNull(final String[] v) {
+            return 2 == v.length ? asList(comma.split(v[1])) : null;
         }
     }
 }
