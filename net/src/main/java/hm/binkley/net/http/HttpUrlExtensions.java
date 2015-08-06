@@ -31,7 +31,6 @@ import static java.util.stream.IntStream.range;
  * extension</a> for {@link HttpUrl} from <a href="http://square.github.io/okhttp/">OkHttp</a>.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Needs documentation
  */
 public final class HttpUrlExtensions {
     /** Do not instantiate; only used by Lombok's {@link ExtensionMethod}. */
