@@ -107,7 +107,7 @@
         <java.version>8</java.version>
         <jgitflow-maven-plugin.version>1.0-m4.3
         </jgitflow-maven-plugin.version>
-        <jmockit.version>1.7</jmockit.version>
+        <jmockit.version>1.19</jmockit.version>
         <jnr.version>3.0.9</jnr.version>
         <jopt-simple.version>4.8</jopt-simple.version>
         <jsr305.version>3.0.0</jsr305.version>
@@ -171,7 +171,7 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.googlecode.jmockit</groupId>
+            <groupId>org.jmockit</groupId>
             <artifactId>jmockit</artifactId>
             <version>${jmockit.version}</version>
             <scope>test</scope>
