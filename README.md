@@ -40,6 +40,7 @@ Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkl
 * Added yaml module.
 * Completable executors can unwrap interrupts.
 * Added `Matching` for DSL akin to lesser pattern matching (no implicit destructuring)
+* Added `SQLTransactionRule` for running tests in a SQL transaction and rolling back after
 
 ### 0.5
 
