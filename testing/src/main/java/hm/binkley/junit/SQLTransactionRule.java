@@ -15,9 +15,9 @@ import java.sql.SQLException;
  * @todo Needs documentation
  */
 @RequiredArgsConstructor
-public final class SQLTransactionRule
+public class SQLTransactionRule
         extends ExternalResource {
-    private final Connection conn;
+    protected final Connection conn;
 
     @Override
     protected void before()
