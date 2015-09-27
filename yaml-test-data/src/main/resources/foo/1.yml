@@ -1,0 +1,31 @@
+Duck Enum:
+  .meta:
+    doc: Walks like a duck
+  Bill:
+    doc: Sitting here on Capital Hill
+  Feathers:
+    doc: Throw me in Forochel
+  # Undocumented
+  Feet:
+
+Foo:
+  .meta:
+    doc: I am the one and only Foo!
+  bar:
+    doc: I am bar
+    value: 0
+  baz:
+    doc: I am baz
+    value: stringy!
+  burb:
+    doc: Rather quackers
+    type: Duck
+  bub:
+    value: Example undocumented
+
+Howard Foo:
+  sixtyish:
+    value: 60.00001
+  bar:
+    value: 2
+    undefined: extra

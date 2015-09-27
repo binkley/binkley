@@ -1,0 +1,42 @@
+Baz:
+  apple:
+    doc: The apple falls near the tree
+    type: pairs
+  pear:
+    doc: Pear of my eye
+    type: seq
+  kangKong:
+    doc: Tasty green
+    value: true
+  banana:
+    doc: Really big floating point
+    value: 1.234567890123456789
+  fancy:
+    doc: 'Complicated\tstring\with "junk".'
+    type: str
+
+Whack Foo:
+  bar:
+    value: 7
+
+some.Grandparent:
+  feast:
+    doc: XXX
+    type: int
+
+some.Parent some.Grandparent:
+  a:
+    doc: Cool beans
+    value: []
+
+Child some.Parent:
+  a:
+    value: [a, 3, 4.2, true]
+  feast:
+    value: 13
+
+Empty:
+  .meta:
+    doc: Only doc, no methods
+
+VeryEmpty:

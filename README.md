@@ -5,12 +5,13 @@ binkley's BLOG
 
 This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
 
-Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkley/).
+Current released version is 6.  [View javadoc](https://binkley.github.io/binkley/).
 
 [![License](https://img.shields.io/badge/license-PD-blue.svg?style=flat)](http://unlicense.org) [![Build Status](https://img.shields.io/travis/binkley/binkley.svg?style=flat)](https://travis-ci.org/binkley/binkley) [![Issues](https://img.shields.io/github/issues/binkley/binkley.svg?style=flat)](https://github.com/binkley/binkley/issues) [![maven-central](https://img.shields.io/maven-central/v/hm.binkley/binkley-blog.svg?style=flat)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22hm.binkley%22)
 
 ## Modules
 
+* [Annotation](annotation/) - Help for Java annotation processors
 * [Concurrent](concurrent/) - Completable executor services
 * [Convert](convert/) - Inverse of `toString()`
 * [CORBA](corba/) - Helpers for CORBA
@@ -24,9 +25,23 @@ Current released version is 0.5.  [View javadoc](https://binkley.github.io/binkl
 * [Value type](value-type/) - Java annotation and processor for value types
 * [Xio](xio/) - Pulling out interfaces from JDK I/O
 * [XML](xml/) - Experiments in XML
-* [Xproperties](xprops/) - Extended Java properties
+* [XProperties](xprops/) - Extended Java properties
+* [YAML compile](yaml-compile/) - Java code generation from YAML
+* [YAML runtime](yaml-runtime/) - Java code generation from YAML
 
 ## Changes
+
+### 6
+
+* Simpler versioning.
+* Added `TypesafeHeterogenousMap`.
+* Added `StringX` for additional formatting.
+* Added annotation module.
+* Added yaml module.
+* Completable executors can unwrap interrupts.
+* Added `Matching` for DSL akin to lesser pattern matching (no implicit destructuring)
+* Added `SQLTransactionRule` for running tests in a SQL transaction and rolling back after
+* Added `SpringSQLTransactionRule` for Spring-JDBC help with `SQLTransactionRule`
 
 ### 0.5
 

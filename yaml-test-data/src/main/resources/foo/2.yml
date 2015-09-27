@@ -1,0 +1,7 @@
+Bar Foo:
+  qux:
+    doc: This is the u qux
+    value: [2, "bob"]
+  quux:
+    doc: This is the uu quux
+    value: {"a": 3, "3": "b"}
