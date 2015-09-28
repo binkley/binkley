@@ -15,6 +15,7 @@ Current released version is 6.  [View javadoc](https://binkley.github.io/binkley
 * [Concurrent](concurrent/) - Completable executor services
 * [Convert](convert/) - Inverse of `toString()`
 * [CORBA](corba/) - Helpers for CORBA
+* [Dynafig](dynafig/README.me) - Dynamic configuation
 * [Guice](guice/) - Sample Guice modules and helper code
 * [Logging](logging/) - Small logging improvements and OSI logback configuration
 * [Lombok](lombok/) - Lombok annotations
@@ -30,6 +31,10 @@ Current released version is 6.  [View javadoc](https://binkley.github.io/binkley
 * [YAML runtime](yaml-runtime/) - Java code generation from YAML
 
 ## Changes
+
+### 7
+
+* Add dynafig
 
 ### 6
 

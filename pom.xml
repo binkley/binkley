@@ -81,6 +81,7 @@
         <module>concurrent</module>
         <module>convert</module>
         <module>corba</module>
+        <module>dynafig</module>
         <module>lombok</module>
         <module>value-type</module>
         <module>xio</module>
