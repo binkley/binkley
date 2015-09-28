@@ -19,6 +19,7 @@ Current released version is 6.  [View javadoc](https://binkley.github.io/binkley
 * [Guice](guice/) - Sample Guice modules and helper code
 * [Logging](logging/) - Small logging improvements and OSI logback configuration
 * [Lombok](lombok/) - Lombok annotations
+* [Magic bus](magic-bus/) - Intraprocess message bus
 * [Mixin](mixin/) - Mixins for Java via JDK proxies and method handles
 * [Spring](spring/) - Examples with Spring
 * [Testing](testing/) - Small testing improvements
