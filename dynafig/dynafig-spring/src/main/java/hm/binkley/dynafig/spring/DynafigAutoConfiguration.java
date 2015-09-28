@@ -1,7 +1,7 @@
-package lab.dynafig.spring;
+package hm.binkley.dynafig.spring;
 
-import lab.dynafig.Tracking;
-import lab.dynafig.Updating;
+import hm.binkley.dynafig.Tracking;
+import hm.binkley.dynafig.Updating;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

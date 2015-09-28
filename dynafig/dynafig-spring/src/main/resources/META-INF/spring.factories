@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-    lab.dynafig.spring.DynafigAutoConfiguration
+    hm.binkley.dynafig.spring.DynafigAutoConfiguration

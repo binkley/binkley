@@ -1,6 +1,6 @@
-package lab.dynafig.spring;
+package hm.binkley.dynafig.spring;
 
-import lab.dynafig.DynafigTesting;
+import hm.binkley.dynafig.DynafigTesting;
 import org.junit.Before;
 import org.springframework.core.env.Environment;
 

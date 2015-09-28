@@ -1,4 +1,4 @@
-package lab.dynafig;
+package hm.binkley.dynafig;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +20,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 
 import static java.util.Arrays.asList;
-import static lab.dynafig.DynafigTesting.Args.primitiveTypeParams;
-import static lab.dynafig.DynafigTesting.Args.refTypeParams;
-import static lab.dynafig.Tracking.IGNORE;
+import static hm.binkley.dynafig.DynafigTesting.Args.primitiveTypeParams;
+import static hm.binkley.dynafig.DynafigTesting.Args.refTypeParams;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -140,7 +139,7 @@ public abstract class DynafigTesting<T, R, D extends Tracking & Updating> {
     @FunctionalInterface
     private interface Tracker<T, R> {
         default Optional<R> track(final Tracking dynafig, final String key) {
-            return track(dynafig, key, IGNORE);
+            return track(dynafig, key, Tracking.IGNORE);
         }
 
         Optional<R> track(final Tracking dynafig, final String key,

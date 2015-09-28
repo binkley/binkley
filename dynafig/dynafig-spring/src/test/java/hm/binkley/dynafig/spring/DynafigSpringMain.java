@@ -1,6 +1,6 @@
-package lab.dynafig.spring;
+package hm.binkley.dynafig.spring;
 
-import lab.dynafig.Tracking;
+import hm.binkley.dynafig.Tracking;
 import lombok.ToString;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.stereotype.Component;

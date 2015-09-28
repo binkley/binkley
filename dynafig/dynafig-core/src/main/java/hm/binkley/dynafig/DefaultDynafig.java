@@ -1,4 +1,4 @@
-package lab.dynafig;
+package hm.binkley.dynafig;
 
 import lombok.ToString;
 

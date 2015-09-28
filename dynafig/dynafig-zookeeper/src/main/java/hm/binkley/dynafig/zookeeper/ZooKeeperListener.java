@@ -1,6 +1,6 @@
-package lab.dynafig.zookeeper;
+package hm.binkley.dynafig.zookeeper;
 
-import lab.dynafig.Updating;
+import hm.binkley.dynafig.Updating;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;

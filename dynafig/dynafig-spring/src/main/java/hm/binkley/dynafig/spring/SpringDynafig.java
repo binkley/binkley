@@ -1,6 +1,6 @@
-package lab.dynafig.spring;
+package hm.binkley.dynafig.spring;
 
-import lab.dynafig.DefaultDynafig;
+import hm.binkley.dynafig.DefaultDynafig;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Nonnull;
