@@ -6,15 +6,14 @@ import hm.binkley.MagicBus.UnsubscribedMessage;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static hm.binkley.MagicBus.discard;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -24,51 +23,51 @@ import static org.junit.Assert.assertThat;
  */
 public final class MagicBusTest {
     private MagicBus bus;
-    private AtomicReference<UnsubscribedMessage> returned;
-    private AtomicReference<FailedMessage> failed;
+    private List<UnsubscribedMessage> returned;
+    private List<FailedMessage> failed;
 
     @Before
     public void setUpFixture() {
-        returned = new AtomicReference<>();
-        failed = new AtomicReference<>();
-        bus = new MagicBus(returned::set, failed::set);
+        returned = new ArrayList<>();
+        failed = new ArrayList<>();
+        bus = new MagicBus(returned::add, failed::add);
     }
 
     @Test
     public void shouldReceiveCorrectType() {
-        final AtomicReference<RightType> mailbox = new AtomicReference<>();
-        bus.subscribe(RightType.class, mailbox::set);
+        final List<RightType> mailbox = new ArrayList<>();
+        bus.subscribe(RightType.class, mailbox::add);
 
         bus.publish(new RightType());
 
-        assertThat(mailbox.get(), is(notNullValue()));
+        assertThat(mailbox.isEmpty(), is(false));
     }
 
     @Test
     public void shouldNotReceiveWrongType() {
-        final AtomicReference<LeftType> mailbox = new AtomicReference<>();
-        bus.subscribe(LeftType.class, mailbox::set);
+        final List<LeftType> mailbox = new ArrayList<>();
+        bus.subscribe(LeftType.class, mailbox::add);
 
         bus.publish(new RightType());
 
-        assertThat(mailbox.get(), is(nullValue()));
+        assertThat(mailbox.isEmpty(), is(true));
     }
 
     @Test
     public void shouldReceiveSubtypes() {
-        final AtomicReference<BaseType> mailbox = new AtomicReference<>();
-        bus.subscribe(BaseType.class, mailbox::set);
+        final List<BaseType> mailbox = new ArrayList<>();
+        bus.subscribe(BaseType.class, mailbox::add);
 
         bus.publish(new RightType());
 
-        assertThat(mailbox.get(), is(notNullValue()));
+        assertThat(mailbox.isEmpty(), is(false));
     }
 
     @Test
     public void shouldSaveDeadLetters() {
         bus.publish(new LeftType());
 
-        assertThat(returned.get(), is(notNullValue()));
+        assertThat(returned.isEmpty(), is(false));
     }
 
     @Test
@@ -77,7 +76,7 @@ public final class MagicBusTest {
 
         bus.publish(new LeftType());
 
-        assertThat(failed.get(), is(notNullValue()));
+        assertThat(failed.isEmpty(), is(false));
     }
 
     @Test(expected = RuntimeException.class)
