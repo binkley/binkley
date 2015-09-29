@@ -15,7 +15,6 @@ import java.util.function.Supplier;
 
 import static hm.binkley.MagicBus.discard;
 import static lombok.AccessLevel.PRIVATE;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -207,8 +206,9 @@ public final class MagicBusTest {
 
         bus.publish(new RightType());
 
-        assertThat(returned, is(empty()));
-        assertThat(failed, is(empty()));
+        assertOn(null).
+                returned(0).
+                failed(0);
     }
 
     @Test
@@ -220,8 +220,9 @@ public final class MagicBusTest {
 
         bus.publish(new RightType());
 
-        assertThat(returned, is(empty()));
-        assertThat(failed, is(empty()));
+        assertOn(null).
+                returned(0).
+                failed(0);
     }
 
     @Test
