@@ -27,6 +27,7 @@ import java.util.stream.Stream;
  * caller</li></ol>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo How to atomically unsubscribe & clean up empty mailbox sets?
  */
 @RequiredArgsConstructor
 public final class MagicBus {

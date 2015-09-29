@@ -4,8 +4,35 @@ Example microproject demonstrating intraprocess messaging.
 
 ## Creating a bus
 
+```java
+final Consumer<UnsubscribedMessage> returned = message -> {...};
+final Consumer<FailedMessage> failed = message -> {...};
+final MessageBus bus = new MessageBus(returned, failed);
+```
 
+### Ignoring returned or failed messages
+
+```java
+import static hm.binkley.MagicBus.discard;
+
+final MessageBus bus = new MessageBus(discard(), discard());
+```
 
 ## Subscribing to messages
 
+```java
+final Mailbox<MyType> mailbox = message -> {...};
+bus.subscribe(MyType.class, mailbox);
+```
+
+### Spying on all messages
+
+```java
+bus.subscribe(Object.class, System.out::println);
+```
+
 ## Publishing messages
+
+```java
+bus.publish(new MyType());
+```
