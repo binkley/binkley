@@ -226,12 +226,12 @@ public final class MagicBusTest {
 
     @Test
     public void shouldUnsubscribeOnlyMailbox() {
-        final List<RightType> messages = new ArrayList<>(0);
-        final Mailbox<RightType> mailbox = messages::add;
-        bus.subscribe(RightType.class, mailbox);
-        bus.unsubscribe(RightType.class, mailbox);
+        final List<LeftType> messages = new ArrayList<>(0);
+        final Mailbox<LeftType> mailbox = messages::add;
+        bus.subscribe(LeftType.class, mailbox);
+        bus.unsubscribe(LeftType.class, mailbox);
 
-        bus.publish(new RightType());
+        bus.publish(new LeftType());
 
         assertOn(messages).
                 delivered(0).
