@@ -146,6 +146,19 @@ public final class MagicBusTest {
         bus.publish(new RightType());
     }
 
+    @Test
+    public void shouldUnsubscribe() {
+        final Mailbox<RightType> mailbox = m -> {
+            throw new Exception();
+        };
+        bus.subscribe(RightType.class, mailbox);
+        bus.unsubscribe(RightType.class, mailbox);
+
+        bus.publish(new RightType());
+
+        assertThat(returned.isEmpty(), is(false));
+    }
+
     private static <T> Mailbox<T> record(final AtomicInteger order,
             final AtomicInteger record) {
         return m -> record.set(order.getAndIncrement());

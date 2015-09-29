@@ -35,6 +35,12 @@ bus.subscribe(MyType.class, mailbox);
 bus.subscribe(Object.class, System.out::println);
 ```
 
+### Unsubscribing to messages
+
+```java
+bus.unsubscribe(MyType.class, mailbox);
+```
+
 ## Publishing messages
 
 ```java

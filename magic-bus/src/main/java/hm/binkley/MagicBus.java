@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -27,7 +28,6 @@ import java.util.stream.Stream;
  * caller</li></ol>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo How to atomically unsubscribe & clean up empty mailbox sets?
  */
 @RequiredArgsConstructor
 public final class MagicBus {
@@ -56,6 +56,19 @@ public final class MagicBus {
     public <T> void subscribe(@Nonnull final Class<T> messageType,
             @Nonnull final Mailbox<? super T> mailbox) {
         subscribers.subscribe(messageType, mailbox);
+    }
+
+    /**
+     * Unsubscribes the given <var>mailbox</var> for messages of
+     * <var>messageType</var> and subtypes.
+     *
+     * @param messageType the message type token, never missing
+     * @param mailbox the mailbox for delivery, never missing
+     * @param <T> the message type
+     */
+    public <T> void unsubscribe(@Nonnull final Class<T> messageType,
+            @Nonnull final Mailbox<? super T> mailbox) {
+        subscribers.unsubscribe(messageType, mailbox);
     }
 
     /**
@@ -156,6 +169,20 @@ public final class MagicBus {
                 final Mailbox mailbox) {
             subscribers.computeIfAbsent(messageType, Subscribers::mailbox).
                     add(mailbox);
+        }
+
+        private void unsubscribe(final Class messageType,
+                final Mailbox mailbox) {
+            subscribers.compute(messageType, (__, mailboxes) -> {
+                if (notRemoved(mailboxes, mailbox))
+                    throw new NoSuchElementException();
+                return mailboxes.isEmpty() ? null : mailboxes;
+            });
+        }
+
+        private static boolean notRemoved(final Set<Mailbox> mailboxes,
+                final Mailbox mailbox) {
+            return null == mailboxes || !mailboxes.remove(mailbox);
         }
 
         private Stream<Mailbox> of(final Object message) {
