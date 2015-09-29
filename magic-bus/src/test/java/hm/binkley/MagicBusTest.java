@@ -34,6 +34,48 @@ public final class MagicBusTest {
         bus = new MagicBus(returned::add, failed::add);
     }
 
+    @SuppressWarnings("ConstantConditions")
+    @Test(expected = NullPointerException.class)
+    public void shouldRejectMissingReturnedHandlerInConstructor() {
+        new MagicBus(null, failed::add);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test(expected = NullPointerException.class)
+    public void shouldRejectMissingFailedHandlerInConstructor() {
+        new MagicBus(returned::add, null);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test(expected = NullPointerException.class)
+    public void shouldRejectMissingMessageTypeInSubscribe() {
+        bus.subscribe(null, message -> {});
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test(expected = NullPointerException.class)
+    public void shouldRejectMissingHandlerInSubscribe() {
+        bus.subscribe(RightType.class, null);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test(expected = NullPointerException.class)
+    public void shouldRejectMissingMessageTypeInUnsubscribe() {
+        bus.unsubscribe(null, message -> {});
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test(expected = NullPointerException.class)
+    public void shouldRejectMissingHandlerInUnsubscribe() {
+        bus.unsubscribe(RightType.class, null);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test(expected = NullPointerException.class)
+    public void shouldRejectMissingMessageInPublish() {
+        bus.publish(null);
+    }
+
     @Test
     public void shouldReceiveCorrectType() {
         final List<RightType> mailbox = new ArrayList<>();

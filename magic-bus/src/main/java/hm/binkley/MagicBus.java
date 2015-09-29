@@ -15,6 +15,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * {@code MagicBus} is an intraprocess message bus.  Subscribers call {@link
  * #subscribe(Class, Mailbox)} to register mailboxes for receiving messages.
@@ -29,7 +31,6 @@ import java.util.stream.Stream;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-@RequiredArgsConstructor
 public final class MagicBus {
     /**
      * Discards messages for {@link #returned} and {@link #failed}, a
@@ -46,6 +47,22 @@ public final class MagicBus {
     private final Consumer<? super FailedMessage> failed;
 
     /**
+     * Constructs a new {@code MagicBus} for the given parameters.
+     *
+     * @param returned the unsubscribed messages handler, never missing
+     * @param failed the failed messages handler, never missing
+     *
+     * @see #discard() a discarding handler for <var>returned</var> and
+     * <var>failed</var>
+     */
+    public MagicBus(
+            @Nonnull final Consumer<? super UnsubscribedMessage> returned,
+            @Nonnull final Consumer<? super FailedMessage> failed) {
+        this.returned = requireNonNull(returned, "returned");
+        this.failed = requireNonNull(failed, "failed");
+    }
+
+    /**
      * Subscribes the given <var>mailbox</var> for messages of
      * <var>messageType</var> and subtypes.
      *
@@ -55,7 +72,8 @@ public final class MagicBus {
      */
     public <T> void subscribe(@Nonnull final Class<T> messageType,
             @Nonnull final Mailbox<? super T> mailbox) {
-        subscribers.subscribe(messageType, mailbox);
+        subscribers.subscribe(requireNonNull(messageType, "messageType"),
+                requireNonNull(mailbox, "mailbox"));
     }
 
     /**
@@ -68,7 +86,8 @@ public final class MagicBus {
      */
     public <T> void unsubscribe(@Nonnull final Class<T> messageType,
             @Nonnull final Mailbox<? super T> mailbox) {
-        subscribers.unsubscribe(messageType, mailbox);
+        subscribers.unsubscribe(requireNonNull(messageType, "messageType"),
+                requireNonNull(mailbox, "mailbox"));
     }
 
     /**
@@ -84,7 +103,8 @@ public final class MagicBus {
      * @param message the message, never missing
      */
     public void publish(@Nonnull final Object message) {
-        try (final Stream<Mailbox> mailboxes = subscribers.of(message)) {
+        try (final Stream<Mailbox> mailboxes = subscribers
+                .of(requireNonNull(message, "message"))) {
             final AtomicInteger deliveries = new AtomicInteger();
             mailboxes.
                     onClose(() -> returnIfDead(deliveries, message)).
@@ -133,14 +153,14 @@ public final class MagicBus {
     }
 
     /** Details on unsubscribed (undelivered) messages. */
-    @RequiredArgsConstructor
+    @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
     public static final class UnsubscribedMessage {
         public final MagicBus bus;
         public final Object message;
     }
 
     /** Details on failed messages (dead letters). */
-    @RequiredArgsConstructor
+    @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
     public static final class FailedMessage
             extends RuntimeException {
         public final MagicBus bus;
