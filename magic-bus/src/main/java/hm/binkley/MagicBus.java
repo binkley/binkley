@@ -3,10 +3,10 @@ package hm.binkley;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -136,8 +136,20 @@ public final class MagicBus {
     }
 
     private static final class Subscribers {
-        private final Map<Class, Set<Mailbox>> subscribers
-                = new ConcurrentHashMap<>();
+        private final ConcurrentNavigableMap<Class, Set<Mailbox>> subscribers
+                = new ConcurrentSkipListMap<>(Subscribers::classOrder);
+
+        private static int classOrder(final Class<?> a, final Class<?> b) {
+            boolean aFirst = b.isAssignableFrom(a);
+            boolean bFirst = a.isAssignableFrom(b);
+
+            if (aFirst && !bFirst)
+                return 1;
+            else if (bFirst && !aFirst)
+                return -1;
+            else
+                return 0;
+        }
 
         private void subscribe(final Class messageType,
                 final Mailbox mailbox) {
@@ -149,23 +161,7 @@ public final class MagicBus {
             final Class messageType = message.getClass();
             return subscribers.entrySet().stream().
                     filter(subscribedTo(messageType)).
-                    sorted(Subscribers::classOrder).
                     flatMap(toMailboxes());
-        }
-
-        private static int classOrder(final Entry<Class, Set<Mailbox>> a,
-                final Entry<Class, Set<Mailbox>> b) {
-            final Class<?> aType = a.getKey();
-            final Class<?> bType = b.getKey();
-            boolean aFirst = bType.isAssignableFrom(aType);
-            boolean bFirst = aType.isAssignableFrom(bType);
-
-            if (aFirst && !bFirst)
-                return 1;
-            else if (bFirst && !aFirst)
-                return -1;
-            else
-                return 0;
         }
 
         private static Set<Mailbox> mailbox(final Class messageType) {
