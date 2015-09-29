@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -157,6 +158,13 @@ public final class MagicBusTest {
         bus.publish(new RightType());
 
         assertThat(returned.isEmpty(), is(false));
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void shouldComplainWhenUnsubscribingNonSubscribedMailbox() {
+        final Mailbox<RightType> mailbox = m -> {};
+
+        bus.unsubscribe(RightType.class, mailbox);
     }
 
     private static <T> Mailbox<T> record(final AtomicInteger order,
