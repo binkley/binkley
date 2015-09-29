@@ -88,16 +88,16 @@ public final class MagicBusTest {
 
     @Test
     public void shouldReceiveEarlierSubscribersFirst() {
-        final AtomicInteger order = new AtomicInteger();
+        final AtomicInteger delivery = new AtomicInteger();
         final AtomicInteger second = new AtomicInteger();
         final AtomicInteger first = new AtomicInteger();
         final AtomicInteger fourth = new AtomicInteger();
         final AtomicInteger third = new AtomicInteger();
-        // Register is "random" order to avoid anomalies of implementation
-        bus.subscribe(RightType.class, record(order, first));
-        bus.subscribe(RightType.class, record(order, second));
-        bus.subscribe(RightType.class, record(order, third));
-        bus.subscribe(RightType.class, record(order, fourth));
+
+        bus.subscribe(RightType.class, record(delivery, first));
+        bus.subscribe(RightType.class, record(delivery, second));
+        bus.subscribe(RightType.class, record(delivery, third));
+        bus.subscribe(RightType.class, record(delivery, fourth));
 
         bus.publish(new RightType());
 
@@ -109,16 +109,17 @@ public final class MagicBusTest {
 
     @Test
     public void shouldReceiveOnParentTypeFirst() {
-        final AtomicInteger order = new AtomicInteger();
+        final AtomicInteger delivery = new AtomicInteger();
         final AtomicInteger farRight = new AtomicInteger();
         final AtomicInteger right = new AtomicInteger();
         final AtomicInteger base = new AtomicInteger();
         final AtomicInteger object = new AtomicInteger();
+
         // Register is "random" order to avoid anomalies of implementation
-        bus.subscribe(RightType.class, record(order, right));
-        bus.subscribe(FarRightType.class, record(order, farRight));
-        bus.subscribe(Object.class, record(order, object));
-        bus.subscribe(BaseType.class, record(order, base));
+        bus.subscribe(RightType.class, record(delivery, right));
+        bus.subscribe(FarRightType.class, record(delivery, farRight));
+        bus.subscribe(Object.class, record(delivery, object));
+        bus.subscribe(BaseType.class, record(delivery, base));
 
         bus.publish(new FarRightType());
 
