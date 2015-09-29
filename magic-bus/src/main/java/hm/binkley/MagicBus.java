@@ -30,11 +30,19 @@ import java.util.stream.Stream;
  */
 @RequiredArgsConstructor
 public final class MagicBus {
+    /**
+     * Discards messages for {@link #returned} and {@link #failed}, a
+     * convenience.
+     */
+    public static <T> Consumer<T> discard() {
+        return m -> {};
+    }
+
     private final Subscribers subscribers = new Subscribers();
     /** Receives unsubscribed messages. */
-    private final Consumer<UnsubscribedMessage> returned;
+    private final Consumer<? super UnsubscribedMessage> returned;
     /** Receives failed messages. */
-    private final Consumer<FailedMessage> failed;
+    private final Consumer<? super FailedMessage> failed;
 
     /**
      * Subscribes the given <var>mailbox</var> for messages of

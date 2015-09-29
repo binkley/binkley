@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import static hm.binkley.MagicBus.discard;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -127,6 +128,23 @@ public final class MagicBusTest {
         assertThat(base.get(), is(equalTo(1)));
         assertThat(right.get(), is(equalTo(2)));
         assertThat(farRight.get(), is(equalTo(3)));
+    }
+
+    @Test
+    public void shouldDiscardDeadLetters() {
+        bus = new MagicBus(discard(), discard());
+
+        bus.publish(new RightType());
+    }
+
+    @Test
+    public void shouldDiscardFailedPosts() {
+        bus = new MagicBus(discard(), discard());
+        bus.subscribe(RightType.class, m -> {
+            throw new Exception();
+        });
+
+        bus.publish(new RightType());
     }
 
     private static <T> Mailbox<T> record(final AtomicInteger order,
