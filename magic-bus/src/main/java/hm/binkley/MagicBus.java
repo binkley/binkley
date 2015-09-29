@@ -17,19 +17,24 @@ import java.util.stream.Stream;
 /**
  * {@code MagicBus} is an intraprocess message bus.  Subscribers call {@link
  * #subscribe(Class, Mailbox)} to register mailboxes for receiving messages.
- * Senders call {@link #post(Object)} to send messages.
+ * Senders call {@link #publish(Object)} to send messages.
  * <p>
- * Delivery is synchronous.  There is no guaranteed order of delivery.
+ * Delivery is synchronous.  Order of delivery is: <ol><li>Base type
+ * subscribers before subtype subscribers &mdash; Subscribers to {@code
+ * Object.class} before all others, subscribers to most specific type
+ * last</li> <li>Earlier subscribers before later subscribers.  Ensuring
+ * synchronous subscription order is the responsibility of the
+ * caller</li></ol>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
 @RequiredArgsConstructor
 public final class MagicBus {
     private final Subscribers subscribers = new Subscribers();
-    /** Receives unsubscribed posts. */
-    private final Consumer<DeadLetter> returned;
-    /** Receives failed posts. */
-    private final Consumer<FailedPost> failed;
+    /** Receives unsubscribed messages. */
+    private final Consumer<UnsubscribedMessage> returned;
+    /** Receives failed messages. */
+    private final Consumer<FailedMessage> failed;
 
     /**
      * Subscribes the given <var>mailbox</var> for messages of
@@ -45,18 +50,18 @@ public final class MagicBus {
     }
 
     /**
-     * Posts a message.  Subscribers to the type of <var>message</var> and its
-     * supertypes recieve the message in their mailboxes.
+     * Publishes a message.  Subscribers to the type of <var>message</var> and
+     * its supertypes recieve the message in their mailboxes.
      * <p>
      * If there is no eligible mailbox, <var>message</var> is sent to the
-     * "dead letter" box.
+     * "unsubscribed messages" (dead letter) box.
      * <p>
-     * If posting fails (a mailbox throws a checked exception),
-     * <var>message</var> is sent to the "failed post" box.
+     * If publishing fails (a mailbox throws a checked exception),
+     * <var>message</var> is sent to the "failed message" box.
      *
      * @param message the message, never missing
      */
-    public void post(@Nonnull final Object message) {
+    public void publish(@Nonnull final Object message) {
         try (final Stream<Mailbox> mailboxes = subscribers.of(message)) {
             final AtomicInteger deliveries = new AtomicInteger();
             mailboxes.
@@ -74,7 +79,7 @@ public final class MagicBus {
             } catch (final RuntimeException e) {
                 throw e;
             } catch (final Exception e) {
-                failed.accept(new FailedPost(this, mailbox, message, e));
+                failed.accept(new FailedMessage(this, mailbox, message, e));
             }
         };
     }
@@ -86,23 +91,35 @@ public final class MagicBus {
     private void returnIfDead(final AtomicInteger deliveries,
             final Object message) {
         if (0 == deliveries.get())
-            returned.accept(new DeadLetter(this, message));
+            returned.accept(new UnsubscribedMessage(this, message));
     }
 
+    /**
+     * Receives messages for a given type and subtypes.
+     *
+     * @param <T> the message type
+     */
     @FunctionalInterface
     public interface Mailbox<T> {
-        void receive(final T message)
+        /**
+         * Receives the given <var>message</var>.
+         *
+         * @param message the received message, never missing
+         */
+        void receive(@Nonnull final T message)
                 throws Exception;
     }
 
+    /** Details on unsubscribed (undelivered) messages. */
     @RequiredArgsConstructor
-    public static final class DeadLetter {
+    public static final class UnsubscribedMessage {
         public final MagicBus bus;
         public final Object message;
     }
 
+    /** Details on failed messages (dead letters). */
     @RequiredArgsConstructor
-    public static final class FailedPost
+    public static final class FailedMessage
             extends RuntimeException {
         public final MagicBus bus;
         public final Mailbox mailbox;
@@ -124,7 +141,23 @@ public final class MagicBus {
             final Class messageType = message.getClass();
             return subscribers.entrySet().stream().
                     filter(subscribedTo(messageType)).
+                    sorted(Subscribers::classOrder).
                     flatMap(toMailboxes());
+        }
+
+        private static int classOrder(final Entry<Class, Set<Mailbox>> a,
+                final Entry<Class, Set<Mailbox>> b) {
+            final Class<?> aType = a.getKey();
+            final Class<?> bType = b.getKey();
+            boolean aFirst = bType.isAssignableFrom(aType);
+            boolean bFirst = aType.isAssignableFrom(bType);
+
+            if (aFirst && !bFirst)
+                return 1;
+            else if (bFirst && !aFirst)
+                return -1;
+            else
+                return 0;
         }
 
         private static Set<Mailbox> mailbox(final Class messageType) {
