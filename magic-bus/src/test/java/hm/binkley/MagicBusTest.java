@@ -214,9 +214,7 @@ public final class MagicBusTest {
     @Test
     public void shouldDiscardFailedPosts() {
         bus = new MagicBus(discard(), discard());
-        bus.subscribe(RightType.class, m -> {
-            throw new Exception();
-        });
+        bus.subscribe(RightType.class, failWith(Exception::new));
 
         bus.publish(new RightType());
 
@@ -243,9 +241,7 @@ public final class MagicBusTest {
     @Test
     public void shouldUnsubscribeRightMailbox() {
         final List<RightType> messagesA = new ArrayList<>(1);
-        final Mailbox<RightType> mailboxB = m -> {
-            throw new Exception();
-        };
+        final Mailbox<RightType> mailboxB = failWith(Exception::new);
         bus.subscribe(RightType.class, messagesA::add);
         bus.subscribe(RightType.class, mailboxB);
         bus.unsubscribe(RightType.class, mailboxB);
@@ -294,8 +290,8 @@ public final class MagicBusTest {
         return m -> record.set(order.getAndIncrement());
     }
 
-    private static <T, U extends Exception> Mailbox<T> failWith(
-            final Supplier<U> ctor) {
+    private static <T, E extends Exception> Mailbox<T> failWith(
+            final Supplier<E> ctor) {
         return message -> {
             throw ctor.get();
         };
