@@ -7,13 +7,18 @@ import lombok.RequiredArgsConstructor;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static hm.binkley.MagicBus.discard;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.IntStream.range;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -251,6 +256,35 @@ public final class MagicBusTest {
         assertOn(messagesA).
                 delivered(1).
                 returned(0).
+                failed(0);
+    }
+
+    @Test
+    public void shouldUnsubscribeThreadSafely()
+            throws TimeoutException, InterruptedException {
+        final int actors = 100;
+        final CountDownLatch latch = new CountDownLatch(actors);
+
+        range(0, actors).parallel().
+                forEach(actor -> {
+                    // Use "new" to guarantee a unique instance
+                    final Mailbox<RightType> mailbox
+                            = new Mailbox<RightType>() {
+                        @Override
+                        public void receive(
+                                @Nonnull final RightType message) {}
+                    };
+                    bus.subscribe(RightType.class, mailbox);
+                    bus.unsubscribe(RightType.class, mailbox);
+                    latch.countDown();
+                });
+
+        latch.await(1L, SECONDS);
+
+        bus.publish(new RightType());
+
+        assertOn(null).
+                returned(1).
                 failed(0);
     }
 

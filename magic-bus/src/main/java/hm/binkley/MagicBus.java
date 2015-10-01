@@ -30,6 +30,7 @@ import static java.util.Objects.requireNonNull;
  * caller</li></ol>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Synchronized, really?  First correct, then fast
  */
 public final class MagicBus {
     /**
@@ -185,13 +186,13 @@ public final class MagicBus {
                 return 0;
         }
 
-        private void subscribe(final Class messageType,
+        private synchronized void subscribe(final Class messageType,
                 final Mailbox mailbox) {
             subscribers.computeIfAbsent(messageType, Subscribers::mailbox).
                     add(mailbox);
         }
 
-        private void unsubscribe(final Class messageType,
+        private synchronized void unsubscribe(final Class messageType,
                 final Mailbox mailbox) {
             subscribers.compute(messageType, (__, mailboxes) -> {
                 if (notRemoved(mailboxes, mailbox))
@@ -205,7 +206,7 @@ public final class MagicBus {
             return null == mailboxes || !mailboxes.remove(mailbox);
         }
 
-        private Stream<Mailbox> of(final Object message) {
+        private synchronized Stream<Mailbox> of(final Object message) {
             final Class messageType = message.getClass();
             return subscribers.entrySet().stream().
                     filter(subscribedTo(messageType)).
