@@ -15,8 +15,8 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
  * {@code GenerateFromTemplate} marks a dummy type.  The point is to generate
- * from the template {@link #template()} using {@link #inputs()} to define
- * classes in YAML.
+ * from the {@link #template() template} using {@link #inputs()} to define
+ * Java classes from YAML.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
@@ -30,10 +30,17 @@ public @interface YamlGenerate {
      */
     String template() default "/generate-java.ftl";
 
-    /** Resource paths to YAML used by the template (wildcards supported). */
+    /**
+     * Resource paths to YAML used by the template (wildcards supported
+     * Spring-style).
+     */
     String[] inputs();
 
-    /** Package name for generated Java code.  Defaults to top-level. */
+    /**
+     * Package base name for generated Java code.  Defaults to top-level.
+     * Individual elements can define subpackage relative to the base
+     * package.
+     */
     String namespace() default "";
 
     @Documented

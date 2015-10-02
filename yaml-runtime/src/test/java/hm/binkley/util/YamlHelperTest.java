@@ -12,6 +12,7 @@ import org.yaml.snakeyaml.Yaml;
 import javax.annotation.Nonnull;
 import java.util.LinkedHashMap;
 
+import static hm.binkley.util.YamlHelper.implicitFrom;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -134,10 +135,9 @@ public class YamlHelperTest {
         @Language("RegExp")
         private static final String match
                 = "^([123456789]\\d*)x(4|6|8|10|12|20|100)$";
-        private static final YamlHelper.Implicit<Foo> helper = YamlHelper
-                .implicitFrom("123456789", match, Integer::valueOf,
-                        Integer::valueOf, Foo::new,
-                        "'%s' is not the foo you are looking for");
+        private static final YamlHelper.Implicit<Foo> helper = implicitFrom(
+                "123456789", match, Integer::valueOf, Integer::valueOf,
+                Foo::new, "'%s' is not the foo you are looking for");
 
         public static void registerWith(final YamlHelper.Builder builder) {
             builder.addImplicit(Foo.class, helper);
@@ -162,11 +162,11 @@ public class YamlHelperTest {
         @Language("RegExp")
         private static final String match
                 = "^([123456789]\\d*)?x(4|6|8|10|12|20|100)$";
-        private static final YamlHelper.Implicit<FancyFoo> helper = YamlHelper
-                .implicitFrom("x123456789", match,
-                        FancyFoo::nullableIntegerValueOf, Integer::valueOf,
-                        FancyFoo::new,
-                        "'%s' is not the *fancy* foo you are looking for");
+        private static final YamlHelper.Implicit<FancyFoo> helper
+                = implicitFrom("x123456789", match,
+                FancyFoo::nullableIntegerValueOf, Integer::valueOf,
+                FancyFoo::new,
+                "'%s' is not the *fancy* foo you are looking for");
 
         public static void registerWith(final YamlHelper.Builder builder) {
             builder.addImplicit(FancyFoo.class, helper);
