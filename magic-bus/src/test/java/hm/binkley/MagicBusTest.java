@@ -259,7 +259,7 @@ public final class MagicBusTest {
                 failed(0);
     }
 
-    @Test
+    @Test(timeout = 2000L)
     public void shouldUnsubscribeThreadSafely()
             throws TimeoutException, InterruptedException {
         final int actors = 100;
