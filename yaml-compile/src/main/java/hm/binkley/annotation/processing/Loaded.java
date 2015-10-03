@@ -35,8 +35,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
+import static hm.binkley.annotation.processing.YamlGenerateProcessor.forwardSlashes;
+import static hm.binkley.annotation.processing.YamlGenerateProcessor.replaceProjectRootDirectory;
 import static java.lang.String.format;
 
 /**
@@ -46,7 +47,6 @@ import static java.lang.String.format;
  * @todo Needs documentation.
  */
 public abstract class Loaded<T> {
-    private static final Pattern BACKSLASH = Pattern.compile("\\\\");
     public final String where;
     public final Resource whence;
     public final T what;
@@ -74,12 +74,13 @@ public abstract class Loaded<T> {
 
     public final FormatArgs describe() {
         final FormatArgs fa = new FormatArgs();
-        final String whence = BACKSLASH.matcher(this.whence.getDescription()).
-                replaceAll("/");
+        final String whence = replaceProjectRootDirectory(
+                forwardSlashes(this.whence.getDescription()));
         fa.add("%s", whence);
+        final String where = replaceProjectRootDirectory(where());
         // Ignore leading SLASH when checking if path already in description
-        if (!whence.contains(where().substring(1)))
-            fa.add("(%s)", where());
+        if (!whence.contains(where.substring(1)))
+            fa.add("(%s)", where);
 
         return fa;
     }

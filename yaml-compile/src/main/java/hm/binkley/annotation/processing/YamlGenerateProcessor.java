@@ -35,8 +35,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import static freemarker.template.Configuration.VERSION_2_3_21;
 import static freemarker.template.TemplateExceptionHandler.DEBUG_HANDLER;
@@ -44,8 +46,10 @@ import static hm.binkley.annotation.processing.UnLoaded.unLoaded;
 import static hm.binkley.annotation.processing.Utils.cast;
 import static hm.binkley.annotation.processing.y.YGenerate.YCLASS;
 import static java.lang.String.format;
+import static java.lang.System.getProperty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static javax.lang.model.SourceVersion.RELEASE_8;
@@ -70,6 +74,11 @@ import static javax.lang.model.element.ElementKind.INTERFACE;
 public class YamlGenerateProcessor
         extends
         SingleAnnotationProcessor<YamlGenerate, YamlGenerateMesseger> {
+    private static final Pattern BACKSLASH = Pattern.compile("\\\\");
+    private static final Optional<String> PROJECT_ROOT_DIR = ofNullable(
+            getProperty("rootDirectory")).
+            map(YamlGenerateProcessor::forwardSlashes);
+
     private final List<String> roots = rootsOf(getClass());
     private final Configuration freemarker;
     private final Yaml yaml;
@@ -296,6 +305,16 @@ public class YamlGenerateProcessor
                 freemarker.getTemplate(ftl.getURI().toString()));
     }
 
+    static String forwardSlashes(final String withBackslashes) {
+        return BACKSLASH.matcher(withBackslashes).replaceAll("/");
+    }
+
+    static String replaceProjectRootDirectory(final String path) {
+        return PROJECT_ROOT_DIR.
+                map(root -> path.replaceAll(root, "${project-root}")).
+                orElse(path);
+    }
+
     private List<LoadedYaml> loadAll(final String pattern) {
         final List<LoadedYaml> docs = new ArrayList<>();
         try {
@@ -317,6 +336,7 @@ public class YamlGenerateProcessor
             return ClassPath.from(relativeTo.getClassLoader()).
                     getResources().stream().
                     map(ResourceInfo::getResourceName).
+                    map(YamlGenerateProcessor::replaceProjectRootDirectory).
                     collect(toList());
         } catch (final IOException e) {
             throw new IOError(e);
