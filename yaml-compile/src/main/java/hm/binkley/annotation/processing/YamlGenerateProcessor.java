@@ -311,7 +311,7 @@ public class YamlGenerateProcessor
 
     static String replaceProjectRootDirectory(final String path) {
         return PROJECT_ROOT_DIR.
-                map(root -> path.replaceAll(root, "${project-root}")).
+                map(root -> path.replace(root, "${project-root}")).
                 orElse(path);
     }
 
