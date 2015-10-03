@@ -78,8 +78,8 @@ public abstract class Loaded<T> {
                 replaceAll("/");
         fa.add("%s", whence);
         // Ignore leading SLASH when checking if path already in description
-        if (!whence.contains(where.substring(1)))
-            fa.add("(%s)", where);
+        if (!whence.contains(where().substring(1)))
+            fa.add("(%s)", where());
 
         return fa;
     }
