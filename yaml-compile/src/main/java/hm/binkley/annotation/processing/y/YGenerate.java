@@ -43,7 +43,8 @@ public enum YGenerate {
                 final Entry<String, Map<String, Object>> raw) {
             return new YEnum(yaml, raw);
         }
-    }, YCLASS() {
+    },
+    YCLASS() {
         @Override
         protected void putInto(final ZisZuper names,
                 final Map<String, Object> model,

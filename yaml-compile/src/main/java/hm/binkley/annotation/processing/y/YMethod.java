@@ -36,9 +36,10 @@ public final class YMethod
             final Map.Entry<String, Map<String, Object>> raw) {
         super(yaml, raw);
         final Map<String, Object> values = raw.getValue();
-        rtype = (String) values
-                .computeIfAbsent("type", k -> typeFor(values.get("value")));
-        value = values.computeIfAbsent("value", k -> valueFor(rtype));
+        rtype = (String) values.
+                computeIfAbsent("type", k -> typeFor(values.get("value")));
+        value = values.
+                computeIfAbsent("value", k -> valueFor(rtype));
         properties = values.entrySet().stream().
                 map(YProperty::new).
                 collect(toList());

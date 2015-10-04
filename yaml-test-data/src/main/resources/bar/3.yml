@@ -12,7 +12,9 @@ Baz:
     doc: Really big floating point
     value: 1.234567890123456789
   fancy:
-    doc: 'Complicated\tstring\with "junk".'
+    value: 'Complicated\tstring value\with "junk".'
+  moreFancy:
+    doc: 'Complicated\tdoc string\with "junk".'
     type: str
 
 Whack Foo:
@@ -31,7 +33,7 @@ some.Parent some.Grandparent:
 
 Child some.Parent:
   a:
-    value: [a, 3, 4.2, true]
+    value: [a, 3, 4.2, true, 'Complicated\tstring map value\with "junk".']
   feast:
     value: 13
 
