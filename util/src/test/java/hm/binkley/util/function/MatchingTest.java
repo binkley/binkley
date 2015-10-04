@@ -64,8 +64,8 @@ public final class MatchingTest {
     @Test
     public void shouldType() {
         assertThat(matching(C.class, C.class).
-                when(c -> c instanceof A).then(identity()).
-                when(c -> c instanceof B).then(identity()).
+                when(isA(A.class)).then(identity()).
+                when(isA(B.class)).then(identity()).
                 apply(B).get(), equalTo(B));
     }
 
@@ -103,6 +103,10 @@ public final class MatchingTest {
         matching(Integer.class, Void.class).
                 none().thenThrow(RuntimeException::new).
                 apply(0);
+    }
+
+    private static Predicate<Object> isA(final Class<?> type) {
+        return o -> type.isAssignableFrom(o.getClass());
     }
 
     private static Predicate<Integer> is(final int n) {
