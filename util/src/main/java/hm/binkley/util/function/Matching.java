@@ -36,6 +36,9 @@ import static lombok.AccessLevel.PRIVATE;
  *         map(MatchingTest::toString).
  *         forEach(out::println);</pre>
  * <p>
+ * If there is no match, {@code Matching} complains with an {@code
+ * IllegalStateException} and the message, "No match".
+ * <p>
  * <strong>NB</strong> &mdash; There is no formal destructuring, but this can
  * be simulated in the {@code Predicate} to {@link #when(Predicate) when}.
  *
