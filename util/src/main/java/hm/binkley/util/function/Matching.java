@@ -98,21 +98,10 @@ public final class Matching<T, U>
     }
 
     /**
-     * Begins a default when/then pair, always placed <strong>last</strong> in
-     * the list of cases (evaluates no cases after this one).
-     *
-     * @return then pattern continuance, never {@code null}
-     */
-    @Nonnull
-    public When none() {
-        return when(__ -> true);
-    }
-
-    /**
      * Convenience combination of a default when/then pair returning
      * <var>otherwise</var>, always placed <strong>last</strong> in the list
-     * of cases (evaluates no cases after this one).  Equivalent to: <pre>
-     * none().then(otherwise);
+     * of cases.  Equivalent to: <pre>
+     * when(__ -&gt; true).then(otherwise); // result value
      * </pre>
      *
      * @param otherwise the pattern matching value, possibly {@code null}
@@ -121,15 +110,15 @@ public final class Matching<T, U>
      */
     @Nonnull
     public Matching<T, U> otherwise(@Nullable final U otherwise) {
-        return none().then(otherwise);
+        return always().then(otherwise);
     }
 
     /**
      * Convenience combination of a default when/then pair returning the
-     * evaluation of <var>otherwise</var>, always placed <strong>last</strong>
-     * in the list of cases (evaluates no cases after this one).  Equivalent
-     * to: <pre>
-     * none().then(otherwise);
+     * evaluation of <var>otherwise</var>, always placed
+     * <strong>last</strong>
+     * in the list of cases.  Equivalent to: <pre>
+     * when(__ -&gt; true).then(otherwise); // supplier of result value
      * </pre>
      *
      * @param otherwise the pattern matching supplier, never {@code null}
@@ -139,15 +128,15 @@ public final class Matching<T, U>
     @Nonnull
     public Matching<T, U> otherwise(
             @Nonnull final Supplier<? extends U> otherwise) {
-        return none().then(otherwise);
+        return always().then(otherwise);
     }
 
     /**
      * Convenience combination of a default when/then pair throwing the
-     * evaluation of <var>otherwise</var>, always placed <strong>last</strong>
-     * in the list of cases (evaluates no cases after this one).  Equivalent
-     * to: <pre>
-     * none().thenThrow(otherwise);
+     * evaluation of <var>otherwise</var>, always placed
+     * <strong>last</strong>
+     * in the list of cases.  Equivalent to: <pre>
+     * when(__ -&gt; true).thenThrow(otherwise); // supplier of exception
      * </pre>
      *
      * @param otherwise the pattern matching exception supplier, never {@code
@@ -158,7 +147,7 @@ public final class Matching<T, U>
     @Nonnull
     public Matching<T, U> otherwiseThrow(
             @Nonnull final Supplier<? extends RuntimeException> otherwise) {
-        return none().thenThrow(otherwise);
+        return always().thenThrow(otherwise);
     }
 
     /**
@@ -177,13 +166,18 @@ public final class Matching<T, U>
                 map(c -> c.q.apply(in));
     }
 
+    private When always() {
+        return when(__ -> true);
+    }
+
     @RequiredArgsConstructor(access = PRIVATE)
     public final class When {
         /**
          * Number of frames to discard when creating an exception for a match.
          * Very sensitive to implementation.  This aids in understanding stack
          * traces from matching, discarding internal machinery and leaving the
-         * actual throwing call at the top of the stack.
+         * actual throwing call at the top of the stack.  We are not Spring
+         * Framework.
          */
         private static final int N = 7;
         private final Predicate<? super T> when;

@@ -38,13 +38,6 @@ public final class MatchingTest {
     @Test
     public void shouldDefaultValue() {
         assertThat(matching(Integer.class, Object.class).
-                none().then(1).
-                apply(0).get(), equalTo(1));
-    }
-
-    @Test
-    public void shouldDefaultValueFromOtherwise() {
-        assertThat(matching(Integer.class, Object.class).
                 otherwise(1).
                 apply(0).get(), equalTo(1));
     }
@@ -52,26 +45,12 @@ public final class MatchingTest {
     @Test
     public void shouldDefaultSuppliedValue() {
         assertThat(matching(Integer.class, Object.class).
-                none().then(() -> 1).
-                apply(0).get(), equalTo(1));
-    }
-
-    @Test
-    public void shouldDefaultSuppliedValueFromOtherwise() {
-        assertThat(matching(Integer.class, Object.class).
                 otherwise(() -> 1).
                 apply(0).get(), equalTo(1));
     }
 
     @Test(expected = RuntimeException.class)
     public void shouldThrow() {
-        matching(Integer.class, Object.class).
-                none().thenThrow(RuntimeException::new).
-                apply(0);
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void shouldThrowFromOtherwise() {
         matching(Integer.class, Object.class).
                 otherwiseThrow(RuntimeException::new).
                 apply(0);
@@ -103,7 +82,7 @@ public final class MatchingTest {
     @Test
     public void shouldDoNothingWithoutApply() {
         matching(Object.class, Void.class).
-                none().thenThrow(RuntimeException::new);
+                otherwiseThrow(RuntimeException::new);
     }
 
     @Test
@@ -176,7 +155,6 @@ public final class MatchingTest {
 
     enum A
             implements C {
-        A
     }
 
     enum B
