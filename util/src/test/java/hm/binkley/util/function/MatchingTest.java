@@ -17,6 +17,7 @@ import static java.lang.System.out;
 import static java.util.Arrays.asList;
 import static java.util.function.Function.identity;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
@@ -84,6 +85,13 @@ public final class MatchingTest {
                 none().thenThrow(RuntimeException::new);
     }
 
+    @Test
+    public void shouldSupportHamcrest() {
+        assertThat(matching(Integer.class, Integer.class).
+                when(equalTo(1)).then(0).
+                apply(1).get(), equalTo(0));
+    }
+
     public static void main(final String... args) {
         asList(0, 1, 2, 3, 13, 14, null, -1).stream().
                 peek(n -> out.print(format("%d -> ", n))).
@@ -95,6 +103,7 @@ public final class MatchingTest {
                         when(is(14)).then(printIt()).
                         when(even()).then(scaleBy(3)).
                         when(gt(2)).then(dec()).
+                        when(instanceOf(Float.class)).then(nil()).
                         none().then("no match")).
                 map(MatchingTest::toString).
                 forEach(out::println);
@@ -141,8 +150,7 @@ public final class MatchingTest {
         return format("%s (%s)", o, o.map(Object::getClass));
     }
 
-    interface C {
-    }
+    interface C {}
 
     enum A
             implements C {

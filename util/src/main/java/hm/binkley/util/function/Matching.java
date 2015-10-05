@@ -2,7 +2,10 @@ package hm.binkley.util.function;
 
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.hamcrest.Matcher;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -28,6 +31,7 @@ import static lombok.AccessLevel.PRIVATE;
  *             when(is(14)).then(printIt()).
  *             when(even()).then(scaleBy(3)).
  *             when(gt(2)).then(dec()).
+ *             when(instanceOf(Float.class)).then(nil()).
  *             none().then("no match")).
  *         map(MatchingTest::toString).
  *         forEach(out::println);</pre>
@@ -43,7 +47,8 @@ import static lombok.AccessLevel.PRIVATE;
  * @param <T> the input type to match against
  * @param <U> the output type of a matched pattern
  *
- * @author <a href="mailto:boxley@thoughtworks.com">Brian Oxley</a>
+ * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Enforce type safety - prevent cases which are impossible
  */
 @NoArgsConstructor(access = PRIVATE)
 public final class Matching<T, U>
@@ -62,8 +67,8 @@ public final class Matching<T, U>
      *
      * @todo Avoid the type tokens
      */
-    public static <T, U> Matching<T, U> matching(final Class<T> inType,
-            final Class<U> outType) {
+    public static <T, U> Matching<T, U> matching(
+            @Nonnull final Class<T> inType, @Nonnull final Class<U> outType) {
         return new Matching<>();
     }
 
@@ -74,8 +79,21 @@ public final class Matching<T, U>
      *
      * @return the pattern continuance, never {@code null}
      */
-    public When when(final Predicate<? super T> when) {
+    @Nonnull
+    public When when(@Nonnull final Predicate<? super T> when) {
         return new When(when);
+    }
+
+    /**
+     * Begins a when/then pair with a Hamcrest matcher.
+     *
+     * @param matcher the hamcrest matcher, never {@code null}
+     *
+     * @return the pattern continuance, never {@code null}
+     */
+    @Nonnull
+    public When when(@Nonnull final Matcher<? super T> matcher) {
+        return new When(matcher::matches);
     }
 
     /**
@@ -84,6 +102,7 @@ public final class Matching<T, U>
      *
      * @return then pattern continuance, never {@code null}
      */
+    @Nonnull
     public When none() {
         return when(o -> true);
     }
@@ -96,7 +115,8 @@ public final class Matching<T, U>
      * @return the match result (empty if no match), never {@code null}
      */
     @Override
-    public Optional<U> apply(final T in) {
+    @Nonnull
+    public Optional<U> apply(@Nullable final T in) {
         return cases.stream().
                 filter(c -> c.p.test(in)).
                 findFirst().
@@ -122,8 +142,9 @@ public final class Matching<T, U>
          *
          * @return the pattern matcher, never {@code null}
          */
+        @Nonnull
         public Matching<T, U> then(
-                final Function<? super T, ? extends U> then) {
+                @Nonnull final Function<? super T, ? extends U> then) {
             cases.add(new Case(when, then));
             return Matching.this;
         }
@@ -135,7 +156,8 @@ public final class Matching<T, U>
          *
          * @return the pattern matcher, never {@code null}
          */
-        public Matching<T, U> then(final U then) {
+        @Nonnull
+        public Matching<T, U> then(@Nullable final U then) {
             cases.add(new Case(when, x -> then));
             return Matching.this;
         }
@@ -148,7 +170,9 @@ public final class Matching<T, U>
          *
          * @return the pattern matcher, never {@code null}
          */
-        public Matching<T, U> then(final Supplier<? extends U> then) {
+        @Nonnull
+        public Matching<T, U> then(
+                @Nonnull final Supplier<? extends U> then) {
             cases.add(new Case(when, x -> then.get()));
             return Matching.this;
         }
@@ -161,7 +185,8 @@ public final class Matching<T, U>
          *
          * @return the pattern matcher, never {@code null}
          */
-        public Matching<T, U> then(final Consumer<? super T> then) {
+        @Nonnull
+        public Matching<T, U> then(@Nonnull final Consumer<? super T> then) {
             cases.add(new Case(when, o -> {
                 then.accept(o);
                 return null;
@@ -178,8 +203,9 @@ public final class Matching<T, U>
          *
          * @return the pattern matcher, never {@code null}
          */
+        @Nonnull
         public Matching<T, U> thenThrow(
-                final Supplier<RuntimeException> then) {
+                @Nonnull final Supplier<RuntimeException> then) {
             cases.add(new Case(when, x -> {
                 final RuntimeException e = then.get();
                 final List<StackTraceElement> stack = asList(
