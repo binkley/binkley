@@ -18,7 +18,6 @@ import static java.lang.System.out;
 import static java.util.function.Function.identity;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -57,10 +56,10 @@ public final class MatchingTest {
                 apply(0);
     }
 
-    @Test
+    @Test(expected = IllegalStateException.class)
     public void shouldNotMatch() {
-        assertFalse(matching(Integer.class, Integer.class).
-                apply(0).isPresent());
+        matching(Integer.class, Integer.class).
+                apply(0);
     }
 
     @Test

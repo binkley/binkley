@@ -36,11 +36,6 @@ import static lombok.AccessLevel.PRIVATE;
  *         map(MatchingTest::toString).
  *         forEach(out::println);</pre>
  * <p>
- * <i>NB</i> &mdash; There is no way to distinguish from an empty optional if
- * there was no match, or if a match mapped the input to {@code null}, without
- * use of a {@link When#then(Object) sentinel value} or {@link
- * When#thenThrow(Supplier) thrown exception}.
- * <p>
  * <strong>NB</strong> &mdash; There is no formal destructuring, but this can
  * be simulated in the {@code Predicate} to {@link #when(Predicate) when}.
  *
@@ -155,13 +150,24 @@ public final class Matching<T, U>
      * @param in the input to match against, possibly {@code null}
      *
      * @return the match result (empty if no match), never {@code null}
+     *
+     * @throws IllegalStateException if no match found
      */
     @Override
     @Nonnull
-    public Optional<U> apply(@Nullable final T in) {
-        return cases.stream().
+    public Optional<U> apply(@Nullable final T in)
+            throws IllegalStateException {
+        final Optional<Case> match = cases.stream().
                 filter(c -> c.p.test(in)).
-                findFirst().
+                findFirst();
+        if (!match.isPresent()) {
+            final IllegalStateException e = new IllegalStateException(
+                    "No match");
+            final StackTraceElement[] frames = e.getStackTrace();
+            e.setStackTrace(copyOfRange(e.getStackTrace(), 1, frames.length));
+            throw e;
+        }
+        return match.
                 map(c -> c.q.apply(in));
     }
 
