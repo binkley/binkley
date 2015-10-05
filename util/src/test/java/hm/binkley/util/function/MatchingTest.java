@@ -88,7 +88,7 @@ public final class MatchingTest {
     }
 
     @Test
-    public void shouldSupportHamcrest() {
+    public void shouldSupportHamcrestMatcher() {
         assertThat(matching(Integer.class, Integer.class).
                 when(equalTo(1)).then(0).
                 apply(1).get(), equalTo(0));
@@ -98,13 +98,13 @@ public final class MatchingTest {
     public void shouldCleanUpStackForThenThrow() {
         try {
             matching(Integer.class, Void.class).
-                    when(i -> i == 1).thenThrow(TestException::new).
+                    when(is(1)).thenThrow(TestException::new).
                     apply(1);
             fail("Did not throw");
         } catch (final TestException e) {
-            assertThat(e.getStackTrace()[0].getClassName(),
+            assertThat(firstFrameOf(e).getClassName(),
                     equalTo(getClass().getName()));
-            assertThat(e.getStackTrace()[0].getMethodName(),
+            assertThat(firstFrameOf(e).getMethodName(),
                     equalTo("shouldCleanUpStackForThenThrow"));
         }
     }
@@ -117,9 +117,9 @@ public final class MatchingTest {
                     apply(1);
             fail("Did not throw");
         } catch (final TestException e) {
-            assertThat(e.getStackTrace()[0].getClassName(),
+            assertThat(firstFrameOf(e).getClassName(),
                     equalTo(getClass().getName()));
-            assertThat(e.getStackTrace()[0].getMethodName(),
+            assertThat(firstFrameOf(e).getMethodName(),
                     equalTo("shouldCleanUpStackForOtherwiseThrow"));
         }
     }
@@ -143,7 +143,7 @@ public final class MatchingTest {
 
         try {
             matching(Integer.class, Void.class).
-                    when(i -> i == 1).thenThrow(TestException::new).
+                    when(is(1)).thenThrow(TestException::new).
                     apply(1);
         } catch (final TestException e) {
             e.printStackTrace(out);
@@ -192,6 +192,10 @@ public final class MatchingTest {
 
     private static String toString(final Optional<Object> o) {
         return format("%s (%s)", o, o.map(Object::getClass));
+    }
+
+    private static StackTraceElement firstFrameOf(final Throwable t) {
+        return t.getStackTrace()[0];
     }
 
     interface C {}
