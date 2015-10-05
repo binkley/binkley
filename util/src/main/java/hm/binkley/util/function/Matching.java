@@ -8,14 +8,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static java.util.Arrays.asList;
+import static java.util.Arrays.copyOfRange;
 import static lombok.AccessLevel.PRIVATE;
 
 /**
@@ -179,7 +178,7 @@ public final class Matching<T, U>
          * actual throwing call at the top of the stack.  We are not Spring
          * Framework.
          */
-        private static final int N = 7;
+        private static final int FIRST_CALLER_FRAME = 4;
         private final Predicate<? super T> when;
 
         /**
@@ -271,10 +270,9 @@ public final class Matching<T, U>
                 @Nonnull final Supplier<? extends RuntimeException> then) {
             cases.add(new Case(when, x -> {
                 final RuntimeException e = then.get();
-                final List<StackTraceElement> stack = asList(
-                        e.getStackTrace());
-                e.setStackTrace(stack.subList(N, stack.size()).
-                        toArray(new StackTraceElement[stack.size() - N]));
+                final StackTraceElement[] frames = e.getStackTrace();
+                e.setStackTrace(copyOfRange(frames, FIRST_CALLER_FRAME,
+                        frames.length));
                 throw e;
             }));
             return Matching.this;

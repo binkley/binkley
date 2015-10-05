@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * {@code MatchingTest} tests {@code Matching}.
@@ -30,7 +31,7 @@ public final class MatchingTest {
     @Test
     public void shouldMatchWithFunction() {
         assertThat(matching(Integer.class, Object.class).
-                when(is(2)).thenThrow(RuntimeException::new).
+                when(is(2)).thenThrow(TestException::new).
                 when(is(0)).then(x -> 1).
                 apply(0).get(), equalTo(1));
     }
@@ -49,10 +50,10 @@ public final class MatchingTest {
                 apply(0).get(), equalTo(1));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestException.class)
     public void shouldThrow() {
         matching(Integer.class, Object.class).
-                otherwiseThrow(RuntimeException::new).
+                otherwiseThrow(TestException::new).
                 apply(0);
     }
 
@@ -80,9 +81,10 @@ public final class MatchingTest {
     }
 
     @Test
-    public void shouldDoNothingWithoutApply() {
+    public void shouldBeLazyUntilApplyAndDoNothing() {
         matching(Object.class, Void.class).
-                otherwiseThrow(RuntimeException::new);
+                otherwiseThrow(TestException::new);
+        // Nothing to assert - just that it does not throw
     }
 
     @Test
@@ -90,6 +92,36 @@ public final class MatchingTest {
         assertThat(matching(Integer.class, Integer.class).
                 when(equalTo(1)).then(0).
                 apply(1).get(), equalTo(0));
+    }
+
+    @Test
+    public void shouldCleanUpStackForThenThrow() {
+        try {
+            matching(Integer.class, Void.class).
+                    when(i -> i == 1).thenThrow(TestException::new).
+                    apply(1);
+            fail("Did not throw");
+        } catch (final TestException e) {
+            assertThat(e.getStackTrace()[0].getClassName(),
+                    equalTo(getClass().getName()));
+            assertThat(e.getStackTrace()[0].getMethodName(),
+                    equalTo("shouldCleanUpStackForThenThrow"));
+        }
+    }
+
+    @Test
+    public void shouldCleanUpStackForOtherwiseThrow() {
+        try {
+            matching(Object.class, Void.class).
+                    otherwiseThrow(TestException::new).
+                    apply(1);
+            fail("Did not throw");
+        } catch (final TestException e) {
+            assertThat(e.getStackTrace()[0].getClassName(),
+                    equalTo(getClass().getName()));
+            assertThat(e.getStackTrace()[0].getMethodName(),
+                    equalTo("shouldCleanUpStackForOtherwiseThrow"));
+        }
     }
 
     public static void main(final String... args) {
@@ -108,11 +140,22 @@ public final class MatchingTest {
                         otherwise("no match")).
                 map(MatchingTest::toString).
                 forEach(out::println);
-        out.flush(); // Avoid mixing sout and serr
 
-        matching(Integer.class, Void.class).
-                otherwiseThrow(RuntimeException::new).
-                apply(0);
+        try {
+            matching(Integer.class, Void.class).
+                    when(i -> i == 1).thenThrow(TestException::new).
+                    apply(1);
+        } catch (final TestException e) {
+            e.printStackTrace(out);
+        }
+
+        try {
+            matching(Integer.class, Void.class).
+                    otherwiseThrow(TestException::new).
+                    apply(1);
+        } catch (final TestException e) {
+            e.printStackTrace(out);
+        }
     }
 
     private static Predicate<Object> isA(final Class<?> type) {
@@ -161,4 +204,7 @@ public final class MatchingTest {
             implements C {
         B
     }
+
+    static final class TestException
+            extends RuntimeException {}
 }
