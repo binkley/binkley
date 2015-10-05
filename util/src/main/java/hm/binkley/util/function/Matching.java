@@ -21,7 +21,7 @@ import static lombok.AccessLevel.PRIVATE;
 /**
  * {@code Matching} represents <a href="https://en.wikipedia.org/wiki/Pattern_matching">Pattern
  * Matching</a> in Java as a function production an optional.  Example: <pre>
- * asList(0, 1, 2, 3, 13, 14, null, -1).stream().
+ * Stream.of(0, 1, 2, 3, 13, 14, 15, null, -1).
  *         peek(n -> out.print(format("%d -> ", n))).
  *         map(matching(Integer.class, Object.class).
  *             when(Objects::isNull).then(n -&gt; "!").
@@ -29,10 +29,11 @@ import static lombok.AccessLevel.PRIVATE;
  *             when(is(1)).then("one").
  *             when(is(13)).then(() -&gt; "unlucky").
  *             when(is(14)).then(printIt()).
+ *             when(is(15)).then(printIt(), 6.28318f).
  *             when(even()).then(scaleBy(3)).
  *             when(gt(2)).then(dec()).
  *             when(instanceOf(Float.class)).then(nil()).
- *             none().then("no match")).
+ *             otherwise("no match")).
  *         map(MatchingTest::toString).
  *         forEach(out::println);</pre>
  * <p>
@@ -104,7 +105,60 @@ public final class Matching<T, U>
      */
     @Nonnull
     public When none() {
-        return when(o -> true);
+        return when(__ -> true);
+    }
+
+    /**
+     * Convenience combination of a default when/then pair returning
+     * <var>otherwise</var>, always placed <strong>last</strong> in the list
+     * of cases (evaluates no cases after this one).  Equivalent to: <pre>
+     * none().then(otherwise);
+     * </pre>
+     *
+     * @param otherwise the pattern matching value, possibly {@code null}
+     *
+     * @return the pattern matcher, never {@code null}
+     */
+    @Nonnull
+    public Matching<T, U> otherwise(@Nullable final U otherwise) {
+        return none().then(otherwise);
+    }
+
+    /**
+     * Convenience combination of a default when/then pair returning the
+     * evaluation of <var>otherwise</var>, always placed <strong>last</strong>
+     * in the list of cases (evaluates no cases after this one).  Equivalent
+     * to: <pre>
+     * none().then(otherwise);
+     * </pre>
+     *
+     * @param otherwise the pattern matching supplier, never {@code null}
+     *
+     * @return the pattern matcher, never {@code null}
+     */
+    @Nonnull
+    public Matching<T, U> otherwise(
+            @Nonnull final Supplier<? extends U> otherwise) {
+        return none().then(otherwise);
+    }
+
+    /**
+     * Convenience combination of a default when/then pair throwing the
+     * evaluation of <var>otherwise</var>, always placed <strong>last</strong>
+     * in the list of cases (evaluates no cases after this one).  Equivalent
+     * to: <pre>
+     * none().thenThrow(otherwise);
+     * </pre>
+     *
+     * @param otherwise the pattern matching exception supplier, never {@code
+     * null}
+     *
+     * @return the pattern matcher, never {@code null}
+     */
+    @Nonnull
+    public Matching<T, U> otherwiseThrow(
+            @Nonnull final Supplier<? extends RuntimeException> otherwise) {
+        return none().thenThrow(otherwise);
     }
 
     /**
@@ -163,8 +217,8 @@ public final class Matching<T, U>
         }
 
         /**
-         * Ends a when/then pair, evaluating <var>then</var> independent of
-         * supplier if matched.
+         * Ends a when/then pair, evaluating <var>then</var> to the supplier
+         * evaluation if matched.
          *
          * @param then the pattern matching supplier, never {@code null}
          *
@@ -178,6 +232,25 @@ public final class Matching<T, U>
         }
 
         /**
+         * Ends a when/then pair, evaluating <var>then</var> to
+         * <var>value</var> if matched.
+         *
+         * @param then the input consumer, never {@code null}
+         * @param value the result value, possibly {@code null}
+         *
+         * @return the pattern matcher, never {@code null}
+         */
+        @Nonnull
+        public Matching<T, U> then(@Nonnull final Consumer<? super T> then,
+                @Nullable final U value) {
+            cases.add(new Case(when, o -> {
+                then.accept(o);
+                return value;
+            }));
+            return Matching.this;
+        }
+
+        /**
          * Ends a when/then pair, evaluating <var>then</var> to {@code null}
          * if matched.
          *
@@ -187,11 +260,7 @@ public final class Matching<T, U>
          */
         @Nonnull
         public Matching<T, U> then(@Nonnull final Consumer<? super T> then) {
-            cases.add(new Case(when, o -> {
-                then.accept(o);
-                return null;
-            }));
-            return Matching.this;
+            return then(then, null);
         }
 
         /**
@@ -205,7 +274,7 @@ public final class Matching<T, U>
          */
         @Nonnull
         public Matching<T, U> thenThrow(
-                @Nonnull final Supplier<RuntimeException> then) {
+                @Nonnull final Supplier<? extends RuntimeException> then) {
             cases.add(new Case(when, x -> {
                 final RuntimeException e = then.get();
                 final List<StackTraceElement> stack = asList(

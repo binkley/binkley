@@ -9,12 +9,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static hm.binkley.util.function.Matching.matching;
 import static hm.binkley.util.function.MatchingTest.B.B;
 import static java.lang.String.format;
 import static java.lang.System.out;
-import static java.util.Arrays.asList;
 import static java.util.function.Function.identity;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -43,9 +43,23 @@ public final class MatchingTest {
     }
 
     @Test
+    public void shouldDefaultValueFromOtherwise() {
+        assertThat(matching(Integer.class, Object.class).
+                otherwise(1).
+                apply(0).get(), equalTo(1));
+    }
+
+    @Test
     public void shouldDefaultSuppliedValue() {
         assertThat(matching(Integer.class, Object.class).
                 none().then(() -> 1).
+                apply(0).get(), equalTo(1));
+    }
+
+    @Test
+    public void shouldDefaultSuppliedValueFromOtherwise() {
+        assertThat(matching(Integer.class, Object.class).
+                otherwise(() -> 1).
                 apply(0).get(), equalTo(1));
     }
 
@@ -53,6 +67,13 @@ public final class MatchingTest {
     public void shouldThrow() {
         matching(Integer.class, Object.class).
                 none().thenThrow(RuntimeException::new).
+                apply(0);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void shouldThrowFromOtherwise() {
+        matching(Integer.class, Object.class).
+                otherwiseThrow(RuntimeException::new).
                 apply(0);
     }
 
@@ -93,7 +114,7 @@ public final class MatchingTest {
     }
 
     public static void main(final String... args) {
-        asList(0, 1, 2, 3, 13, 14, null, -1).stream().
+        Stream.of(0, 1, 2, 3, 13, 14, 15, null, -1).
                 peek(n -> out.print(format("%d -> ", n))).
                 map(matching(Integer.class, Object.class).
                         when(Objects::isNull).then(n -> "!").
@@ -101,16 +122,17 @@ public final class MatchingTest {
                         when(is(1)).then("one").
                         when(is(13)).then(() -> "unlucky").
                         when(is(14)).then(printIt()).
+                        when(is(15)).then(printIt(), 6.28318f).
                         when(even()).then(scaleBy(3)).
                         when(gt(2)).then(dec()).
                         when(instanceOf(Float.class)).then(nil()).
-                        none().then("no match")).
+                        otherwise("no match")).
                 map(MatchingTest::toString).
                 forEach(out::println);
         out.flush(); // Avoid mixing sout and serr
 
         matching(Integer.class, Void.class).
-                none().thenThrow(RuntimeException::new).
+                otherwiseThrow(RuntimeException::new).
                 apply(0);
     }
 
