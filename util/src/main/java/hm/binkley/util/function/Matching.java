@@ -163,19 +163,22 @@ public final class Matching<T, U>
         final Optional<Case> match = cases.stream().
                 filter(c -> c.p.test(in)).
                 findFirst();
-        if (!match.isPresent()) {
-            final IllegalStateException e = new IllegalStateException(
-                    "No match");
-            final StackTraceElement[] frames = e.getStackTrace();
-            e.setStackTrace(copyOfRange(e.getStackTrace(), 1, frames.length));
-            throw e;
-        }
+        if (!match.isPresent())
+            cleanAndThrow(new IllegalStateException("No match"), 1);
         return match.
                 map(c -> c.q.apply(in));
     }
 
     private When always() {
         return when(__ -> true);
+    }
+
+    private static <U, E extends Exception> U cleanAndThrow(final E e,
+            final int firstCallerFrame)
+            throws E {
+        final StackTraceElement[] frames = e.getStackTrace();
+        e.setStackTrace(copyOfRange(frames, firstCallerFrame, frames.length));
+        throw e;
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
@@ -277,13 +280,8 @@ public final class Matching<T, U>
         @Nonnull
         public Matching<T, U> thenThrow(
                 @Nonnull final Supplier<? extends RuntimeException> then) {
-            cases.add(new Case(when, x -> {
-                final RuntimeException e = then.get();
-                final StackTraceElement[] frames = e.getStackTrace();
-                e.setStackTrace(copyOfRange(frames, FIRST_CALLER_FRAME,
-                        frames.length));
-                throw e;
-            }));
+            cases.add(new Case(when,
+                    x -> cleanAndThrow(then.get(), FIRST_CALLER_FRAME)));
             return Matching.this;
         }
     }
