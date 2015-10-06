@@ -234,7 +234,7 @@ public final class Matching<T, U>
          */
         @Nonnull
         public Matching<T, U> then(@Nullable final U then) {
-            cases.add(new Case(when, x -> then));
+            cases.add(new Case(when, __ -> then));
             return Matching.this;
         }
 
@@ -249,7 +249,7 @@ public final class Matching<T, U>
         @Nonnull
         public Matching<T, U> then(
                 @Nonnull final Supplier<? extends U> then) {
-            cases.add(new Case(when, x -> then.get()));
+            cases.add(new Case(when, __ -> then.get()));
             return Matching.this;
         }
 
@@ -298,7 +298,7 @@ public final class Matching<T, U>
         public Matching<T, U> thenThrow(
                 @Nonnull final Supplier<? extends RuntimeException> then) {
             cases.add(new Case(when,
-                    x -> cleanAndThrow(then.get(), FIRST_CALLER_FRAME)));
+                    __ -> cleanAndThrow(then.get(), FIRST_CALLER_FRAME)));
             return Matching.this;
         }
     }

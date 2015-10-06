@@ -57,7 +57,7 @@ public final class MatchingTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void shouldNotMatch() {
+    public void shouldThrowWhenNoMatch() {
         matching(Integer.class, Integer.class).
                 apply(0);
     }
