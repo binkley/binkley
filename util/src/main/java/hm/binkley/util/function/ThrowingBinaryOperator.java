@@ -30,7 +30,7 @@ public interface ThrowingBinaryOperator<T, E extends Exception>
     }
 
     /** Creates a facade {@code BinaryOperator} wrapping this throwing one. */
-    default <D extends RuntimeException> BinaryOperator<T> asBinaryOperator(final Defer<D> defer) {
+    default <D extends RuntimeException> BinaryOperator<T> asBinaryOperator(final DeferredFunction<D> defer) {
         return (u, v) -> defer.as(() -> apply(u, v));
     }
 }

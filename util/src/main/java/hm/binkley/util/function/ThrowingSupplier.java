@@ -17,7 +17,7 @@ public interface ThrowingSupplier<T, E extends Exception> {
             throws E, InterruptedException;
 
     /** Creates a facade {@code Supplier} wrapping this throwing one. */
-    default <D extends RuntimeException> Supplier<T> asSupplier(final Defer<D> defer) {
+    default <D extends RuntimeException> Supplier<T> asSupplier(final DeferredFunction<D> defer) {
         return () -> defer.as(this);
     }
 }

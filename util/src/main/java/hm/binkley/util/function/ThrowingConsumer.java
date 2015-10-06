@@ -27,7 +27,7 @@ public interface ThrowingConsumer<T, E extends Exception> {
     }
 
     /** Creates a facade {@code Consumer} wrapping this throwing one. */
-    default <D extends RuntimeException> Consumer<T> asConsumer(final Defer<D> defer) {
+    default <D extends RuntimeException> Consumer<T> asConsumer(final DeferredFunction<D> defer) {
         return t -> defer.as(() -> accept(t));
     }
 }

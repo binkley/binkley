@@ -27,7 +27,7 @@ public interface ThrowingBiFunction<T, U, R, E extends Exception> {
     }
 
     /** Creates a facade {@code Function} wrapping this throwing one. */
-    default <D extends RuntimeException> BiFunction<T, U, R> asBiFunction(final Defer<D> defer) {
+    default <D extends RuntimeException> BiFunction<T, U, R> asBiFunction(final DeferredFunction<D> defer) {
         return (u, v) -> defer.as(() -> apply(u, v));
     }
 }

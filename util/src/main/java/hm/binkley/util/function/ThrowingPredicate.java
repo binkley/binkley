@@ -45,7 +45,7 @@ public interface ThrowingPredicate<T, E extends Exception> {
 
     /** Creates a facade {@code Predicate} wrapping this throwing one. */
     default <D extends RuntimeException> Predicate<T> asPredicate(
-            final Defer<D> defer) {
+            final DeferredFunction<D> defer) {
         return t -> defer.as(() -> test(t));
     }
 }

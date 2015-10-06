@@ -17,7 +17,7 @@ public interface ThrowingBooleanSupplier<E extends Exception> {
             throws E, InterruptedException;
 
     /** Creates a facade {@code BooleanSupplier} wrapping this throwing one. */
-    default <D extends RuntimeException> BooleanSupplier asBooleanSupplier(final Defer<D> defer) {
+    default <D extends RuntimeException> BooleanSupplier asBooleanSupplier(final DeferredFunction<D> defer) {
         return () -> defer.as(this);
     }
 }

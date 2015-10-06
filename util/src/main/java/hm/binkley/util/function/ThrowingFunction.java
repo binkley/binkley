@@ -39,7 +39,7 @@ public interface ThrowingFunction<T, R, E extends Exception> {
 
     /** Creates a facade {@code Function} wrapping this throwing one. */
     default <D extends RuntimeException> Function<T, R> asFunction(
-            final Defer<D> defer) {
+            final DeferredFunction<D> defer) {
         return t -> defer.as(() -> apply(t));
     }
 }

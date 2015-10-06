@@ -33,15 +33,15 @@ import java.util.function.Function;
 import static java.lang.Thread.currentThread;
 
 /**
- * {@code Defer} evaluates deferred execution for throwing versions of types for
- * Java 8 stream.
+ * {@code Defer} evaluates deferred execution for throwing versions of types
+ * for Java 8 stream.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Needs documentation.
  * @todo Package scope or public?
  */
 @FunctionalInterface
-public interface Defer<D extends RuntimeException>
+public interface DeferredFunction<D extends RuntimeException>
         extends Function<Exception, D> {
     default <T, E extends Exception> T as(
             final ThrowingSupplier<? extends T, E> throwing) {
@@ -91,7 +91,8 @@ public interface Defer<D extends RuntimeException>
         }
     }
 
-    default <E extends Exception> void as(final ThrowingRunnable<E> throwing) {
+    default <E extends Exception> void as(
+            final ThrowingRunnable<E> throwing) {
         try {
             throwing.run();
         } catch (final CancellationException e) {
