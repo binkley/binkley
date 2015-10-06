@@ -5,9 +5,9 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
- * {@code ThrowingPredicate} is a <em>throwing</em> look-a=like of {@link Predicate}.  It cannot be
- * a {@code Predicate} as it takes throwing versions of predicates.  Otherwise it is a faithful
- * reproduction.
+ * {@code ThrowingPredicate} is a <em>throwing</em> look-a=like of {@link
+ * Predicate}.  It cannot be a {@code Predicate} as it takes throwing versions
+ * of predicates.  Otherwise it is a faithful reproduction.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
@@ -20,7 +20,8 @@ public interface ThrowingPredicate<T, E extends Exception> {
 
     /** @see Predicate#and(Predicate) */
     @Nonnull
-    default ThrowingPredicate<T, E> and(@Nonnull final ThrowingPredicate<? super T, E> other) {
+    default ThrowingPredicate<T, E> and(
+            @Nonnull final ThrowingPredicate<? super T, E> other) {
         return t -> test(t) && other.test(t);
     }
 
@@ -32,7 +33,8 @@ public interface ThrowingPredicate<T, E extends Exception> {
 
     /** @see Predicate#or(Predicate) */
     @Nonnull
-    default ThrowingPredicate<T, E> or(@Nonnull final ThrowingPredicate<? super T, E> other) {
+    default ThrowingPredicate<T, E> or(
+            @Nonnull final ThrowingPredicate<? super T, E> other) {
         return t -> test(t) || other.test(t);
     }
 

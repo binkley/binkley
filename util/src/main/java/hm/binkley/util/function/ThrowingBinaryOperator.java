@@ -5,9 +5,10 @@ import java.util.Comparator;
 import java.util.function.BinaryOperator;
 
 /**
- * {@code ThrowingBinaryOperator} is a <em>throwing</em> look-a=like of {@link BinaryOperator}.  It
- * cannot be a {@code BinaryOperator} as it takes throwing versions of binary operators.  Otherwise
- * it is a faithful reproduction.
+ * {@code ThrowingBinaryOperator} is a <em>throwing</em> look-a=like of {@link
+ * BinaryOperator}.  It cannot be a {@code BinaryOperator} as it takes
+ * throwing versions of binary operators.  Otherwise it is a faithful
+ * reproduction.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
@@ -30,7 +31,8 @@ public interface ThrowingBinaryOperator<T, E extends Exception>
     }
 
     /** Creates a facade {@code BinaryOperator} wrapping this throwing one. */
-    default <D extends RuntimeException> BinaryOperator<T> asBinaryOperator(final DeferredFunction<D> defer) {
+    default <D extends RuntimeException> BinaryOperator<T> asBinaryOperator(
+            final DeferredFunction<D> defer) {
         return (u, v) -> defer.as(() -> apply(u, v));
     }
 }

@@ -5,9 +5,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
- * {@code ThrowingBiFunction} is a <em>throwing</em> look-a=like of {@link BiFunction}.  It cannot
- * be a {@code BiFunction} as it takes throwing versions of bi-functions.  Otherwise it is a
- * faithful reproduction.
+ * {@code ThrowingBiFunction} is a <em>throwing</em> look-a=like of {@link
+ * BiFunction}.  It cannot be a {@code BiFunction} as it takes throwing
+ * versions of bi-functions.  Otherwise it is a faithful reproduction.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
@@ -27,7 +27,8 @@ public interface ThrowingBiFunction<T, U, R, E extends Exception> {
     }
 
     /** Creates a facade {@code Function} wrapping this throwing one. */
-    default <D extends RuntimeException> BiFunction<T, U, R> asBiFunction(final DeferredFunction<D> defer) {
+    default <D extends RuntimeException> BiFunction<T, U, R> asBiFunction(
+            final DeferredFunction<D> defer) {
         return (u, v) -> defer.as(() -> apply(u, v));
     }
 }

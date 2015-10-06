@@ -4,9 +4,9 @@ import javax.annotation.Nonnull;
 import java.util.function.Function;
 
 /**
- * {@code ThrowingFunction} is a <em>throwing</em> look-a=like of {@link Function}.  It cannot be a
- * {@code Function} as it takes throwing versions of functions.  Otherwise it is a faithful
- * reproduction.
+ * {@code ThrowingFunction} is a <em>throwing</em> look-a=like of {@link
+ * Function}.  It cannot be a {@code Function} as it takes throwing versions
+ * of functions.  Otherwise it is a faithful reproduction.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
@@ -19,15 +19,15 @@ public interface ThrowingFunction<T, R, E extends Exception> {
 
     /** @see Function#compose(Function) */
     @Nonnull
-    default <V> ThrowingFunction<V, R, E> compose(
-            @Nonnull final ThrowingFunction<? super V, ? extends T, E> before) {
+    default <V> ThrowingFunction<V, R, E> compose(@Nonnull
+    final ThrowingFunction<? super V, ? extends T, E> before) {
         return (V v) -> apply(before.apply(v));
     }
 
     /** @see Function#andThen(Function) */
     @Nonnull
-    default <V> ThrowingFunction<T, V, E> andThen(
-            @Nonnull final ThrowingFunction<? super R, ? extends V, E> after) {
+    default <V> ThrowingFunction<T, V, E> andThen(@Nonnull
+    final ThrowingFunction<? super R, ? extends V, E> after) {
         return (T t) -> after.apply(apply(t));
     }
 
