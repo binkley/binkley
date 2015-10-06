@@ -7,7 +7,7 @@ import org.hamcrest.Matcher;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -51,10 +51,11 @@ import static lombok.AccessLevel.PRIVATE;
 @NoArgsConstructor(access = PRIVATE)
 public final class Matching<T, U>
         implements Function<T, Optional<U>> {
-    private final Collection<Case> cases = new ArrayList<>();
+    private final List<Case> cases = new ArrayList<>();
 
     /**
-     * Begins pattern matching with a new pattern matcher.
+     * Begins pattern matching with a new pattern matcher where input and
+     * output types differ.
      *
      * @param inType the input type token, never {@code null}
      * @param outType the output type token, never {@code null}
@@ -65,9 +66,25 @@ public final class Matching<T, U>
      *
      * @todo Avoid the type tokens
      */
+    @SuppressWarnings("UnusedParameters")
     public static <T, U> Matching<T, U> matching(
             @Nonnull final Class<T> inType, @Nonnull final Class<U> outType) {
         return new Matching<>();
+    }
+
+    /**
+     * Begins pattern matching with a new pattern matcher where input and
+     * output types are the same.
+     *
+     * @param type the input/output type token, never {@code null}
+     * @param <T> the input/output type to match against
+     *
+     * @return the pattern matcher, never {@code null}
+     *
+     * @todo Avoid the type tokens
+     */
+    public static <T> Matching<T, T> matching(@Nonnull final Class<T> type) {
+        return matching(type, type);
     }
 
     /**

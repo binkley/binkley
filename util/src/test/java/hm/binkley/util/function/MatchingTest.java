@@ -88,7 +88,7 @@ public final class MatchingTest {
 
     @Test
     public void shouldSupportHamcrestMatcher() {
-        assertThat(matching(Integer.class, Integer.class).
+        assertThat(matching(Integer.class).
                 when(equalTo(1)).then(0).
                 apply(1).get(), equalTo(0));
     }
