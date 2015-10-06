@@ -1,5 +1,4 @@
-binkley's BLOG
-==============
+# binkley's BLOG
 
 [binkley's BLOG](https://binkley.blogspot.com)
 
@@ -23,7 +22,7 @@ Current released version is 6.  [View javadoc](https://binkley.github.io/binkley
 * [Mixin](mixin/) - Mixins for Java via JDK proxies and method handles
 * [Spring](spring/) - Examples with Spring
 * [Testing](testing/) - Small testing improvements
-* [Utility](util/) - `Bug`, `CheckedStream` and friends
+* [Utility](util/README.md) - `Bug`, `CheckedStream` and friends
 * [Value type](value-type/) - Java annotation and processor for value types
 * [Xio](xio/) - Pulling out interfaces from JDK I/O
 * [XML](xml/) - Experiments in XML
@@ -35,6 +34,7 @@ Current released version is 6.  [View javadoc](https://binkley.github.io/binkley
 
 ### 7
 
+* Add magic bus
 * Add dynafig
 
 ### 6
