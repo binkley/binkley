@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static hm.binkley.util.Bug.bug;
 import static hm.binkley.util.function.Matching.matching;
 import static java.lang.String.format;
 import static java.lang.System.out;
@@ -33,6 +34,12 @@ public final class MatchingMain {
                         when(even()).then(scaleBy(3)).
                         when(gt(2)).then(dec()).
                         when(instanceOf(Float.class)).then(nil()).
+                        when(i -> {
+                            switch (i) {
+                            default:
+                                return false;
+                            }
+                        }).thenThrow(bug("Cannot reach here")).
                         otherwise("no match")).
                 map(MatchingMain::toString).
                 forEach(out::println);
