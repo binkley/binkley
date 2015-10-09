@@ -26,7 +26,7 @@ public final class MatchingMain {
                 peek(n -> out.print(format("%d -> ", n))).
                 map(matching(Integer.class, Object.class).
                         when(Objects::isNull).then(n -> "BANG!").
-                        when(eq(0)).then(nil()).
+                        when(0).then(nil()).
                         when(eq(1)).then("one").
                         when(eq(13)).then(() -> "unlucky").
                         when(eq(14)).then(printIt()).

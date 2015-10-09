@@ -19,6 +19,13 @@ import static org.junit.Assert.fail;
  */
 public final class MatchingTest {
     @Test
+    public void shouldMatchExactValue() {
+        assertThat(matching(Integer.class).
+                when(1).then(x -> 2).
+                apply(1).get(), equalTo(2));
+    }
+
+    @Test
     public void shouldMatchWithFunction() {
         assertThat(matching(Integer.class, Object.class).
                 when(eq(2)).thenThrow(TestException::new).

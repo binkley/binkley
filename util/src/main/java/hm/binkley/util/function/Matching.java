@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -85,6 +86,18 @@ public final class Matching<T, U>
      */
     public static <T> Matching<T, T> matching(@Nonnull final Class<T> type) {
         return matching(type, type);
+    }
+
+    /**
+     * Begins a when/then pair which checks object equality, a convenience for
+     * the predicate, {@code () -> Objects.equals(input, value)}.
+     *
+     * @param value the value to match, possibly {@code null}
+     *
+     * @return the pattern continuace, never {@code null}
+     */
+    public When when(@Nullable final T value) {
+        return new When(o -> Objects.equals(o, value));
     }
 
     /**
