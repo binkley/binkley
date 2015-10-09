@@ -81,7 +81,9 @@
         <module>concurrent</module>
         <module>convert</module>
         <module>corba</module>
-        <module>dynafig</module>
+        <module>dynafig-core</module>
+        <module>dynafig-spring</module>
+        <module>dynafig-zookeeper</module>
         <module>lombok</module>
         <module>magic-bus</module>
         <module>value-type</module>
@@ -95,6 +97,7 @@
 
     <properties>
         <commons-lang3.version>3.4</commons-lang3.version>
+        <curator.version>2.9.0</curator.version>
         <freemarker.version>2.3.23</freemarker.version>
         <guava.version>18.0</guava.version>
         <guice.version>3.0</guice.version>
@@ -148,6 +151,7 @@
         <service-binder.version>0.3</service-binder.version>
         <slf4j.version>1.7.12</slf4j.version>
         <snakeyaml.version>1.16</snakeyaml.version>
+        <spring-boot.version>1.2.6.RELEASE</spring-boot.version>
         <spring.version>4.2.1.RELEASE</spring.version>
         <system-rules.version>1.12.1</system-rules.version>
         <versions-maven-plugin.version>2.2</versions-maven-plugin.version>
@@ -255,12 +259,22 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-dynafig-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-mixin</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-net</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-testing</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -303,11 +317,6 @@
                 <artifactId>binkley-yaml-test-data</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>binkley-testing</artifactId>
-                <version>${project.version}</version>
             </dependency>
 
             <dependency>
@@ -470,6 +479,18 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-tx</artifactId>
                 <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>${curator.version}</version>
             </dependency>
 
             <dependency>
