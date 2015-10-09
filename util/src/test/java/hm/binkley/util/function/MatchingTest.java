@@ -7,7 +7,10 @@ import java.util.function.Predicate;
 
 import static hm.binkley.util.function.Matching.matching;
 import static hm.binkley.util.function.MatchingTest.B.B;
+import static hm.binkley.util.function.MatchingTest.Ex.ONE;
+import static hm.binkley.util.function.MatchingTest.Ex.TWO;
 import static java.util.function.Function.identity;
+import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -19,10 +22,17 @@ import static org.junit.Assert.fail;
  */
 public final class MatchingTest {
     @Test
-    public void shouldMatchExactValue() {
+    public void shouldMatchExactValueForPrimitive() {
         assertThat(matching(Integer.class).
                 when(1).then(x -> 2).
                 apply(1).get(), equalTo(2));
+    }
+
+    @Test
+    public void shouldMatchExactValueForObject() {
+        assertThat(matching(Ex.class).
+                when(any(Ex.class)).then(Ex::next).
+                apply(ONE).get(), equalTo(TWO));
     }
 
     @Test
@@ -131,6 +141,32 @@ public final class MatchingTest {
 
     private static StackTraceElement firstFrameOf(final Throwable t) {
         return t.getStackTrace()[0];
+    }
+
+    static abstract class Ex {
+        static final Ex ONE = new Ex() {
+            @Override
+            Ex next() {
+                return TWO;
+            }
+        };
+        static final Ex TWO = new Ex() {
+            @Override
+            Ex next() {
+                return TRE;
+            }
+        };
+        static final Ex TRE = new Ex() {
+            @Override
+            Ex next() {
+                return ONE;
+            }
+        };
+
+        private Ex() {
+        }
+
+        abstract Ex next();
     }
 
     interface C {

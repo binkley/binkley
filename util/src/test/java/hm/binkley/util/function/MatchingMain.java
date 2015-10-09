@@ -106,18 +106,6 @@ public final class MatchingMain {
         return format("%s (%s)", o, o.map(Object::getClass));
     }
 
-    interface C {
-    }
-
-    enum A
-            implements C {
-    }
-
-    enum B
-            implements C {
-        B
-    }
-
     static final class TestException
             extends RuntimeException {
     }

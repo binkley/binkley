@@ -8,7 +8,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -16,6 +15,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static java.util.Arrays.copyOfRange;
+import static java.util.function.Predicate.isEqual;
 import static lombok.AccessLevel.PRIVATE;
 
 /**
@@ -95,9 +95,11 @@ public final class Matching<T, U>
      * @param value the value to match, possibly {@code null}
      *
      * @return the pattern continuace, never {@code null}
+     *
+     * @see Predicate#isEqual(Object)
      */
     public When when(@Nullable final T value) {
-        return new When(o -> Objects.equals(o, value));
+        return new When(isEqual(value));
     }
 
     /**
