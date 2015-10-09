@@ -15,7 +15,7 @@ import static java.lang.System.out;
 import static org.hamcrest.Matchers.instanceOf;
 
 /**
- * {@code MatchingTest} tests {@code Matching}.
+ * {@code MatchingTest} demonstrates {@code Matching}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
