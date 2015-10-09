@@ -25,7 +25,7 @@ public final class MatchingMain {
         Stream.of(0, 1, 2, 3, 13, 14, 15, null, -1).
                 peek(n -> out.print(format("%d -> ", n))).
                 map(matching(Integer.class, Object.class).
-                        when(Objects::isNull).then(n -> "!").
+                        when(Objects::isNull).then(n -> "BANG!").
                         when(eq(0)).then(nil()).
                         when(eq(1)).then("one").
                         when(eq(13)).then(() -> "unlucky").
