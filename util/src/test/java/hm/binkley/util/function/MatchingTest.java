@@ -10,7 +10,6 @@ import static hm.binkley.util.function.MatchingTest.B.B;
 import static hm.binkley.util.function.MatchingTest.Ex.ONE;
 import static hm.binkley.util.function.MatchingTest.Ex.TWO;
 import static java.util.function.Function.identity;
-import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -31,7 +30,7 @@ public final class MatchingTest {
     @Test
     public void shouldMatchExactValueForObject() {
         assertThat(matching(Ex.class).
-                when(any(Ex.class)).then(Ex::next).
+                when(ONE).then(Ex::next).
                 apply(ONE).get(), equalTo(TWO));
     }
 
