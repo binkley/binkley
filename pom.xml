@@ -102,7 +102,7 @@
         <freemarker.version>2.3.23</freemarker.version>
         <generateBackupPoms>false</generateBackupPoms>
         <guava.version>18.0</guava.version>
-        <guice.version>3.0</guice.version>
+        <guice.version>4.0</guice.version>
         <hamcrest.version>2.0.0.0</hamcrest.version>
         <idlj-maven-plugin.version>1.2.1</idlj-maven-plugin.version>
         <ini4j.version>0.5.4</ini4j.version>
@@ -119,7 +119,7 @@
         <jsr305.version>3.0.1</jsr305.version>
         <junit.version>4.12</junit.version>
         <logback.version>1.1.3</logback.version>
-        <lombok.version>1.14.8</lombok.version>
+        <lombok.version>1.16.6</lombok.version>
         <maven-clean-plugin.version>2.6.1</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
         <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>

@@ -36,6 +36,10 @@ Current released version is 6.  [View javadoc](https://binkley.github.io/binkley
 
 * Add magic bus
 * Add dynafig
+* Lombok module fixed at lombok 1.14.x.  Internals changed in lombok, this
+  code has not caught up
+* Guice module fixed at guice 3.0.  Guice API has changed, this code has not
+  caught up
 
 ### 6
 
