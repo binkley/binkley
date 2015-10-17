@@ -259,6 +259,13 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>binkley-dynafig-core</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+                <type>test-jar</type>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>binkley-mixin</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -625,6 +632,13 @@
                         </manifest>
                     </archive>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -711,8 +725,6 @@
                         <goals>
                             <goal>jar</goal>
                             <goal>test-jar</goal>
-                            <goal>aggregate</goal>
-                            <goal>test-aggregate</goal>
                         </goals>
                     </execution>
                 </executions>
