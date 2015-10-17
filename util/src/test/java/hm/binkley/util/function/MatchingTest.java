@@ -11,6 +11,7 @@ import static hm.binkley.util.function.MatchingTest.Ex.ONE;
 import static hm.binkley.util.function.MatchingTest.Ex.TWO;
 import static java.util.function.Function.identity;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -123,8 +124,9 @@ public final class MatchingTest {
                     apply(1);
             fail("Did not throw");
         } catch (final TestException e) {
+            // TODO: Varies by JDK version - could be class or lambda
             assertThat(firstFrameOf(e).getClassName(),
-                    equalTo(getClass().getName()));
+                    startsWith(getClass().getName()));
             assertThat(firstFrameOf(e).getMethodName(),
                     equalTo("shouldCleanUpStackForOtherwiseThrow"));
         }
@@ -168,8 +170,7 @@ public final class MatchingTest {
         abstract Ex next();
     }
 
-    interface C {
-    }
+    interface C {}
 
     enum A
             implements C {
@@ -181,6 +182,5 @@ public final class MatchingTest {
     }
 
     static final class TestException
-            extends RuntimeException {
-    }
+            extends RuntimeException {}
 }
