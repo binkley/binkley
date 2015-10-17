@@ -11,7 +11,7 @@ before_install:
   - export PATH=$PWD/apache-maven-3.3.3/bin:${PATH}
   - hash -r
   - echo 'MAVEN_OPTS="-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"' >~/.mavenrc
-install: mvn install -Dmaven.javadoc.skip=true -DskipTests=true -Dgpg.skip=true
+install: mvn install -Dmaven.javadoc.skip=true -Dgpg.skip=true
 before_script:
   - export M2_HOME=$PWD/apache-maven-3.3.3
   - export PATH=$PWD/apache-maven-3.3.3/bin:${PATH}
