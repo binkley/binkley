@@ -58,7 +58,14 @@ public final class MatchingTest {
     }
 
     @Test(expected = TestException.class)
-    public void shouldThrow() {
+    public void shouldThrowFromException() {
+        matching(Integer.class, Object.class).
+                otherwiseThrow(new TestException()).
+                apply(0);
+    }
+
+    @Test(expected = TestException.class)
+    public void shouldThrowFromSupplier() {
         matching(Integer.class, Object.class).
                 otherwiseThrow(TestException::new).
                 apply(0);
@@ -170,7 +177,8 @@ public final class MatchingTest {
         abstract Ex next();
     }
 
-    interface C {}
+    interface C {
+    }
 
     enum A
             implements C {
@@ -182,5 +190,6 @@ public final class MatchingTest {
     }
 
     static final class TestException
-            extends RuntimeException {}
+            extends RuntimeException {
+    }
 }

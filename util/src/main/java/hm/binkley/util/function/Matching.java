@@ -165,6 +165,24 @@ public final class Matching<T, U>
      * evaluation of <var>otherwise</var>, always placed
      * <strong>last</strong>
      * in the list of cases.  Equivalent to: <pre>
+     * when(__ -&gt; true).thenThrow(otherwise); // exception
+     * </pre>
+     *
+     * @param otherwise the pattern matching exception, never {@code null}
+     *
+     * @return the pattern matcher, never {@code null}
+     */
+    @Nonnull
+    public Matching<T, U> otherwiseThrow(
+            @Nonnull final RuntimeException otherwise) {
+        return always().thenThrow(otherwise);
+    }
+
+    /**
+     * Convenience combination of a default when/then pair throwing the
+     * evaluation of <var>otherwise</var>, always placed
+     * <strong>last</strong>
+     * in the list of cases.  Equivalent to: <pre>
      * when(__ -&gt; true).thenThrow(otherwise); // supplier of exception
      * </pre>
      *
@@ -298,6 +316,22 @@ public final class Matching<T, U>
         @Nonnull
         public Matching<T, U> then(@Nonnull final Consumer<? super T> then) {
             return then(then, null);
+        }
+
+        /**
+         * Ends a when/then pair, evaluating <var>then</var> independent of
+         * value and throwing the new exception if matched.
+         *
+         * @param then the pattern matching exception, never {@code null}
+         *
+         * @return the pattern matcher, never {@code null}
+         */
+        @Nonnull
+        public Matching<T, U> thenThrow(
+                @Nonnull final RuntimeException then) {
+            cases.add(new Case(when,
+                    __ -> cleanAndThrow(then, FIRST_CALLER_FRAME)));
+            return Matching.this;
         }
 
         /**
