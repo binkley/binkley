@@ -46,7 +46,17 @@ public final class MatchingMain {
 
         try {
             out.println();
-            out.println("- Matching case throwing an exception:");
+            out.println("- Matching case throwing a user exception:");
+            matching(Integer.class, Void.class).
+                    when(eq(1)).thenThrow(new TestException()).
+                    apply(1);
+        } catch (final TestException e) {
+            e.printStackTrace(out);
+        }
+
+        try {
+            out.println();
+            out.println("- Matching case throwing a supplied exception:");
             matching(Integer.class, Void.class).
                     when(eq(1)).thenThrow(TestException::new).
                     apply(1);
