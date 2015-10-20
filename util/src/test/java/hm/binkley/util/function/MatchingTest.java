@@ -11,6 +11,8 @@ import static hm.binkley.util.function.MatchingTest.Ex.ONE;
 import static hm.binkley.util.function.MatchingTest.Ex.TWO;
 import static java.util.function.Function.identity;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -57,11 +59,17 @@ public final class MatchingTest {
                 apply(0).get(), equalTo(1));
     }
 
-    @Test(expected = TestException.class)
+    @Test
     public void shouldThrowFromException() {
-        matching(Integer.class, Object.class).
-                otherwiseThrow(new TestException()).
-                apply(0);
+        final TestException otherwise = new TestException();
+        try {
+            matching(Integer.class, Object.class).
+                    otherwiseThrow(otherwise).
+                    apply(0);
+            fail("Did not throw");
+        } catch (final TestException e) {
+            assertThat(e, is(sameInstance(otherwise)));
+        }
     }
 
     @Test(expected = TestException.class)
@@ -109,7 +117,7 @@ public final class MatchingTest {
     }
 
     @Test
-    public void shouldCleanUpStackForThenThrow() {
+    public void shouldCleanUpStackForThenThrowFromSupplier() {
         try {
             matching(Integer.class, Void.class).
                     when(eq(1)).thenThrow(TestException::new).
@@ -119,12 +127,12 @@ public final class MatchingTest {
             assertThat(firstFrameOf(e).getClassName(),
                     equalTo(getClass().getName()));
             assertThat(firstFrameOf(e).getMethodName(),
-                    equalTo("shouldCleanUpStackForThenThrow"));
+                    equalTo("shouldCleanUpStackForThenThrowFromSupplier"));
         }
     }
 
     @Test
-    public void shouldCleanUpStackForOtherwiseThrow() {
+    public void shouldCleanUpStackForOtherwiseThrowFromSupplier() {
         try {
             matching(Object.class, Void.class).
                     otherwiseThrow(TestException::new).
@@ -135,7 +143,7 @@ public final class MatchingTest {
             assertThat(firstFrameOf(e).getClassName(),
                     startsWith(getClass().getName()));
             assertThat(firstFrameOf(e).getMethodName(),
-                    equalTo("shouldCleanUpStackForOtherwiseThrow"));
+                    equalTo("shouldCleanUpStackForOtherwiseThrowFromSupplier"));
         }
     }
 

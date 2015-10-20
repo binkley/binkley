@@ -329,8 +329,9 @@ public final class Matching<T, U>
         @Nonnull
         public Matching<T, U> thenThrow(
                 @Nonnull final RuntimeException then) {
-            cases.add(new Case(when,
-                    __ -> cleanAndThrow(then, FIRST_CALLER_FRAME)));
+            cases.add(new Case(when, __ -> {
+                throw then;
+            }));
             return Matching.this;
         }
 
