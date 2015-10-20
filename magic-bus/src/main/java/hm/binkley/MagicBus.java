@@ -1,6 +1,7 @@
 package hm.binkley;
 
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import javax.annotation.Nonnull;
 import java.util.Map.Entry;
@@ -155,18 +156,26 @@ public final class MagicBus {
 
     /** Details on unsubscribed (undelivered) messages. */
     @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
+    @ToString
     public static final class UnsubscribedMessage {
+        @Nonnull
         public final MagicBus bus;
+        @Nonnull
         public final Object message;
     }
 
     /** Details on failed messages (dead letters). */
     @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
+    @ToString
     public static final class FailedMessage
             extends RuntimeException {
+        @Nonnull
         public final MagicBus bus;
+        @Nonnull
         public final Mailbox mailbox;
+        @Nonnull
         public final Object message;
+        @Nonnull
         public final Exception failure;
     }
 
