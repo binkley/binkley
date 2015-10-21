@@ -57,7 +57,8 @@ public final class MagicBusTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = NullPointerException.class)
     public void shouldRejectMissingMessageTypeInSubscribe() {
-        bus.subscribe(null, message -> {});
+        bus.subscribe(null, message -> {
+        });
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -69,7 +70,8 @@ public final class MagicBusTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = NullPointerException.class)
     public void shouldRejectMissingMessageTypeInUnsubscribe() {
-        bus.unsubscribe(null, message -> {});
+        bus.unsubscribe(null, message -> {
+        });
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -268,12 +270,7 @@ public final class MagicBusTest {
         range(0, actors).parallel().
                 forEach(actor -> {
                     // Use "new" to guarantee a unique instance
-                    final Mailbox<RightType> mailbox
-                            = new Mailbox<RightType>() {
-                        @Override
-                        public void receive(
-                                @Nonnull final RightType message) {}
-                    };
+                    final Mailbox<RightType> mailbox = new Discard();
                     bus.subscribe(RightType.class, mailbox);
                     bus.unsubscribe(RightType.class, mailbox);
                     latch.countDown();
@@ -290,13 +287,20 @@ public final class MagicBusTest {
 
     @Test(expected = NoSuchElementException.class)
     public void shouldComplainWhenUnsubscribingBadMailbox() {
-        final Mailbox<RightType> mailbox = m -> {};
+        final Mailbox<RightType> mailbox = m -> {
+        };
 
         bus.unsubscribe(RightType.class, mailbox);
     }
 
     private AssertDelivery assertOn(final List messages) {
         return new AssertDelivery(messages);
+    }
+
+    private static class Discard
+            implements Mailbox<RightType> {
+        @Override
+        public void receive(@Nonnull final RightType message) {}
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
