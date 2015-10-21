@@ -2,7 +2,7 @@ package hm.binkley;
 
 import hm.binkley.MagicBus.FailedMessage;
 import hm.binkley.MagicBus.Mailbox;
-import hm.binkley.MagicBus.UnsubscribedMessage;
+import hm.binkley.MagicBus.ReturnedMessage;
 import lombok.RequiredArgsConstructor;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +32,7 @@ import static org.junit.Assert.assertThat;
  */
 public final class MagicBusTest {
     private MagicBus bus;
-    private List<UnsubscribedMessage> returned;
+    private List<ReturnedMessage> returned;
     private List<FailedMessage> failed;
 
     @Before
@@ -297,12 +297,6 @@ public final class MagicBusTest {
         return new AssertDelivery(messages);
     }
 
-    private static class Discard
-            implements Mailbox<RightType> {
-        @Override
-        public void receive(@Nonnull final RightType message) {}
-    }
-
     @RequiredArgsConstructor(access = PRIVATE)
     private final class AssertDelivery {
         private final List<?> messages;
@@ -333,6 +327,12 @@ public final class MagicBusTest {
         return message -> {
             throw ctor.get();
         };
+    }
+
+    private static class Discard
+            implements Mailbox<RightType> {
+        @Override
+        public void receive(@Nonnull final RightType message) {}
     }
 
     private abstract static class BaseType {}

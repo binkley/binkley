@@ -7,9 +7,9 @@ Example microproject demonstrating intraprocess messaging.
 ```java
 import hm.binkley.MagicBus;
 import hm.binkley.MagicBus.FailedMessage;
-import hm.binkley.MagicBus.UnsubscribedMessage;
+import hm.binkley.MagicBus.ReturnedMessage;
 
-final Consumer<UnsubscribedMessage> returned = message -> {...};
+final Consumer<ReturnedMessage> returned = message -> {...};
 final Consumer<FailedMessage> failed = message -> {...};
 final MessageBus bus = new MessageBus(returned, failed);
 ```

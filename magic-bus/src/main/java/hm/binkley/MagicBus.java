@@ -44,7 +44,7 @@ public final class MagicBus {
 
     private final Subscribers subscribers = new Subscribers();
     /** Receives unsubscribed messages. */
-    private final Consumer<? super UnsubscribedMessage> returned;
+    private final Consumer<? super ReturnedMessage> returned;
     /** Receives failed messages. */
     private final Consumer<? super FailedMessage> failed;
 
@@ -57,8 +57,7 @@ public final class MagicBus {
      * @see #discard() a discarding handler for <var>returned</var> and
      * <var>failed</var>
      */
-    public MagicBus(
-            @Nonnull final Consumer<? super UnsubscribedMessage> returned,
+    public MagicBus(@Nonnull final Consumer<? super ReturnedMessage> returned,
             @Nonnull final Consumer<? super FailedMessage> failed) {
         this.returned = requireNonNull(returned, "returned");
         this.failed = requireNonNull(failed, "failed");
@@ -135,7 +134,7 @@ public final class MagicBus {
     private void returnIfDead(final AtomicInteger deliveries,
             final Object message) {
         if (0 == deliveries.get())
-            returned.accept(new UnsubscribedMessage(this, message));
+            returned.accept(new ReturnedMessage(this, message));
     }
 
     /**
@@ -157,7 +156,7 @@ public final class MagicBus {
     /** Details on unsubscribed (undelivered) messages. */
     @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
     @ToString
-    public static final class UnsubscribedMessage {
+    public static final class ReturnedMessage {
         @Nonnull
         public final MagicBus bus;
         @Nonnull
@@ -167,8 +166,7 @@ public final class MagicBus {
     /** Details on failed messages (dead letters). */
     @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
     @ToString
-    public static final class FailedMessage
-            extends RuntimeException {
+    public static final class FailedMessage {
         @Nonnull
         public final MagicBus bus;
         @Nonnull
