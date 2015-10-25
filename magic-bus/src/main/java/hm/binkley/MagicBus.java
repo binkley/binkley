@@ -1,5 +1,6 @@
 package hm.binkley;
 
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
@@ -73,6 +74,7 @@ public interface MagicBus {
     }
 
     /** Details on unsubscribed (undelivered) messages. */
+    @EqualsAndHashCode
     @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
     @ToString
     final class ReturnedMessage {
@@ -83,6 +85,7 @@ public interface MagicBus {
     }
 
     /** Details on failed messages (dead letters). */
+    @EqualsAndHashCode
     @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
     @ToString
     final class FailedMessage {
