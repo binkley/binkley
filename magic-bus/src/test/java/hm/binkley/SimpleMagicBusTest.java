@@ -1,10 +1,6 @@
 package hm.binkley;
 
-import hm.binkley.MagicBus.FailedMessage;
 import hm.binkley.MagicBus.Mailbox;
-import hm.binkley.MagicBus.ReturnedMessage;
-import lombok.RequiredArgsConstructor;
-import org.junit.Before;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -12,16 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-import static hm.binkley.SimpleMagicBus.discard;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.IntStream.range;
-import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -30,16 +22,10 @@ import static org.junit.Assert.assertThat;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public final class SimpleMagicBusTest {
-    private MagicBus bus;
-    private List<ReturnedMessage> returned;
-    private List<FailedMessage> failed;
-
-    @Before
-    public void setUpFixture() {
-        returned = new ArrayList<>(1);
-        failed = new ArrayList<>(1);
-        bus = new SimpleMagicBus(returned::add, failed::add);
+public final class SimpleMagicBusTest
+        extends MagicBusTestBase<SimpleMagicBus> {
+    public SimpleMagicBusTest() {
+        super(SimpleMagicBus::new);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -91,12 +77,13 @@ public final class SimpleMagicBusTest {
         final List<RightType> messages = new ArrayList<>(1);
         bus.subscribe(RightType.class, messages::add);
 
-        bus.post(new RightType());
+        final RightType message = new RightType();
+        bus.post(message);
 
         assertOn(messages).
-                delivered(1).
-                returned(0).
-                failed(0);
+                delivered(message).
+                noneReturned().
+                noneFailed();
     }
 
     @Test
@@ -104,12 +91,13 @@ public final class SimpleMagicBusTest {
         final List<LeftType> messages = new ArrayList<>(1);
         bus.subscribe(LeftType.class, messages::add);
 
-        bus.post(new RightType());
+        final RightType message = new RightType();
+        bus.post(message);
 
         assertOn(messages).
-                delivered(0).
-                returned(1).
-                failed(0);
+                noneDelivered().
+                returned(with(message)).
+                noneFailed();
     }
 
     @Test
@@ -117,36 +105,39 @@ public final class SimpleMagicBusTest {
         final List<BaseType> messages = new ArrayList<>(1);
         bus.subscribe(BaseType.class, messages::add);
 
-        bus.post(new RightType());
+        final RightType message = new RightType();
+        bus.post(message);
 
         assertOn(messages).
-                delivered(1).
-                returned(0).
-                failed(0);
+                delivered(message).
+                noneReturned().
+                noneFailed();
     }
 
     @Test
     public void shouldSaveDeadLetters() {
-        final List<BaseType> messages = new ArrayList<>(0);
-        bus.post(new LeftType());
+        final LeftType message = new LeftType();
+        bus.post(message);
 
-        assertOn(messages).
-                delivered(0).
-                returned(1).
-                failed(0);
+        assertOn(noMailbox()).
+                noneDelivered().
+                returned(with(message)).
+                noneFailed();
     }
 
     @Test
     public void shouldSaveFailedPosts() {
-        final List<BaseType> messages = new ArrayList<>(0);
-        bus.subscribe(LeftType.class, failWith(Exception::new));
+        final Exception failure = new Exception();
+        final Mailbox<LeftType> mailbox = failWith(() -> failure);
+        bus.subscribe(LeftType.class, mailbox);
 
-        bus.post(new LeftType());
+        final LeftType message = new LeftType();
+        bus.post(message);
 
-        assertOn(messages).
-                delivered(0).
-                returned(0).
-                failed(1);
+        assertOn(noMailbox()).
+                noneDelivered().
+                noneReturned().
+                failed(with(mailbox, message, failure));
     }
 
     @Test(expected = RuntimeException.class)
@@ -176,9 +167,9 @@ public final class SimpleMagicBusTest {
         assertThat(third.get(), is(equalTo(2)));
         assertThat(fourth.get(), is(equalTo(3)));
 
-        assertOn(null).
-                returned(0).
-                failed(0);
+        assertOn(noMailbox()).
+                noneReturned().
+                noneFailed();
     }
 
     @Test
@@ -202,32 +193,9 @@ public final class SimpleMagicBusTest {
         assertThat(right.get(), is(equalTo(2)));
         assertThat(farRight.get(), is(equalTo(3)));
 
-        assertOn(null).
-                returned(0).
-                failed(0);
-    }
-
-    @Test
-    public void shouldDiscardDeadLetters() {
-        bus = new SimpleMagicBus(discard(), discard());
-
-        bus.post(new RightType());
-
-        assertOn(null).
-                returned(0).
-                failed(0);
-    }
-
-    @Test
-    public void shouldDiscardFailedPosts() {
-        bus = new SimpleMagicBus(discard(), discard());
-        bus.subscribe(RightType.class, failWith(Exception::new));
-
-        bus.post(new RightType());
-
-        assertOn(null).
-                returned(0).
-                failed(0);
+        assertOn(noMailbox()).
+                noneReturned().
+                noneFailed();
     }
 
     @Test
@@ -237,12 +205,13 @@ public final class SimpleMagicBusTest {
         bus.subscribe(LeftType.class, mailbox);
         bus.unsubscribe(LeftType.class, mailbox);
 
-        bus.post(new LeftType());
+        final LeftType message = new LeftType();
+        bus.post(message);
 
         assertOn(messages).
-                delivered(0).
-                returned(1).
-                failed(0);
+                noneDelivered().
+                returned(with(message)).
+                noneFailed();
     }
 
     @Test
@@ -253,17 +222,18 @@ public final class SimpleMagicBusTest {
         bus.subscribe(RightType.class, mailboxB);
         bus.unsubscribe(RightType.class, mailboxB);
 
-        bus.post(new RightType());
+        final RightType message = new RightType();
+        bus.post(message);
 
         assertOn(messagesA).
-                delivered(1).
-                returned(0).
-                failed(0);
+                delivered(message).
+                noneReturned().
+                noneFailed();
     }
 
     @Test(timeout = 2000L)
     public void shouldUnsubscribeThreadSafely()
-            throws TimeoutException, InterruptedException {
+            throws InterruptedException {
         final int actors = 100;
         final CountDownLatch latch = new CountDownLatch(actors);
 
@@ -278,11 +248,12 @@ public final class SimpleMagicBusTest {
 
         latch.await(1L, SECONDS);
 
-        bus.post(new RightType());
+        final RightType message = new RightType();
+        bus.post(message);
 
-        assertOn(null).
-                returned(1).
-                failed(0);
+        assertOn(noMailbox()).
+                returned(with(message)).
+                noneFailed();
     }
 
     @Test(expected = NoSuchElementException.class)
@@ -291,30 +262,6 @@ public final class SimpleMagicBusTest {
         };
 
         bus.unsubscribe(RightType.class, mailbox);
-    }
-
-    private AssertDelivery assertOn(final List messages) {
-        return new AssertDelivery(messages);
-    }
-
-    @RequiredArgsConstructor(access = PRIVATE)
-    private final class AssertDelivery {
-        private final List<?> messages;
-
-        private AssertDelivery delivered(final int delivered) {
-            assertThat(messages, hasSize(delivered));
-            return this;
-        }
-
-        private AssertDelivery returned(final int returned) {
-            assertThat(SimpleMagicBusTest.this.returned, hasSize(returned));
-            return this;
-        }
-
-        private AssertDelivery failed(final int failed) {
-            assertThat(SimpleMagicBusTest.this.failed, hasSize(failed));
-            return this;
-        }
     }
 
     private static <T> Mailbox<T> record(final AtomicInteger order,
