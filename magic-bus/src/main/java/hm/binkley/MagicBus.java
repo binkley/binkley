@@ -4,19 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 import javax.annotation.Nonnull;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.concurrent.ConcurrentNavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * {@code MagicBus} is an intraprocess message bus.  Subscribers call {@link
@@ -75,7 +62,7 @@ public interface MagicBus {
      * @param <T> the message type
      */
     @FunctionalInterface
-    public interface Mailbox<T> {
+    interface Mailbox<T> {
         /**
          * Receives the given <var>message</var>.
          *
@@ -88,7 +75,7 @@ public interface MagicBus {
     /** Details on unsubscribed (undelivered) messages. */
     @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
     @ToString
-    public static final class ReturnedMessage {
+    final class ReturnedMessage {
         @Nonnull
         public final MagicBus bus;
         @Nonnull
@@ -98,7 +85,7 @@ public interface MagicBus {
     /** Details on failed messages (dead letters). */
     @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
     @ToString
-    public static final class FailedMessage {
+    final class FailedMessage {
         @Nonnull
         public final MagicBus bus;
         @Nonnull
