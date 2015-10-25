@@ -31,7 +31,9 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeThat;
 
 /**
  * {@code MagicBusTestBase} <b>needs documentation</b>.
@@ -42,7 +44,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(Parameterized.class)
 public class MagicBusTest {
     @Parameter(0)
-    public String testCase;
+    public Class<? extends MagicBus> busType;
     @Parameter(1)
     public BiFunction<Consumer<? super ReturnedMessage>, Consumer<? super FailedMessage>, MagicBus>
             ctor;
@@ -60,7 +62,7 @@ public class MagicBusTest {
     private static <T extends MagicBus> Object[] params(
             final Class<T> busType,
             final BiFunction<Consumer<? super ReturnedMessage>, Consumer<? super FailedMessage>, T> ctor) {
-        return new Object[]{busType.getName(), ctor};
+        return new Object[]{busType, ctor};
     }
 
     @Before
@@ -216,6 +218,10 @@ public class MagicBusTest {
 
     @Test
     public void shouldReceiveOnParentTypeFirst() {
+        assumeThat(
+                "Reactor does not implement calling supertypes before derived types",
+                busType, is(not(ReactorMagicBus.class)));
+
         final AtomicInteger delivery = new AtomicInteger();
         final AtomicInteger farRight = new AtomicInteger();
         final AtomicInteger right = new AtomicInteger();
