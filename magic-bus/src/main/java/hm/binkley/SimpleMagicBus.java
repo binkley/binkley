@@ -1,5 +1,7 @@
 package hm.binkley;
 
+import lombok.RequiredArgsConstructor;
+
 import javax.annotation.Nonnull;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
@@ -22,6 +24,7 @@ import static java.util.Objects.requireNonNull;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Synchronized, really?  First correct, then fast
  */
+@RequiredArgsConstructor(onConstructor = @__(@Nonnull))
 public final class SimpleMagicBus
         implements MagicBus {
     /**
@@ -34,25 +37,11 @@ public final class SimpleMagicBus
 
     private final Subscribers subscribers = new Subscribers();
     /** Receives unsubscribed messages. */
+    @Nonnull
     private final Consumer<? super ReturnedMessage> returned;
     /** Receives failed messages. */
+    @Nonnull
     private final Consumer<? super FailedMessage> failed;
-
-    /**
-     * Constructs a new {@code MagicBus} for the given parameters.
-     *
-     * @param returned the unsubscribed messages handler, never missing
-     * @param failed the failed messages handler, never missing
-     *
-     * @see #discard() a discarding handler for <var>returned</var> and
-     * <var>failed</var>
-     */
-    public SimpleMagicBus(
-            @Nonnull final Consumer<? super ReturnedMessage> returned,
-            @Nonnull final Consumer<? super FailedMessage> failed) {
-        this.returned = requireNonNull(returned, "returned");
-        this.failed = requireNonNull(failed, "failed");
-    }
 
     @Override
     public <T> void subscribe(@Nonnull final Class<T> messageType,

@@ -1,43 +1,85 @@
 package hm.binkley;
 
+import hm.binkley.MagicBus.FailedMessage;
 import hm.binkley.MagicBus.Mailbox;
+import hm.binkley.MagicBus.ReturnedMessage;
+import lombok.RequiredArgsConstructor;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.IntStream.range;
+import static lombok.AccessLevel.PRIVATE;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * {@code ReactorBusTest} tests {@link ReactorMagicBus}.
+ * {@code MagicBusTestBase} <b>needs documentation</b>.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Needs documentation.
  */
-public final class ReactorMagicBusTest
-        extends MagicBusTestBase<ReactorMagicBus> {
-    public ReactorMagicBusTest() {
-        super(ReactorMagicBus::new);
+@RunWith(Parameterized.class)
+public class MagicBusTest {
+    @Parameter(0)
+    public String testCase;
+    @Parameter(1)
+    public BiFunction<Consumer<? super ReturnedMessage>, Consumer<? super FailedMessage>, MagicBus>
+            ctor;
+
+    private List<ReturnedMessage> returned;
+    private List<FailedMessage> failed;
+    private MagicBus bus;
+
+    @Parameters(name = "{index}: {0}")
+    public static Collection parameters() {
+        return asList(params(SimpleMagicBus.class, SimpleMagicBus::new),
+                params(ReactorMagicBus.class, ReactorMagicBus::new));
+    }
+
+    private static <T extends MagicBus> Object[] params(
+            final Class<T> busType,
+            final BiFunction<Consumer<? super ReturnedMessage>, Consumer<? super FailedMessage>, T> ctor) {
+        return new Object[]{busType.getName(), ctor};
+    }
+
+    @Before
+    public void setUpFixtures() {
+        returned = new CopyOnWriteArrayList<>();
+        failed = new CopyOnWriteArrayList<>();
+        bus = ctor.apply(returned::add, failed::add);
     }
 
     @SuppressWarnings("ConstantConditions")
     @Test(expected = NullPointerException.class)
     public void shouldRejectMissingReturnedHandlerInConstructor() {
-        new SimpleMagicBus(null, failed::add);
+        ctor.apply(null, failed::add);
     }
 
     @SuppressWarnings("ConstantConditions")
     @Test(expected = NullPointerException.class)
     public void shouldRejectMissingFailedHandlerInConstructor() {
-        new SimpleMagicBus(returned::add, null);
+        ctor.apply(returned::add, null);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -180,7 +222,7 @@ public final class ReactorMagicBusTest
         final AtomicInteger base = new AtomicInteger();
         final AtomicInteger object = new AtomicInteger();
 
-        // Register in "random" order to avoid anomalies of implementation
+        // Register is "random" order to avoid anomalies of implementation
         bus.subscribe(RightType.class, record(delivery, right));
         bus.subscribe(FarRightType.class, record(delivery, farRight));
         bus.subscribe(Object.class, record(delivery, object));
@@ -209,6 +251,7 @@ public final class ReactorMagicBusTest
         bus.post(message);
 
         assertOn(messages).
+                noneDelivered().
                 returned(with(message)).
                 noneFailed();
     }
@@ -263,6 +306,68 @@ public final class ReactorMagicBusTest
         bus.unsubscribe(RightType.class, mailbox);
     }
 
+    private <T> AssertDelivery<T> assertOn(final List<T> delivered) {
+        return new AssertDelivery<>(delivered);
+    }
+
+    private static <T> List<T> noMailbox() {
+        return emptyList();
+    }
+
+    private ReturnedMessage with(final Object message) {
+        return new ReturnedMessage(bus, message);
+    }
+
+    private FailedMessage with(final Mailbox mailbox, final Object message,
+            final Exception failure) {
+        return new FailedMessage(bus, mailbox, message, failure);
+    }
+
+    @RequiredArgsConstructor(access = PRIVATE)
+    private final class AssertDelivery<T> {
+        private final List<T> delivered;
+
+        private AssertDelivery<T> noneDelivered() {
+            assertThat(delivered, is(empty()));
+            return this;
+        }
+
+        @SafeVarargs
+        private final <U extends T> AssertDelivery<T> delivered(
+                final U... delivered) {
+            assertThat(this.delivered, is(asList(delivered)));
+            return this;
+        }
+
+        private AssertDelivery<T> noneReturned() {
+            assertThat(returned, is(empty()));
+            return this;
+        }
+
+        private AssertDelivery<T> returned(
+                final ReturnedMessage... returned) {
+            assertThat(MagicBusTest.this.returned,
+                    is(equalTo(asList(returned))));
+            return this;
+        }
+
+        private AssertDelivery<T> noneFailed() {
+            assertThat(failed, is(empty()));
+            return this;
+        }
+
+        private AssertDelivery<T> failed(final FailedMessage... failed) {
+            assertThat(MagicBusTest.this.failed, is(equalTo(asList(failed))));
+            return this;
+        }
+    }
+
+    private static class Discard
+            implements Mailbox<RightType> {
+        @Override
+        public void receive(@Nonnull final RightType message) {}
+    }
+
     private static <T> Mailbox<T> record(final AtomicInteger order,
             final AtomicInteger record) {
         return m -> record.set(order.getAndIncrement());
@@ -273,12 +378,6 @@ public final class ReactorMagicBusTest
         return message -> {
             throw ctor.get();
         };
-    }
-
-    private static class Discard
-            implements Mailbox<RightType> {
-        @Override
-        public void receive(@Nonnull final RightType message) {}
     }
 
     private abstract static class BaseType {}

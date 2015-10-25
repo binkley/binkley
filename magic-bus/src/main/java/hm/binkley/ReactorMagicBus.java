@@ -24,7 +24,7 @@ import static reactor.bus.selector.Selectors.type;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__(@Nonnull))
 public final class ReactorMagicBus
         implements MagicBus {
     private final EventBus bus = new EventBusSpec().
@@ -34,7 +34,11 @@ public final class ReactorMagicBus
     private final Map<Subscription<?>, Registration<Object, reactor.fn.Consumer<? extends Event<?>>>>
             subscriptions = new ConcurrentHashMap<>();
 
+    /** Receives unsubscribed messages. */
+    @Nonnull
     private final Consumer<? super ReturnedMessage> returned;
+    /** Receives failed messages. */
+    @Nonnull
     private final Consumer<? super FailedMessage> failed;
 
     public <T> void subscribe(@Nonnull final Class<T> type,
