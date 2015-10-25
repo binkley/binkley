@@ -674,6 +674,7 @@
                             <addExtensions>true</addExtensions>
                         </manifest>
                     </archive>
+                    <includePom>true</includePom>
                 </configuration>
                 <executions>
                     <execution>
