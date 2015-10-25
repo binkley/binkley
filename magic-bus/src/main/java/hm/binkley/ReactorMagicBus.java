@@ -23,6 +23,8 @@ import static reactor.bus.selector.Selectors.type;
  * <a href="http://projectreactor.io/">Reactor</a>.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
+ * @todo Caller-supplied event bus
+ * @todo Asynchronous delivery - testing needs revisiting
  */
 @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
 public final class ReactorMagicBus
