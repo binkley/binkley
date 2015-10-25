@@ -142,6 +142,7 @@
         <project.build.sourceEncoding>${java.charset}</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${java.charset}</project.reporting.outputEncoding>
         <project.reporting.sourceEncoding>${java.charset}</project.reporting.sourceEncoding>
+        <reactor.version>2.0.6.RELEASE</reactor.version>
         <service-binder.version>0.3</service-binder.version>
         <slf4j.version>1.7.12</slf4j.version>
         <snakeyaml.version>1.16</snakeyaml.version>
@@ -523,6 +524,12 @@
                 <groupId>org.freemarker</groupId>
                 <artifactId>freemarker</artifactId>
                 <version>${freemarker.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-bus</artifactId>
+                <version>${reactor.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

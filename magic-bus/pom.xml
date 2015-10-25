@@ -11,4 +11,11 @@
     </parent>
 
     <artifactId>binkley-magic-bus</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-bus</artifactId>
+        </dependency>
+    </dependencies>
 </project>
