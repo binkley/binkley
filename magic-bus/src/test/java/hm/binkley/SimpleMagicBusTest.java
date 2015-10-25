@@ -16,7 +16,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-import static hm.binkley.MagicBus.discard;
+import static hm.binkley.SimpleMagicBus.discard;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.IntStream.range;
 import static lombok.AccessLevel.PRIVATE;
@@ -26,11 +26,11 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * {@code MagicBusTest} tests {@link MagicBus}.
+ * {@code MagicBusTest} tests {@link SimpleMagicBus}.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
-public final class MagicBusTest {
+public final class SimpleMagicBusTest {
     private MagicBus bus;
     private List<ReturnedMessage> returned;
     private List<FailedMessage> failed;
@@ -39,19 +39,19 @@ public final class MagicBusTest {
     public void setUpFixture() {
         returned = new ArrayList<>(1);
         failed = new ArrayList<>(1);
-        bus = new MagicBus(returned::add, failed::add);
+        bus = new SimpleMagicBus(returned::add, failed::add);
     }
 
     @SuppressWarnings("ConstantConditions")
     @Test(expected = NullPointerException.class)
     public void shouldRejectMissingReturnedHandlerInConstructor() {
-        new MagicBus(null, failed::add);
+        new SimpleMagicBus(null, failed::add);
     }
 
     @SuppressWarnings("ConstantConditions")
     @Test(expected = NullPointerException.class)
     public void shouldRejectMissingFailedHandlerInConstructor() {
-        new MagicBus(returned::add, null);
+        new SimpleMagicBus(returned::add, null);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -83,7 +83,7 @@ public final class MagicBusTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = NullPointerException.class)
     public void shouldRejectMissingMessageInPublish() {
-        bus.publish(null);
+        bus.post(null);
     }
 
     @Test
@@ -91,7 +91,7 @@ public final class MagicBusTest {
         final List<RightType> messages = new ArrayList<>(1);
         bus.subscribe(RightType.class, messages::add);
 
-        bus.publish(new RightType());
+        bus.post(new RightType());
 
         assertOn(messages).
                 delivered(1).
@@ -104,7 +104,7 @@ public final class MagicBusTest {
         final List<LeftType> messages = new ArrayList<>(1);
         bus.subscribe(LeftType.class, messages::add);
 
-        bus.publish(new RightType());
+        bus.post(new RightType());
 
         assertOn(messages).
                 delivered(0).
@@ -117,7 +117,7 @@ public final class MagicBusTest {
         final List<BaseType> messages = new ArrayList<>(1);
         bus.subscribe(BaseType.class, messages::add);
 
-        bus.publish(new RightType());
+        bus.post(new RightType());
 
         assertOn(messages).
                 delivered(1).
@@ -128,7 +128,7 @@ public final class MagicBusTest {
     @Test
     public void shouldSaveDeadLetters() {
         final List<BaseType> messages = new ArrayList<>(0);
-        bus.publish(new LeftType());
+        bus.post(new LeftType());
 
         assertOn(messages).
                 delivered(0).
@@ -141,7 +141,7 @@ public final class MagicBusTest {
         final List<BaseType> messages = new ArrayList<>(0);
         bus.subscribe(LeftType.class, failWith(Exception::new));
 
-        bus.publish(new LeftType());
+        bus.post(new LeftType());
 
         assertOn(messages).
                 delivered(0).
@@ -153,7 +153,7 @@ public final class MagicBusTest {
     public void shouldThrowFailedPostsForUnchecked() {
         bus.subscribe(LeftType.class, failWith(RuntimeException::new));
 
-        bus.publish(new LeftType());
+        bus.post(new LeftType());
     }
 
     @Test
@@ -169,7 +169,7 @@ public final class MagicBusTest {
         bus.subscribe(RightType.class, record(delivery, third));
         bus.subscribe(RightType.class, record(delivery, fourth));
 
-        bus.publish(new RightType());
+        bus.post(new RightType());
 
         assertThat(first.get(), is(equalTo(0)));
         assertThat(second.get(), is(equalTo(1)));
@@ -195,7 +195,7 @@ public final class MagicBusTest {
         bus.subscribe(Object.class, record(delivery, object));
         bus.subscribe(BaseType.class, record(delivery, base));
 
-        bus.publish(new FarRightType());
+        bus.post(new FarRightType());
 
         assertThat(object.get(), is(equalTo(0)));
         assertThat(base.get(), is(equalTo(1)));
@@ -209,9 +209,9 @@ public final class MagicBusTest {
 
     @Test
     public void shouldDiscardDeadLetters() {
-        bus = new MagicBus(discard(), discard());
+        bus = new SimpleMagicBus(discard(), discard());
 
-        bus.publish(new RightType());
+        bus.post(new RightType());
 
         assertOn(null).
                 returned(0).
@@ -220,10 +220,10 @@ public final class MagicBusTest {
 
     @Test
     public void shouldDiscardFailedPosts() {
-        bus = new MagicBus(discard(), discard());
+        bus = new SimpleMagicBus(discard(), discard());
         bus.subscribe(RightType.class, failWith(Exception::new));
 
-        bus.publish(new RightType());
+        bus.post(new RightType());
 
         assertOn(null).
                 returned(0).
@@ -237,7 +237,7 @@ public final class MagicBusTest {
         bus.subscribe(LeftType.class, mailbox);
         bus.unsubscribe(LeftType.class, mailbox);
 
-        bus.publish(new LeftType());
+        bus.post(new LeftType());
 
         assertOn(messages).
                 delivered(0).
@@ -253,7 +253,7 @@ public final class MagicBusTest {
         bus.subscribe(RightType.class, mailboxB);
         bus.unsubscribe(RightType.class, mailboxB);
 
-        bus.publish(new RightType());
+        bus.post(new RightType());
 
         assertOn(messagesA).
                 delivered(1).
@@ -278,7 +278,7 @@ public final class MagicBusTest {
 
         latch.await(1L, SECONDS);
 
-        bus.publish(new RightType());
+        bus.post(new RightType());
 
         assertOn(null).
                 returned(1).
@@ -307,12 +307,12 @@ public final class MagicBusTest {
         }
 
         private AssertDelivery returned(final int returned) {
-            assertThat(MagicBusTest.this.returned, hasSize(returned));
+            assertThat(SimpleMagicBusTest.this.returned, hasSize(returned));
             return this;
         }
 
         private AssertDelivery failed(final int failed) {
-            assertThat(MagicBusTest.this.failed, hasSize(failed));
+            assertThat(SimpleMagicBusTest.this.failed, hasSize(failed));
             return this;
         }
     }

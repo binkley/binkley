@@ -21,7 +21,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * {@code MagicBus} is an intraprocess message bus.  Subscribers call {@link
  * #subscribe(Class, Mailbox)} to register mailboxes for receiving messages.
- * Senders call {@link #publish(Object)} to send messages.
+ * Senders call {@link #post(Object)} to send messages.
  * <p>
  * Delivery is synchronous.  Order of delivery is: <ol><li>Base type
  * subscribers before subtype subscribers &mdash; Subscribers to {@code
@@ -31,38 +31,8 @@ import static java.util.Objects.requireNonNull;
  * caller</li></ol>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- * @todo Synchronized, really?  First correct, then fast
  */
-public final class MagicBus {
-    /**
-     * Discards messages for {@link #returned} and {@link #failed}, a
-     * convenience.
-     */
-    public static <T> Consumer<T> discard() {
-        return m -> {};
-    }
-
-    private final Subscribers subscribers = new Subscribers();
-    /** Receives unsubscribed messages. */
-    private final Consumer<? super ReturnedMessage> returned;
-    /** Receives failed messages. */
-    private final Consumer<? super FailedMessage> failed;
-
-    /**
-     * Constructs a new {@code MagicBus} for the given parameters.
-     *
-     * @param returned the unsubscribed messages handler, never missing
-     * @param failed the failed messages handler, never missing
-     *
-     * @see #discard() a discarding handler for <var>returned</var> and
-     * <var>failed</var>
-     */
-    public MagicBus(@Nonnull final Consumer<? super ReturnedMessage> returned,
-            @Nonnull final Consumer<? super FailedMessage> failed) {
-        this.returned = requireNonNull(returned, "returned");
-        this.failed = requireNonNull(failed, "failed");
-    }
-
+public interface MagicBus {
     /**
      * Subscribes the given <var>mailbox</var> for messages of
      * <var>messageType</var> and subtypes.
@@ -71,11 +41,8 @@ public final class MagicBus {
      * @param mailbox the mailbox for delivery, never missing
      * @param <T> the message type
      */
-    public <T> void subscribe(@Nonnull final Class<T> messageType,
-            @Nonnull final Mailbox<? super T> mailbox) {
-        subscribers.subscribe(requireNonNull(messageType, "messageType"),
-                requireNonNull(mailbox, "mailbox"));
-    }
+    <T> void subscribe(@Nonnull Class<T> messageType,
+            @Nonnull Mailbox<? super T> mailbox);
 
     /**
      * Unsubscribes the given <var>mailbox</var> for messages of
@@ -85,11 +52,8 @@ public final class MagicBus {
      * @param mailbox the mailbox for delivery, never missing
      * @param <T> the message type
      */
-    public <T> void unsubscribe(@Nonnull final Class<T> messageType,
-            @Nonnull final Mailbox<? super T> mailbox) {
-        subscribers.unsubscribe(requireNonNull(messageType, "messageType"),
-                requireNonNull(mailbox, "mailbox"));
-    }
+    <T> void unsubscribe(@Nonnull Class<T> messageType,
+            @Nonnull Mailbox<? super T> mailbox);
 
     /**
      * Publishes a message.  Subscribers to the type of <var>message</var> and
@@ -103,39 +67,7 @@ public final class MagicBus {
      *
      * @param message the message, never missing
      */
-    public void publish(@Nonnull final Object message) {
-        try (final Stream<Mailbox> mailboxes = subscribers
-                .of(requireNonNull(message, "message"))) {
-            final AtomicInteger deliveries = new AtomicInteger();
-            mailboxes.
-                    onClose(() -> returnIfDead(deliveries, message)).
-                    peek(record(deliveries)).
-                    forEach(receive(message));
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private Consumer<Mailbox> receive(final Object message) {
-        return mailbox -> {
-            try {
-                mailbox.receive(message);
-            } catch (final RuntimeException e) {
-                throw e;
-            } catch (final Exception e) {
-                failed.accept(new FailedMessage(this, mailbox, message, e));
-            }
-        };
-    }
-
-    private static Consumer<Mailbox> record(final AtomicInteger deliveries) {
-        return subscriber -> deliveries.incrementAndGet();
-    }
-
-    private void returnIfDead(final AtomicInteger deliveries,
-            final Object message) {
-        if (0 == deliveries.get())
-            returned.accept(new ReturnedMessage(this, message));
-    }
+    void post(@Nonnull Object message);
 
     /**
      * Receives messages for a given type and subtypes.
@@ -175,63 +107,5 @@ public final class MagicBus {
         public final Object message;
         @Nonnull
         public final Exception failure;
-    }
-
-    private static final class Subscribers {
-        private final ConcurrentNavigableMap<Class, Set<Mailbox>> subscribers
-                = new ConcurrentSkipListMap<>(Subscribers::classOrder);
-
-        private static int classOrder(final Class<?> a, final Class<?> b) {
-            boolean aFirst = b.isAssignableFrom(a);
-            boolean bFirst = a.isAssignableFrom(b);
-
-            if (aFirst && !bFirst)
-                return 1;
-            else if (bFirst && !aFirst)
-                return -1;
-            else
-                return 0;
-        }
-
-        private synchronized void subscribe(final Class messageType,
-                final Mailbox mailbox) {
-            subscribers.computeIfAbsent(messageType, Subscribers::mailbox).
-                    add(mailbox);
-        }
-
-        private synchronized void unsubscribe(final Class messageType,
-                final Mailbox mailbox) {
-            subscribers.compute(messageType, (__, mailboxes) -> {
-                if (notRemoved(mailboxes, mailbox))
-                    throw new NoSuchElementException();
-                return mailboxes.isEmpty() ? null : mailboxes;
-            });
-        }
-
-        private static boolean notRemoved(final Set<Mailbox> mailboxes,
-                final Mailbox mailbox) {
-            return null == mailboxes || !mailboxes.remove(mailbox);
-        }
-
-        private synchronized Stream<Mailbox> of(final Object message) {
-            final Class messageType = message.getClass();
-            return subscribers.entrySet().stream().
-                    filter(subscribedTo(messageType)).
-                    flatMap(toMailboxes());
-        }
-
-        private static Set<Mailbox> mailbox(final Class messageType) {
-            return new CopyOnWriteArraySet<>();
-        }
-
-        @SuppressWarnings("unchecked")
-        private static Predicate<Entry<Class, Set<Mailbox>>> subscribedTo(
-                final Class messageType) {
-            return e -> e.getKey().isAssignableFrom(messageType);
-        }
-
-        private static Function<Entry<Class, Set<Mailbox>>, Stream<Mailbox>> toMailboxes() {
-            return e -> e.getValue().stream();
-        }
     }
 }
