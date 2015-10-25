@@ -2,6 +2,11 @@
 
 Example microproject demonstrating intraprocess messaging.
 
+## Bus types
+
+* [Simple](src/main/java/hm/binkley/SimpleMagicBus.java) - simple, synchronous internal implementation.  Orders message handlers that supertypes receive posts before subtypes
+* [Reactor](src/main/java/hm/binkley/ReactorMagicBus.java) - synchronous implementation using [Reactor IO](http://projectreactor.io/)
+
 ## Creating a bus
 
 ```java

@@ -41,6 +41,7 @@ Current released version is 6.  [View javadoc](https://binkley.github.io/binkley
 * Guice module fixed at guice 3.0.  Guice API has changed, this code has not
   caught up
 * Struggle with Travis CI
+* Add Reactor IO based magic bus
 
 ### 6
 
