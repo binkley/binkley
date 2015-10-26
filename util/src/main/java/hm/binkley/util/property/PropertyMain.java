@@ -42,9 +42,15 @@ public final class PropertyMain {
         r.set("Vic");
         dump(r);
 
-        final Map<Number, String> map = new HashMap<>();
-        map.put(3, "Ed");
-        final Property<String> s = in(map).at(3);
+        final Object key = new Object() {
+            @Override
+            public String toString() {
+                return "the-key";
+            }
+        };
+        final Map<Object, String> map = new HashMap<>();
+        map.put(key, "Ed");
+        final Property<String> s = in(map).at(key);
         dump(s);
         s.set("Dre");
         dump(s);
