@@ -20,13 +20,12 @@ import java.util.function.Function;
 import static org.springframework.jdbc.support.JdbcUtils.extractDatabaseMetaData;
 
 /**
- * A very simple DAO wrapper for using Spring transactions and JDBC template, designed for lambda
- * use.  Example:
- *
- * <pre>
+ * A very simple DAO wrapper for using Spring transactions and JDBC template,
+ * designed for lambda use.  Example: <pre>
  * SimpleDAO&lt;String&gt; someColumn = new SimpleDAO(transactionManager);
  * String columnValue = someColumn.dao(
- *        (jdbcTemplate, status) -&gt; jdbcTemplate.queryForObject("sql here", String.class);</pre>
+ *        (jdbc, status) -&gt; jdbc.queryForObject("sql here",
+ *        String.class);</pre>
  *
  * @author <a href="binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
@@ -34,12 +33,14 @@ public class SimpleDAO {
     private final DataSourceTransactionManager transactionManager;
 
     /**
-     * Constructs a new {@code SimpleDAO} with the given data source <var>transactionManager</var>.
+     * Constructs a new {@code SimpleDAO} with the given data source
+     * <var>transactionManager</var>.
      *
      * @param transactionManager the transaction manager, never missing
      */
     @Inject
-    public SimpleDAO(@Nonnull final DataSourceTransactionManager transactionManager) {
+    public SimpleDAO(
+            @Nonnull final DataSourceTransactionManager transactionManager) {
         this.transactionManager = transactionManager;
     }
 
@@ -54,9 +55,11 @@ public class SimpleDAO {
     }
 
     /**
-     * Gets JDBC URL for this transaction manager.  This uses two connections, managed within.
+     * Gets JDBC URL for this transaction manager.  This uses two connections,
+     * managed within.
      *
-     * @return the JDBC URL or {@code null} if not applicable for the data source
+     * @return the JDBC URL or {@code null} if not applicable for the data
+     * source
      *
      * @throws DataAccessException if JDBC fails
      * @throws MetaDataAccessException if JDBC database metadata fails
@@ -64,8 +67,8 @@ public class SimpleDAO {
     @Nullable
     public String getJdbcUrl()
             throws DataAccessException, MetaDataAccessException {
-        return (String) extractDatabaseMetaData(transactionManager.getDataSource(),
-                DatabaseMetaData::getURL);
+        return (String) extractDatabaseMetaData(
+                transactionManager.getDataSource(), DatabaseMetaData::getURL);
     }
 
     /**
@@ -81,10 +84,12 @@ public class SimpleDAO {
     }
 
     /**
-     * Runs the given <var>dao</var> within Spring transaction, requiring 0 or 1 results.
+     * Runs the given <var>dao</var> within Spring transaction, requiring 0 or
+     * 1 results.
      *
      * @param dao the dao callback, never missing
-     * @param wrongSize the exception factory for 2 or more results, never missing
+     * @param wrongSize the exception factory for 2 or more results, never
+     * missing
      * @param <T> the return type of the callback
      *
      * @return an optional of the return
@@ -113,36 +118,39 @@ public class SimpleDAO {
     @FunctionalInterface
     public interface Dao<T> {
         /**
-         * Manages the JDBC callback, wrapping it in a Spring transaction.  The JDBC template passed
-         * to the callback shares the data source of the transaction manager, and executes within a
-         * transaction template.  Calls {@link #with(JdbcTemplate, TransactionStatus) with} to
+         * Manages the JDBC callback, wrapping it in a Spring transaction. The
+         * JDBC template passed to the callback shares the data source of the
+         * transaction manager, and executes within a transaction template.
+         * Calls {@link #with(JdbcTemplate, TransactionStatus) with} to
          * execute JDBC methods.
          *
-         * @param transactionManager the transaction manager, never missing
+         * @param manager the transaction manager, never missing
          *
          * @return the callback result
          *
          * @throws DataAccessException if JDBC fails
          */
-        default T using(@Nonnull final DataSourceTransactionManager transactionManager)
+        default T using(@Nonnull final DataSourceTransactionManager manager)
                 throws DataAccessException {
-            return new TransactionTemplate(transactionManager).execute(status -> {
+            return new TransactionTemplate(manager).execute(status -> {
                 final JdbcTemplate jdbcTemplate = new JdbcTemplate(
-                        transactionManager.getDataSource());
+                        manager.getDataSource());
                 try {
                     return with(jdbcTemplate, status);
                 } catch (final SQLException e) {
-                    throw jdbcTemplate.getExceptionTranslator().translate(task(), sql(), e);
+                    throw jdbcTemplate.getExceptionTranslator()
+                            .translate(task(), sql(), e);
                 }
             });
         }
 
         /**
-         * Executes the callback, passing in the given <var>jdbcTemplate</var> and transaction
-         * <var>status</var>.  This is typically implemented as a lambda.
-         *
-         * Exceptions are translated into {@link DataAccessException} instances in {@link
-         * #using(DataSourceTransactionManager) using}.
+         * Executes the callback, passing in the given <var>jdbcTemplate</var>
+         * and transaction <var>status</var>.  This is typically implemented
+         * as a lambda.
+         * <p>
+         * Exceptions are translated into {@link DataAccessException}
+         * instances in {@link #using(DataSourceTransactionManager) using}.
          *
          * @param jdbcTemplate the JDBC template, never missing
          * @param status the transaction status, never missing
@@ -151,13 +159,15 @@ public class SimpleDAO {
          *
          * @throws SQLException if JDBC fails
          */
-        T with(@Nonnull final JdbcTemplate jdbcTemplate, @Nonnull final TransactionStatus status)
+        T with(@Nonnull final JdbcTemplate jdbcTemplate,
+                @Nonnull final TransactionStatus status)
                 throws SQLException;
 
         /**
-         * Names the task for the Spring JDBC exception translator for more descriptive error
-         * messages.  Defaults to {@code null}.  Implementors <strong></strong> return a non-{@code
-         * null} values, relying on the default otherwise.
+         * Names the task for the Spring JDBC exception translator for more
+         * descriptive error messages.  Defaults to {@code null}. Implementors
+         * <strong></strong> return a non-{@code null} values, relying on the
+         * default otherwise.
          *
          * @return the task name
          *
@@ -168,9 +178,10 @@ public class SimpleDAO {
         }
 
         /**
-         * Provides the executed SQL for the Spring JDBC exception translator for more descriptive
-         * error messages.  Defaults to {@code null}.  Implementors <strong></strong> return a
-         * non-{@code null} values, relying on the default otherwise.
+         * Provides the executed SQL for the Spring JDBC exception translator
+         * for more descriptive error messages.  Defaults to {@code null}.
+         * Implementors <strong></strong> return a non-{@code null} values,
+         * relying on the default otherwise.
          *
          * @return the executed SQL
          *
