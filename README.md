@@ -42,6 +42,7 @@ Current released version is 6.  [View javadoc](https://binkley.github.io/binkley
   caught up
 * Struggle with Travis CI
 * Add Reactor IO based magic bus
+* Add Property and friends to util, an alternative to exposing beans
 
 ### 6
 
