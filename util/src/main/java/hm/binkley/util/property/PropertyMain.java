@@ -30,7 +30,7 @@ public final class PropertyMain {
         p2.set("Val");
         dump(p2);
 
-        final Property<String> q = in("Bob", "Manny").at(0);
+        final Property<String> q = in("Bob").at(0);
         dump(q);
         q.set("Sid");
         dump(q);

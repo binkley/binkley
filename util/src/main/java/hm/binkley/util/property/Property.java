@@ -12,6 +12,13 @@ import static lombok.AccessLevel.PRIVATE;
  * {@code Property} represents getter/setter backed by a single thing. This
  * could be to a field, getter/setter method or function pair, an array or
  * list element, a map entry, etc.
+ * <p>
+ * Create properties with fluent builders: <table><tr><th>Backing type</th>
+ * <th>Factory method</th></tr> <tr><td>Method or function</td> <td>{@link
+ * #getter(Getter)}</td> </tr> <tr><td>Object with method or function</td>
+ * <td>{@link #on(Object)}</td></tr> <tr><td>Array</td> <td>{@link
+ * #in(Object[])}</td></tr> <tr><td>List</td> <td>{@link #in(List)}</td></tr>
+ * <tr><td>Map</td> <td>{@link #in(Map)}</td></tr></table>
  *
  * @param <T> the property type
  *
