@@ -40,7 +40,7 @@ public enum ${name} {
     /** ${values[value].doc} */
     <#else>
     /**
-     * @{code ${value}} is undocumented.
+     * {@code ${value}} is undocumented.
      *
      * @todo Documentation
      */
