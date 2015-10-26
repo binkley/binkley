@@ -29,8 +29,11 @@ import static lombok.AccessLevel.PRIVATE;
 public interface Property<T>
         extends Getter<T>, Setter<T> {
     /**
-     * Starts a fluent builder for a property backed by a getter/setter method
-     * or function pair.
+     * Starts a fluent builder for a property backed by a getter/setter
+     * method or function pair.  Example: <pre>
+     * AtomicReference&lt;String&gt; backing = new AtomicReference&lt;&gt;("Bob");
+     * Property&lt;String&gt; p = getter(backing::get).
+     *     setter(backing::set);</pre>
      *
      * @param getter the getter, never {@code null}
      * @param <T> the property type
@@ -63,6 +66,17 @@ public interface Property<T>
 
     /**
      * Starts a fluent builder for a property backed by an object.
+     * Example: <pre>
+     * &#64;AllArgsConstructor
+     * &#64;ToString
+     * class X {
+     *     String s;
+     * }
+     * 
+     * X x = new X("Bob");
+     * Property&lt;String&gt; p = on(x).
+     *     getter(on -&gt; on.s).
+     *     setter((on, value) -&gt; on.s = value);</pre>
      *
      * @param o the object, never {@code null}
      * @param <U> the object type
@@ -115,6 +129,8 @@ public interface Property<T>
 
     /**
      * Starts a fluent builder for a property backed by an array element.
+     * Example: <pre>
+     * Property&lt;String&gt; p = in("Bob").at(0);</pre>
      *
      * @param array the array, never {@code null}
      * @param <T> the property type
@@ -147,6 +163,10 @@ public interface Property<T>
 
     /**
      * Starts a fluent builder for a property backed by a list element.
+     * Example: <pre>
+     * List&lt;String&gt; list = new ArrayList&lt;&gt();
+     * list.add("Bob");
+     * Property&lt;String&gt; p = in(list).at(0);</pre>
      *
      * @param list the list, never {@code null}
      * @param <T> the property type
@@ -178,6 +198,10 @@ public interface Property<T>
 
     /**
      * Starts a fluent builder for a property backed by a map element.
+     * Example: <pre>
+     * Map&lt;Integer, String&gt; map = new HashMap&lt;&gt;();
+     * map.put(123, "Bob");
+     * Property&lt;String&gt; p = in(map).at(123);</pre>
      *
      * @param map the map, never {@code null}
      * @param <T> the property type
