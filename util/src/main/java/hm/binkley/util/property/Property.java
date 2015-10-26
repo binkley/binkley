@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import static lombok.AccessLevel.PRIVATE;
 
@@ -59,28 +61,53 @@ public interface Property<T>
         }
     }
 
+    /**
+     * Starts a fluent builder for a property backed by an object.
+     *
+     * @param o the object, never {@code null}
+     * @param <U> the object type
+     *
+     * @return the fluent builder, never {@code null}
+     */
     @Nonnull
-    static FromObject on(@Nonnull final Object o) {
-        return new FromObject(o);
+    static <U> FromObject<U> on(@Nonnull final U o) {
+        return new FromObject<>(o);
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
-    final class FromObject {
+    final class FromObject<U> {
         @Nonnull
-        private final Object o;
+        private final U o;
 
+        /**
+         * Continues the fluent builder.
+         *
+         * @param getter the getter, never {@code null}
+         * @param <T> the property type
+         *
+         * @return the fluent builder, never {@code null}
+         */
         @Nonnull
-        public <T> FromGetter<T> getter(@Nonnull final Getter<T> getter) {
+        public <T> FromGetter<T> getter(
+                @Nonnull final Function<U, T> getter) {
             return new FromGetter<>(getter);
         }
 
         @RequiredArgsConstructor(access = PRIVATE)
         public final class FromGetter<T> {
             @Nonnull
-            private final Getter<T> getter;
+            private final Function<U, T> getter;
 
+            /**
+             * Ends the fluent builder, producing a property backed by an
+             * object.
+             *
+             * @param setter the setter, never {@code null}
+             *
+             * @return the property, never {@code null}
+             */
             @Nonnull
-            Property<T> setter(@Nonnull final Setter<T> setter) {
+            Property<T> setter(@Nonnull final BiConsumer<U, T> setter) {
                 return new ObjectProperty<>(o, getter, setter);
             }
         }

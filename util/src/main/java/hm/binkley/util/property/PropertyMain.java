@@ -24,8 +24,8 @@ public final class PropertyMain {
         p.set("Flo");
         dump(p);
         final Property<String> p2 = on(box).
-                getter(box::get).
-                setter(box::set);
+                getter(AtomicReference::get).
+                setter(AtomicReference::set);
         dump(p2);
         p2.set("Val");
         dump(p2);
@@ -51,8 +51,8 @@ public final class PropertyMain {
 
         final Thing thing = new Thing("Jo");
         final Property<String> t = on(thing).
-                getter(() -> thing.s).
-                setter(value -> thing.s = value);
+                getter(on -> on.s).
+                setter((on, value) -> on.s = value);
         dump(t);
         t.set("Bo");
         dump(t);
