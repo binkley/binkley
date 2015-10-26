@@ -7,7 +7,6 @@
 package hm.binkley.util;
 
 import hm.binkley.util.XPropsConverter.Conversion;
-import lombok.NonNull;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.springframework.core.io.Resource;
@@ -41,19 +40,19 @@ import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
 
 /**
- * {@code XProperties} is a {@code java.util.Properties} supporting inclusion of
- * other properties files, parameter substition and typed return values.  Key
- * order is preserved; keys from included properties are prior to those from the
- * current properties.
+ * {@code XProperties} is a {@code java.util.Properties} supporting inclusion
+ * of other properties files, parameter substition and typed return values.
+ * Key order is preserved; keys from included properties are prior to those
+ * from the current properties.
  * <p>
  * Keys are restricted to {@code String}s.
  * <p>
  * Loading processes lines of the form: <pre>
  * #include <var>Spring style resource path</var></pre> for inclusion.  Looks
  * up <var>resource path</var> with a {@link ResourcePatternResolver}; loading
- * found resources in turn. Similarly processes resource recursively for further
- * inclusion. Includes multiple resources separated by comma (",") in the same
- * "#include" statement.
+ * found resources in turn. Similarly processes resource recursively for
+ * further inclusion. Includes multiple resources separated by comma (",") in
+ * the same "#include" statement.
  * <p>
  * Substitutes in resource paths of the
  * form: <pre>
@@ -66,8 +65,8 @@ import static java.util.regex.Pattern.compile;
  * use back slashes ("\").
  * <p>
  * Examples: <table><tr><th>Text</th> <th>Result</th></tr> <tr><td>{@code
- * #include foo/file.properties}</td> <td>Includes {@code foo.properties} found
- * in the classpath</td></tr> <tr><td>{@code #include foo.properties,
+ * #include foo/file.properties}</td> <td>Includes {@code foo.properties}
+ * found in the classpath</td></tr> <tr><td>{@code #include foo.properties,
  * bar.properties}</td> <td>Includes both {@code foo.properties} and {@code
  * bar.properties}</td></tr> <tr><td>{@code #include file:/var/tmp/${user.name
  * }/foo.properties}</td> <td>Includes {@code foo.properties} found in a
@@ -117,7 +116,7 @@ public class XProperties
      * @throws IOException if <var>absolutePath</var> cannot be loaded
      */
     @Nonnull
-    public static XProperties from(@Nonnull @NonNull final String absolutePath)
+    public static XProperties from(@Nonnull final String absolutePath)
             throws IOException {
         final Resource resource = new PathMatchingResourcePatternResolver()
                 .getResource(absolutePath);
@@ -176,21 +175,7 @@ public class XProperties
                 for (String line = lines.readLine(); null != line;
                         line = lines.readLine()) {
                     writer.append(line).append('\n');
-                    final Matcher matcher = include.matcher(line);
-                    if (matcher.matches())
-                        for (final String x : comma
-                                .split(substitutor.replace(matcher.group(1))))
-                            for (final Resource resource : loader
-                                    .getResources(x)) {
-                                final URI uri = resource.getURI();
-                                if (!included.add(uri))
-                                    throw new RecursiveIncludeException(uri,
-                                            included);
-                                try (final InputStream in = resource
-                                        .getInputStream()) {
-                                    load(in);
-                                }
-                            }
+                    maybeInclude(loader, line);
                 }
             }
 
@@ -226,7 +211,7 @@ public class XProperties
      */
     @Nullable
     @Override
-    public String getProperty(final String key) {
+    public String getProperty(@Nonnull final String key) {
         final String value = super.getProperty(key);
         if (null == value)
             return null;
@@ -238,14 +223,14 @@ public class XProperties
      * Substitutes in string values sequences of the form: <pre>
      * ${<var>variable</var>}</pre> for substition.  Looks up
      * <var>variable</var> in the current properties, and if not found, in the
-     * system properties.  If found, replaces the text with the variable value,
-     * including "${" and trailing "}".
+     * system properties.  If found, replaces the text with the variable
+     * value, including "${" and trailing "}".
      *
      * @see StrSubstitutor
      */
     @Nullable
     @Override
-    public synchronized Object get(final Object key) {
+    public synchronized Object get(@Nonnull final Object key) {
         final Object value = super.get(key);
         if (null == value || !(value instanceof String))
             return value;
@@ -257,17 +242,17 @@ public class XProperties
      * caller's</strong> to assign the return to a correct type; failure to do
      * so will cause a {@code ClassCastException} at run-time.
      * <p>
-     * Typed keys are of the form: {@code <var>type</var>:<var>key</var>}.  The
-     * <var>key</var> is the same key as {@link System#getProperty(String)
+     * Typed keys are of the form: {@code <var>type</var>:<var>key</var>}.
+     * The <var>key</var> is the same key as {@link System#getProperty(String)
      * System.getProperty}.  See {@link XPropsConverter#register(String,
      * Conversion) register} for built-in <var>type</var> key prefixes.
      * <p>
      * Examples: <table><tr><th>Code</th> <th>Comment</th></tr> <tr><td>{@code
      * Integer foo = xprops.getObject("int:foo");}</td> <td>Gets the "foo"
-     * property as an possibly {@code null} integer</td></tr> <tr><td>{@code int
-     * foo = xprops.getObject("int:foo");}</td> <td>Gets the "foo" property as a
-     * primitive integer, throwing {@code NullPointerException} if
-     * missing</td></tr> <tr><td>{@code Long foo = xprops.getObject
+     * property as an possibly {@code null} integer</td></tr> <tr><td>{@code
+     * int foo = xprops.getObject("int:foo");}</td> <td>Gets the "foo"
+     * property as a primitive integer, throwing {@code NullPointerException}
+     * if missing</td></tr> <tr><td>{@code Long foo = xprops.getObject
      * ("long:foo");}</td> <td>Gets the "foo" property as an possibly {@code
      * null} long; this is the same property as the previous
      * examples</td></tr></table>
@@ -289,7 +274,8 @@ public class XProperties
      * Gets the typed value of the given property <var>key</var>.
      *
      * @param key the type-prefixed key, never missing
-     * @param defaultValue the fallback value if <var>key</var> is not present
+     * @param defaultValue the fallback value if <var>key</var> is not
+     * present
      * @param <T> the value type
      *
      * @return the typed value for <var>key</var>
@@ -300,6 +286,23 @@ public class XProperties
             @Nullable final T defaultValue) {
         return (T) converted
                 .computeIfAbsent(new Key(key, defaultValue), this::convert);
+    }
+
+    private void maybeInclude(final ResourcePatternResolver loader,
+            final String line)
+            throws IOException {
+        final Matcher matcher = include.matcher(line);
+        if (matcher.matches())
+            for (final String x : comma
+                    .split(substitutor.replace(matcher.group(1))))
+                for (final Resource resource : loader.getResources(x)) {
+                    final URI uri = resource.getURI();
+                    if (!included.add(uri))
+                        throw new RecursiveIncludeException(uri, included);
+                    try (final InputStream in = resource.getInputStream()) {
+                        load(in);
+                    }
+                }
     }
 
     private Object convert(final Key key) {
@@ -314,7 +317,8 @@ public class XProperties
         try {
             return converter.convert(parts[0], value);
         } catch (final Exception e) {
-            throw new FailedConversionException(property, value, e.getCause());
+            throw new FailedConversionException(property, value,
+                    e.getCause());
         }
     }
 
@@ -343,7 +347,8 @@ public class XProperties
          * parameters.
          *
          * @param duplicate the recursive inclusion, never missing
-         * @param included the history of included property sets, never missing
+         * @param included the history of included property sets, never
+         * missing
          */
         public RecursiveIncludeException(@Nonnull final URI duplicate,
                 @Nonnull final Collection<URI> included) {
