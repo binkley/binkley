@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static hm.binkley.util.property.Property.getter;
 import static hm.binkley.util.property.Property.in;
 import static hm.binkley.util.property.Property.on;
+import static hm.binkley.util.property.Property.simple;
 import static java.lang.System.out;
 import static java.util.stream.Collectors.toList;
 
@@ -64,8 +65,21 @@ public final class PropertyMain {
         t.set("Bo");
         dump(t);
 
-        t.accept("Mo");
+        t.accept("3");
         out.println(t.collect(toList()));
+
+        final Property<Integer> i = t.view(Integer::valueOf, String::valueOf);
+        dump(i);
+        i.set(4);
+        dump(t);
+        dump(i);
+
+        final Property<Integer> j = t.
+                flatMap(value -> simple(Integer.valueOf(value)));
+        dump(j);
+        j.set(5);
+        dump(t);
+        dump(j);
     }
 
     private static <T> void dump(final Property<T> property) {

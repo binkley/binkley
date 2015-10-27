@@ -3,6 +3,7 @@ package hm.binkley.util.property;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -28,13 +29,31 @@ import static lombok.AccessLevel.PRIVATE;
  */
 public interface Property<T>
         extends Getter<T>, Setter<T> {
-    default <U> U map(final Function<? super T, ? extends U> mapper) {
+    @Nonnull
+    default <U> U map(
+            @Nonnull final Function<? super T, ? extends U> mapper) {
         return mapper.apply(get());
     }
 
-    default <U> Property<U> flatMap(
-            final Function<? super T, ? extends Property<U>> mapper) {
+    @Nonnull
+    default <U> Property<U> flatMap(@Nonnull
+    final Function<? super T, ? extends Property<U>> mapper) {
         return mapper.apply(get());
+    }
+
+    @Nonnull
+    default <U> Property<U> view(@Nonnull final Function<T, U> toU,
+            @Nonnull final Function<U, T> toT) {
+        return getter(() -> toU.apply(get())).
+                setter(value -> set(toT.apply(value)));
+    }
+
+    static <T> Property<T> simple() {
+        return SimpleProperty.valueOf(null);
+    }
+
+    static <T> Property<T> simple(@Nullable final T value) {
+        return SimpleProperty.valueOf(value);
     }
 
     /**
