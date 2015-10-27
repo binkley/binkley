@@ -40,13 +40,15 @@ public class ConverterTest {
     @Test
     public void shouldConvertString()
             throws Exception {
-        assertThat("bob", is(equalTo(converter.convert(String.class, "bob"))));
+        assertThat("bob",
+                is(equalTo(converter.convert(String.class, "bob"))));
     }
 
     @Test
     public void shouldConvertRegistered()
             throws Exception {
-        assertThat(Paths.get("/dev/null"), is(equalTo(converter.convert(Path.class, "/dev/null"))));
+        assertThat(Paths.get("/dev/null"),
+                is(equalTo(converter.convert(Path.class, "/dev/null"))));
     }
 
     @Test
@@ -65,24 +67,27 @@ public class ConverterTest {
     @Test
     public void shouldConvertWithOf()
             throws Exception {
-        assertThat(UTC, is(equalTo(converter.convert(ZoneOffset.class, "Z"))));
+        assertThat(UTC,
+                is(equalTo(converter.convert(ZoneOffset.class, "Z"))));
     }
 
     @Test
     public void shouldConvertWithNew()
             throws Exception {
-        assertThat(new File("/dev/null"), is(equalTo(converter.convert(File.class, "/dev/null"))));
+        assertThat(new File("/dev/null"),
+                is(equalTo(converter.convert(File.class, "/dev/null"))));
     }
 
     @Test
     public void shouldConvertToResourceList()
             throws Exception {
-        final String path = format("classpath:/%s.class", getClass().getName().replace('.', '/'));
+        final String path = format("classpath:/%s.class",
+                getClass().getName().replace('.', '/'));
         final List<Resource> resources = asList(
                 new PathMatchingResourcePatternResolver().getResources(path));
 
-        assertThat(resources, is(equalTo(converter.convert(new TypeToken<List<Resource>>() {
-        }, path))));
+        assertThat(resources, is(equalTo(converter
+                .convert(new TypeToken<List<Resource>>() {}, path))));
     }
 
     @Test
@@ -90,7 +95,8 @@ public class ConverterTest {
             throws Exception {
         converter.register(Year.class, value -> Year.of(0));
 
-        assertThat(Year.of(0), is(equalTo(converter.convert(Year.class, "zero"))));
+        assertThat(Year.of(0),
+                is(equalTo(converter.convert(Year.class, "zero"))));
     }
 
     @Test

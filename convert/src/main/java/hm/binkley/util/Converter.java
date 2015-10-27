@@ -60,19 +60,22 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableSet;
 
 /**
- * {@code Converter} is the opposite of {@code toString()}.  It turns strings into objects.  Useful,
- * for example, when obtaining Java value types from XML.
+ * {@code Converter} is the opposite of {@code toString()}.  It turns strings
+ * into objects.  Useful, for example, when obtaining Java value types from
+ * XML.
  * <p>
- * Supports registered types <em>explicitly</em> with default {@link #register(TypeToken,
- * Conversion) registered} conversions: <ul><li>{@link Class}</li>  <li>{@link InetAddress}</li>
- * <li>{@link InetSocketAddress}</li> <li>{@link Path}</li> <li>{@link Pattern}</li> <li>{@link
- * Resource}</li> <li>List of {@link Resource}s</li> <li>{@link ResourceBundle}</li> <li>{@link
- * TimeZone}</li> <li>{@link URI}</li></ul>
+ * Supports registered types <em>explicitly</em> with default {@link
+ * #register(TypeToken, Conversion) registered} conversions: <ul><li>{@link
+ * Class}</li>  <li>{@link InetAddress}</li> <li>{@link
+ * InetSocketAddress}</li> <li>{@link Path}</li> <li>{@link Pattern}</li>
+ * <li>{@link Resource}</li> <li>List of {@link Resource}s</li> <li>{@link
+ * ResourceBundle}</li> <li>{@link TimeZone}</li> <li>{@link URI}</li></ul>
  * <p>
- * Supports other types <em>implicitly</em> by looking for a single-argument string factory method
- * or constructor in this order: <ol><li>Factory method {@code parse(String)}</li> <li>Factory
- * method {@code valueOf(String)}</li> <li>Factory method {@code of(String)}</li> <li>Constructor
- * {@code T(String)}</li> <li>Constructor {@code T(CharSequence)}</li></ol>
+ * Supports other types <em>implicitly</em> by looking for a single-argument
+ * string factory method or constructor in this order: <ol><li>Factory method
+ * {@code parse(String)}</li> <li>Factory method {@code valueOf(String)}</li>
+ * <li>Factory method {@code of(String)}</li> <li>Constructor {@code
+ * T(String)}</li> <li>Constructor {@code T(CharSequence)}</li></ol>
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Remove duplication with xprop
@@ -82,33 +85,99 @@ import static java.util.Collections.unmodifiableSet;
  * @see #register(TypeToken, Conversion)
  */
 public final class Converter {
-    private static final MethodType STRING_CTOR = methodType(void.class, String.class);
-    private static final MethodType CHAR_SEQUENCE_CTOR = methodType(void.class, CharSequence.class);
-    private final Map<TypeToken<?>, Conversion<?, ? extends Exception>> conversions
-            = new HashMap<>();
+    private static final MethodType STRING_CTOR = methodType(void.class,
+            String.class);
+    private static final MethodType CHAR_SEQUENCE_CTOR = methodType(
+            void.class, CharSequence.class);
+    private final Map<TypeToken<?>, Conversion<?, ? extends Exception>>
+            conversions = new HashMap<>();
 
     {
         // JDK classes without standardly named String factory methods or String constructors
         register(Class.class, Class::forName);
         register(InetAddress.class, InetAddress::getByName);
         register(InetSocketAddress.class, value -> {
-            final HostAndPort parsed = HostAndPort.fromString(value).requireBracketsForIPv6();
+            final HostAndPort parsed = HostAndPort.fromString(value)
+                    .requireBracketsForIPv6();
             return createUnresolved(parsed.getHostText(), parsed.getPort());
         });
         register(Path.class, Paths::get);
         register(Pattern.class, Pattern::compile);
-        register(Resource.class,
-                value -> new DefaultResourceLoader(getClass().getClassLoader()).getResource(value));
-        register(new TypeToken<List<Resource>>() {
-        }, value -> asList(new PathMatchingResourcePatternResolver(getClass().getClassLoader())
-                .getResources(value)));
+        register(Resource.class, value -> new DefaultResourceLoader(
+                getClass().getClassLoader()).getResource(value));
+        register(new TypeToken<List<Resource>>() {}, value -> asList(
+                new PathMatchingResourcePatternResolver(
+                        getClass().getClassLoader()).getResources(value)));
         register(ResourceBundle.class, ResourceBundle::getBundle);
         register(TimeZone.class, TimeZone::getTimeZone);
         register(URI.class, URI::create);
     }
 
+    private static <T, E extends Exception> Conversion<T, E> parse(
+            final TypeToken<T> type)
+            throws NoSuchMethodError {
+        return method(type, "parse");
+    }
+
+    private static <T, E extends Exception> Conversion<T, E> method(
+            final TypeToken<T> type, final String name) {
+        final Class<?> raw = type.getRawType();
+        // TODO: Parameter type must match exactly
+        try {
+            return thunk(lookup().findStatic(raw, name,
+                    methodType(raw, String.class)));
+        } catch (final NoSuchMethodException | IllegalAccessException ignored) {
+        }
+        try {
+            return thunk(lookup().findStatic(raw, name,
+                    methodType(raw, CharSequence.class)));
+        } catch (final NoSuchMethodException | IllegalAccessException ignored) {
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T, E extends Exception> Conversion<T, E> thunk(
+            final MethodHandle handle) {
+        return value -> {
+            try {
+                return (T) handle.invoke(value);
+            } catch (final Error | RuntimeException e) {
+                throw e;
+            } catch (final Throwable t) {
+                throw (E) t;
+            }
+        };
+    }
+
+    private static <T, E extends Exception> Conversion<T, E> valueOf(
+            final TypeToken<T> type) {
+        return method(type, "valueOf");
+    }
+
+    private static <T, E extends Exception> Conversion<T, E> of(
+            final TypeToken<T> type) {
+        return method(type, "of");
+    }
+
+    private static <T, E extends Exception> Conversion<T, E> ctor(
+            final TypeToken<T> type) {
+        final Class<?> raw = type.getRawType();
+        // TODO: Parameter type must match exactly
+        try {
+            return thunk(lookup().findConstructor(raw, STRING_CTOR));
+        } catch (final NoSuchMethodException | IllegalAccessException ignored) {
+        }
+        try {
+            return thunk(lookup().findConstructor(raw, CHAR_SEQUENCE_CTOR));
+        } catch (final NoSuchMethodException | IllegalAccessException ignored) {
+        }
+        return null;
+    }
+
     /**
-     * Registers an object conversion.  Use this for plain types without consideration of generics.
+     * Registers an object conversion.  Use this for plain types without
+     * consideration of generics.
      *
      * @param type the class token, never missing
      * @param factory the converter, never missing
@@ -116,13 +185,15 @@ public final class Converter {
      *
      * @throws DuplicateConversion if the conversion is already registered
      */
-    public <T> void register(@Nonnull final Class<T> type, @Nonnull final Conversion<T, ?> factory)
+    public <T> void register(@Nonnull final Class<T> type,
+            @Nonnull final Conversion<T, ?> factory)
             throws DuplicateConversion {
         register(TypeToken.of(type), factory);
     }
 
     /**
-     * Registers an object conversion.  Use this for types with generics, for example, collections.
+     * Registers an object conversion.  Use this for types with generics, for
+     * example, collections.
      *
      * @param type the Guava type token, never missing
      * @param factory the converter, never missing
@@ -138,21 +209,24 @@ public final class Converter {
     }
 
     /**
-     * Registers a date format pattern for legacy {@code java.util.Date}.  By default {@code
-     * Converter} uses the deprecated {@link Date#Date(String)} constructor.
+     * Registers a date format pattern for legacy {@code java.util.Date}.  By
+     * default {@code Converter} uses the deprecated {@link Date#Date(String)}
+     * constructor.
      * <p>
-     * This method is a convenience and a caution for surprising legacy date parsing.  Better is to
-     * use {@link java.time} classes.
+     * This method is a convenience and a caution for surprising legacy date
+     * parsing.  Better is to use {@link java.time} classes.
      *
      * @param pattern the date format pattern, never missing
      */
     public void registerDate(@Nonnull final String pattern) {
-        register(Date.class, value -> new SimpleDateFormat(pattern).parse(value));
+        register(Date.class,
+                value -> new SimpleDateFormat(pattern).parse(value));
     }
 
     /**
-     * Converts the given <var>value</var> into an instance of <var>type</var>.  Use this for plain
-     * types without consideraton of generics.
+     * Converts the given <var>value</var> into an instance of
+     * <var>type</var>.  Use this for plain types without consideraton of
+     * generics.
      *
      * @param type the target type, never missing
      * @param value the string to convert, never missing
@@ -163,14 +237,16 @@ public final class Converter {
      * @throws Exception if conversion fails
      */
     @Nonnull
-    public <T> T convert(@Nonnull final Class<T> type, @Nonnull final String value)
+    public <T> T convert(@Nonnull final Class<T> type,
+            @Nonnull final String value)
             throws Exception {
         return convert(TypeToken.of(wrap(type)), value);
     }
 
     /**
-     * Converts the given <var>value</var> into an instance of <var>type</var>.  Use this for types
-     * with generis, for example, collections.
+     * Converts the given <var>value</var> into an instance of
+     * <var>type</var>.  Use this for types with generis, for example,
+     * collections.
      *
      * @param type the target type, never missing
      * @param value the string to convert, never missing
@@ -182,29 +258,36 @@ public final class Converter {
      */
     @SuppressWarnings("unchecked")
     @Nonnull
-    public <T> T convert(@Nonnull final TypeToken<T> type, @Nonnull final String value)
+    public <T> T convert(@Nonnull final TypeToken<T> type,
+            @Nonnull final String value)
             throws Exception {
         final Class<? super T> rawType = type.getRawType();
-        return String.class == rawType ? (T) value : factoryFor(type).convert(value);
+        return String.class == rawType ? (T) value
+                : factoryFor(type).convert(value);
     }
 
     /**
-     * Get an unmodifiable view of registered conversions.  Supported conversions are those implicit
-     * and those registered; registered takes precedence.
+     * Get an unmodifiable view of registered conversions.  Supported
+     * conversions are those implicit and those registered; registered takes
+     * precedence.
      *
      * @return the set of registered conversion types, never missing
      *
-     * @todo What is the best way to expose conversions for inspection/management?
+     * @todo What is the best way to expose conversions for
+     * inspection/management?
      */
     @Nonnull
     public Set<TypeToken<?>> registered() {
         return unmodifiableSet(conversions.keySet());
     }
 
-    private <T, E extends Exception> Conversion<T, E> factoryFor(final TypeToken<T> type) {
+    private <T, E extends Exception> Conversion<T, E> factoryFor(
+            final TypeToken<T> type) {
         // Java 8 generics inference is brilliant but not perfect, requires the ugly cast
-        return asList((Function<TypeToken<T>, Conversion<T, E>>) this::getRegistered,
-                Converter::parse, Converter::valueOf, Converter::of, Converter::ctor).stream().
+        return asList(
+                (Function<TypeToken<T>, Conversion<T, E>>) this::getRegistered,
+                Converter::parse, Converter::valueOf, Converter::of,
+                Converter::ctor).stream().
                 map(f -> f.apply(type)).
                 filter(conversion -> null != conversion).
                 findFirst().
@@ -212,70 +295,17 @@ public final class Converter {
     }
 
     @SuppressWarnings("unchecked")
-    private <T, E extends Exception> Conversion<T, E> getRegistered(final TypeToken<T> type) {
+    private <T, E extends Exception> Conversion<T, E> getRegistered(
+            final TypeToken<T> type) {
         return (Conversion<T, E>) conversions.get(type);
-    }
-
-    private static <T, E extends Exception> Conversion<T, E> parse(final TypeToken<T> type)
-            throws NoSuchMethodError {
-        return method(type, "parse");
-    }
-
-    private static <T, E extends Exception> Conversion<T, E> method(final TypeToken<T> type,
-            final String name) {
-        final Class<?> raw = type.getRawType();
-        // TODO: Parameter type must match exactly
-        try {
-            return thunk(lookup().findStatic(raw, name, methodType(raw, String.class)));
-        } catch (final NoSuchMethodException | IllegalAccessException ignored) {
-        }
-        try {
-            return thunk(lookup().findStatic(raw, name, methodType(raw, CharSequence.class)));
-        } catch (final NoSuchMethodException | IllegalAccessException ignored) {
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T, E extends Exception> Conversion<T, E> thunk(final MethodHandle handle) {
-        return value -> {
-            try {
-                return (T) handle.invoke(value);
-            } catch(final Error | RuntimeException e) {
-                throw e;
-            } catch (final Throwable t) {
-                throw (E) t;
-            }
-        };
-    }
-
-    private static <T, E extends Exception> Conversion<T, E> valueOf(final TypeToken<T> type) {
-        return method(type, "valueOf");
-    }
-
-    private static <T, E extends Exception> Conversion<T, E> of(final TypeToken<T> type) {
-        return method(type, "of");
-    }
-
-    private static <T, E extends Exception> Conversion<T, E> ctor(final TypeToken<T> type) {
-        final Class<?> raw = type.getRawType();
-        // TODO: Parameter type must match exactly
-        try {
-            return thunk(lookup().findConstructor(raw, STRING_CTOR));
-        } catch (final NoSuchMethodException | IllegalAccessException ignored) {
-        }
-        try {
-            return thunk(lookup().findConstructor(raw, CHAR_SEQUENCE_CTOR));
-        } catch (final NoSuchMethodException | IllegalAccessException ignored) {
-        }
-        return null;
     }
 
     /**
      * Converts a string property value into a typed object.
      *
      * @param <T> the converted type
-     * @param <E> the exception type on failed converstion, use {@code RuntimeException} if none
+     * @param <E> the exception type on failed converstion, use {@code
+     * RuntimeException} if none
      */
     @FunctionalInterface
     public interface Conversion<T, E extends Exception> {
