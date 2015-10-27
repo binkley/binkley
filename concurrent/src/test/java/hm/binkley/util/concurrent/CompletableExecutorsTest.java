@@ -95,7 +95,9 @@ public final class CompletableExecutorsTest {
         thrown.expect(ExecutionException.class);
         thrown.expectCause(is(instanceOf(Foobar.class)));
 
-        threads.submit(() -> {throw new Foobar();}).get();
+        threads.submit(() -> {
+            throw new Foobar();
+        }).get();
     }
 
     @Test
@@ -103,7 +105,9 @@ public final class CompletableExecutorsTest {
         thrown.expect(CompletionException.class);
         thrown.expectCause(is(instanceOf(Foobar.class)));
 
-        threads.submit(() -> {throw new Foobar();}).join();
+        threads.submit(() -> {
+            throw new Foobar();
+        }).join();
     }
 
     @Test
@@ -111,7 +115,7 @@ public final class CompletableExecutorsTest {
             throws InterruptedException, ExecutionException {
         thrown.expect(CancellationException.class);
 
-        final CompletableFuture<Object> future = threads.submit(() -> {
+        final CompletableFuture<Void> future = threads.submit(() -> {
             pause();
             return null;
         });
@@ -123,7 +127,7 @@ public final class CompletableExecutorsTest {
     public void shouldCancelForJoin() {
         thrown.expect(CancellationException.class);
 
-        final CompletableFuture<Object> future = threads.submit(() -> {
+        final CompletableFuture<Void> future = threads.submit(() -> {
             pause();
             return null;
         });
@@ -136,7 +140,7 @@ public final class CompletableExecutorsTest {
             throws InterruptedException, ExecutionException {
         thrown.expect(InterruptedException.class);
 
-        final CompletableFuture<Object> future = threads.submit(() -> {
+        final CompletableFuture<Void> future = threads.submit(() -> {
             pause();
             return null;
         });
@@ -146,10 +150,11 @@ public final class CompletableExecutorsTest {
 
     @Test
     public void shouldInterruptTimedGetExternally()
-            throws InterruptedException, ExecutionException, TimeoutException {
+            throws InterruptedException, ExecutionException,
+            TimeoutException {
         thrown.expect(InterruptedException.class);
 
-        final CompletableFuture<Object> future = threads.submit(() -> {
+        final CompletableFuture<Void> future = threads.submit(() -> {
             pause();
             return null;
         });
@@ -162,7 +167,7 @@ public final class CompletableExecutorsTest {
         thrown.expect(CompletionException.class);
         thrown.expectCause(is(instanceOf(InterruptedException.class)));
 
-        final CompletableFuture<Object> future = threads.submit(() -> {
+        final CompletableFuture<Void> future = threads.submit(() -> {
             pause();
             return null;
         });
@@ -175,7 +180,7 @@ public final class CompletableExecutorsTest {
             throws InterruptedException, ExecutionException {
         thrown.expect(InterruptedException.class);
 
-        final CompletableFuture<Object> future = threads.submit(() -> {
+        final CompletableFuture<Void> future = threads.submit(() -> {
             throw new InterruptedException();
         });
         future.get();
@@ -183,10 +188,11 @@ public final class CompletableExecutorsTest {
 
     @Test
     public void shouldInterruptTimedGetInternally()
-            throws InterruptedException, ExecutionException, TimeoutException {
+            throws InterruptedException, ExecutionException,
+            TimeoutException {
         thrown.expect(InterruptedException.class);
 
-        final CompletableFuture<Object> future = threads.submit(() -> {
+        final CompletableFuture<Void> future = threads.submit(() -> {
             throw new InterruptedException();
         });
         future.get(1, SECONDS);
@@ -197,7 +203,7 @@ public final class CompletableExecutorsTest {
         thrown.expect(CompletionException.class);
         thrown.expectCause(is(instanceOf(InterruptedException.class)));
 
-        final CompletableFuture<Object> future = threads.submit(() -> {
+        final CompletableFuture<Void> future = threads.submit(() -> {
             throw new InterruptedException();
         });
         future.join();
@@ -205,10 +211,11 @@ public final class CompletableExecutorsTest {
 
     @Test
     public void shouldTimeout()
-            throws InterruptedException, ExecutionException, TimeoutException {
+            throws InterruptedException, ExecutionException,
+            TimeoutException {
         thrown.expect(TimeoutException.class);
 
-        final CompletableFuture<Object> future = threads.submit(() -> {
+        final CompletableFuture<Void> future = threads.submit(() -> {
             pause();
             return null;
         });

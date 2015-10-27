@@ -48,11 +48,11 @@ import static java.util.concurrent.Executors.callable;
  * {@code CompleteableExecutors} are executors returning {@link
  * CompletableFuture} rather than plain {@link Future}.
  * <p>
- * Additionally, JDK completable futures wrap {@code InterruptedException} with
- * {@code ExecutionException}.  These are unwrapped to provide expected behavior
- * with {@link Future#get()} and friends.
+ * Additionally, JDK completable futures wrap {@code InterruptedException}
+ * with {@code ExecutionException}.  These are unwrapped to provide expected
+ * behavior with {@link Future#get()} and friends.
  * <p>
- * Lastly, these executors expose {@code Closeable.close()} to shutdown the
+ * Lastly, these executors expose {@link Closeable#close()} to shutdown the
  * thread pool in support of the <em>try-with-resources</em> idiom.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
@@ -60,8 +60,8 @@ import static java.util.concurrent.Executors.callable;
  */
 public final class CompletableExecutors {
     /**
-     * Mixes the given <var>threads</var> (execution service) with overrides to
-     * provide a completable exection service.
+     * Mixes the given <var>threads</var> (execution service) with overrides
+     * to provide a completable exection service.
      *
      * @param threads the execution service, never missin
      *
@@ -126,7 +126,8 @@ public final class CompletableExecutors {
         @Nonnull
         public <T> CompletableFuture<T> submit(
                 @Nonnull final Callable<T> task) {
-            final CompletableFuture<T> cf = new UnwrappedCompletableFuture<>();
+            final CompletableFuture<T> cf
+                    = new UnwrappedCompletableFuture<>();
             threads.submit(() -> {
                 try {
                     cf.complete(task.call());
@@ -160,7 +161,8 @@ public final class CompletableExecutors {
         @Override
         public T get()
                 throws InterruptedException, ExecutionException {
-            return UnwrappedInterrupts.<T, RuntimeException>unwrap(super::get);
+            return UnwrappedInterrupts.<T, RuntimeException>unwrap(
+                    super::get);
         }
 
         @Override
