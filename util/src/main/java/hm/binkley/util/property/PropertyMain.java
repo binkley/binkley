@@ -3,7 +3,7 @@ package hm.binkley.util.property;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -89,7 +89,7 @@ public final class PropertyMain {
     @AllArgsConstructor
     @ToString
     private static final class Thing {
-        @Nonnull
+        @Nullable
         private String s;
     }
 }

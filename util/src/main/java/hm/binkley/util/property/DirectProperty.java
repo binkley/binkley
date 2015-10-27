@@ -6,16 +6,11 @@ import lombok.ToString;
 
 import javax.annotation.Nullable;
 
-/**
- * {@code SimpleProperty} <strong>needs documentation</strong>.
- *
- * @author <a href="mailto:boxley@thoughtworks.com">Brian Oxley</a>
- * @todo Needs documentation
- */
+/** todo {@link #valueOf(Object)} is not typing correctly */
 @AllArgsConstructor(staticName = "valueOf")
 @EqualsAndHashCode
 @ToString(includeFieldNames = false)
-public final class SimpleProperty<T>
+final class DirectProperty<T>
         implements Property<T> {
     @Nullable
     private T value;

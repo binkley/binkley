@@ -29,18 +29,43 @@ import static lombok.AccessLevel.PRIVATE;
  */
 public interface Property<T>
         extends Getter<T>, Setter<T> {
-    @Nonnull
+    /**
+     * Gets the property value mapped by <var>mapper</var>.
+     *
+     * @param mapper the value mapper, never {@code null}
+     * @param <U> the mapped value type
+     *
+     * @return the mapped value
+     */
+    @Nullable
     default <U> U map(
             @Nonnull final Function<? super T, ? extends U> mapper) {
         return mapper.apply(get());
     }
 
+    /**
+     * Maps the property onto another.
+     *
+     * @param mapper the property mapper, never {@code null}
+     * @param <U> the mapped property type
+     *
+     * @return the mapped property, never {@code null}
+     */
     @Nonnull
     default <U> Property<U> flatMap(@Nonnull
     final Function<? super T, ? extends Property<U>> mapper) {
         return mapper.apply(get());
     }
 
+    /**
+     * Views the property as another.
+     *
+     * @param toU the mapper to the other value, never {@code null}
+     * @param toT the mapper from the other value, never {@code null}
+     * @param <U> the other property type
+     *
+     * @return the other property, never {@code null}
+     */
     @Nonnull
     default <U> Property<U> view(@Nonnull final Function<T, U> toU,
             @Nonnull final Function<U, T> toT) {
@@ -48,12 +73,29 @@ public interface Property<T>
                 setter(value -> set(toT.apply(value)));
     }
 
+    /**
+     * Produces a property directly stored with initial {@code null} value.
+     *
+     * @param <T> the property type
+     *
+     * @return the property, never {@code null}
+     */
+    @Nonnull
     static <T> Property<T> simple() {
-        return SimpleProperty.valueOf(null);
+        return DirectProperty.valueOf(null);
     }
 
+    /**
+     * Produces a property directly stored with initial <var>value</var>.
+     *
+     * @param value the initial value
+     * @param <T> the property type
+     *
+     * @return the property, never {@code null}
+     */
+    @Nonnull
     static <T> Property<T> simple(@Nullable final T value) {
-        return SimpleProperty.valueOf(value);
+        return DirectProperty.valueOf(value);
     }
 
     /**
