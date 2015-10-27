@@ -14,6 +14,7 @@ import static hm.binkley.util.property.Property.getter;
 import static hm.binkley.util.property.Property.in;
 import static hm.binkley.util.property.Property.on;
 import static java.lang.System.out;
+import static java.util.stream.Collectors.toList;
 
 public final class PropertyMain {
     public static void main(final String... args) {
@@ -62,6 +63,9 @@ public final class PropertyMain {
         dump(t);
         t.set("Bo");
         dump(t);
+
+        t.accept("Mo");
+        out.println(t.collect(toList()));
     }
 
     private static <T> void dump(final Property<T> property) {
