@@ -14,22 +14,22 @@ import static java.lang.reflect.Proxy.newProxyInstance;
 /**
  * {@code Mixin} implements concrete class mixins via JDK proxies.  Proxy
  * handler strategy tries: <ol><li>Previously matched methods</li> <li>Exact
- * static match by enclosing type</li> <li>"Duck" matches by name and parameter
- * type</li></ol>  Mixins expose a single, <em>composite interface</em> of all
- * supported interfaces.
+ * static match by enclosing type</li> <li>"Duck" matches by name and
+ * parameter type</li></ol>  Mixins expose a single, <em>composite
+ * interface</em> of all supported interfaces.
  * <p>
  * Mixins may optionally include {@code Mixin} as port of the <em>composite
  * interface</em>.  This exposes {@link #mixinDelegates()} providing public
- * access to the mixed in object delegated to by this proxy in the same order as
- * method lookup considers delegates.
+ * access to the mixed in object delegated to by this proxy in the same order
+ * as method lookup considers delegates.
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @see #newMixin(Class, Object...) Create a new mixin
  */
 public interface Mixin {
     /**
-     * Creates a new mixin.  If <var>as</var> extends {@code Mixin}, provides a
-     * supporting {@link #mixinDelegates()} method giving public access to
+     * Creates a new mixin.  If <var>as</var> extends {@code Mixin}, provides
+     * a supporting {@link #mixinDelegates()} method giving public access to
      * <var>delegates</var>.
      *
      * @param as a superinterface of visible public methods implemented by
@@ -48,8 +48,8 @@ public interface Mixin {
     }
 
     /**
-     * Gets an unmodifiable list of delegates implementing the mixin in the same
-     * order as method lookup.
+     * Gets an unmodifiable list of delegates implementing the mixin in the
+     * same order as method lookup.
      *
      * @return the unmodifiable list of delegates, never missing
      */
