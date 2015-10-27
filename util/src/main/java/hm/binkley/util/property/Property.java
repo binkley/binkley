@@ -28,6 +28,15 @@ import static lombok.AccessLevel.PRIVATE;
  */
 public interface Property<T>
         extends Getter<T>, Setter<T> {
+    default <U> U map(final Function<? super T, ? extends U> mapper) {
+        return mapper.apply(get());
+    }
+
+    default <U> Property<U> flatMap(
+            final Function<? super T, ? extends Property<U>> mapper) {
+        return mapper.apply(get());
+    }
+
     /**
      * Starts a fluent builder for a property backed by a getter/setter
      * method or function pair.  Example: <pre>
@@ -72,7 +81,7 @@ public interface Property<T>
      * class X {
      *     String s;
      * }
-     * 
+     * <p>
      * X x = new X("Bob");
      * Property&lt;String&gt; p = on(x).
      *     getter(on -&gt; on.s).

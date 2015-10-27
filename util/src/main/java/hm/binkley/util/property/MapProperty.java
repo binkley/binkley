@@ -4,7 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 @EqualsAndHashCode
@@ -15,14 +15,14 @@ final class MapProperty<T, K>
     private final Map<? super K, T> map;
     private final K key;
 
-    @Nonnull
+    @Nullable
     @Override
     public T get() {
         return map.get(key);
     }
 
     @Override
-    public void set(@Nonnull final T value) {
+    public void set(@Nullable final T value) {
         map.put(key, value);
     }
 }

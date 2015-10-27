@@ -4,7 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 @EqualsAndHashCode
@@ -15,14 +15,14 @@ final class ListProperty<T>
     private final List<T> list;
     private final int index;
 
-    @Nonnull
+    @Nullable
     @Override
     public T get() {
         return list.get(index);
     }
 
     @Override
-    public void set(@Nonnull final T value) {
+    public void set(@Nullable final T value) {
         list.set(index, value);
     }
 }

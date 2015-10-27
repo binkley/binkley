@@ -4,7 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 @EqualsAndHashCode
 @RequiredArgsConstructor
@@ -14,14 +14,14 @@ final class ArrayProperty<T>
     private final T[] array;
     private final int index;
 
-    @Nonnull
+    @Nullable
     @Override
     public T get() {
         return array[index];
     }
 
     @Override
-    public void set(@Nonnull final T value) {
+    public void set(@Nullable final T value) {
         array[index] = value;
     }
 }
