@@ -40,7 +40,7 @@ public class PropertyTest {
         list.add(null);
         final Map<Integer, String> map = new HashMap<>(1);
 
-        return asList(args(Property.empty()),
+        return asList(args(Property.valueOf(null)),
                 args(getter(box::getS).setter(box::setS)),
                 args(in(array).at(0)), args(in(list).at(0)),
                 args(in(map).at(3)),
