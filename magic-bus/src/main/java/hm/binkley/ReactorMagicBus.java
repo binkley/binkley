@@ -26,7 +26,7 @@ import static reactor.bus.selector.Selectors.type;
  * @todo Caller-supplied event bus
  * @todo Asynchronous delivery - testing needs revisiting
  */
-@RequiredArgsConstructor(onConstructor = @__(@Nonnull))
+@RequiredArgsConstructor
 public final class ReactorMagicBus
         implements MagicBus {
     private final EventBus bus = new EventBusSpec().

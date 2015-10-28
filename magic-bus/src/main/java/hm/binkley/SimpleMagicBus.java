@@ -24,7 +24,7 @@ import static java.util.Objects.requireNonNull;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Synchronized, really?  First correct, then fast
  */
-@RequiredArgsConstructor(onConstructor = @__(@Nonnull))
+@RequiredArgsConstructor
 public final class SimpleMagicBus
         implements MagicBus {
     /**
