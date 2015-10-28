@@ -75,7 +75,7 @@ public interface MagicBus {
 
     /** Details on unsubscribed (undelivered) messages. */
     @EqualsAndHashCode
-    @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
+    @RequiredArgsConstructor
     @ToString
     final class ReturnedMessage {
         @Nonnull
@@ -86,7 +86,7 @@ public interface MagicBus {
 
     /** Details on failed messages (dead letters). */
     @EqualsAndHashCode
-    @RequiredArgsConstructor(onConstructor = @__(@Nonnull))
+    @RequiredArgsConstructor
     @ToString
     final class FailedMessage {
         @Nonnull
