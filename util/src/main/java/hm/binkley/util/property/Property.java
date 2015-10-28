@@ -81,7 +81,7 @@ public interface Property<T>
      * @return the property, never {@code null}
      */
     @Nonnull
-    static <T> Property<T> simple() {
+    static <T> Property<T> empty() {
         return DirectProperty.valueOf(null);
     }
 
@@ -94,7 +94,7 @@ public interface Property<T>
      * @return the property, never {@code null}
      */
     @Nonnull
-    static <T> Property<T> simple(@Nullable final T value) {
+    static <T> Property<T> valueOf(@Nullable final T value) {
         return DirectProperty.valueOf(value);
     }
 
