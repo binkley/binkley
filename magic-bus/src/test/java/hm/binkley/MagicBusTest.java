@@ -218,8 +218,7 @@ public class MagicBusTest {
 
     @Test
     public void shouldReceiveOnParentTypeFirst() {
-        assumeThat(
-                "Reactor does not implement calling supertypes before derived types",
+        assumeThat("Reactor will not call super types before derived types",
                 busType, is(not(ReactorMagicBus.class)));
 
         final AtomicInteger delivery = new AtomicInteger();
