@@ -36,7 +36,7 @@ public final class SimpleMagicBus
     }
 
     private final Subscribers subscribers = new Subscribers();
-    /** Receives unsubscribed messages. */
+    /** Receives returned messages. */
     @Nonnull
     private final Consumer<? super ReturnedMessage> returned;
     /** Receives failed messages. */
@@ -97,8 +97,8 @@ public final class SimpleMagicBus
                 = new ConcurrentSkipListMap<>(Subscribers::classOrder);
 
         private static int classOrder(final Class<?> a, final Class<?> b) {
-            boolean aFirst = b.isAssignableFrom(a);
-            boolean bFirst = a.isAssignableFrom(b);
+            final boolean aFirst = b.isAssignableFrom(a);
+            final boolean bFirst = a.isAssignableFrom(b);
 
             if (aFirst && !bFirst)
                 return 1;
