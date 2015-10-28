@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @EqualsAndHashCode
@@ -11,6 +12,7 @@ import javax.annotation.Nullable;
 @ToString(includeFieldNames = false)
 final class ArrayProperty<T>
         implements Property<T> {
+    @Nonnull
     private final T[] array;
     private final int index;
 

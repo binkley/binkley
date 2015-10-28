@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @ToString(includeFieldNames = false)
 final class ListProperty<T>
         implements Property<T> {
+    @Nonnull
     private final List<T> list;
     private final int index;
 

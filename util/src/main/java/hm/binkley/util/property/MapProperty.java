@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 
@@ -12,6 +13,7 @@ import java.util.Map;
 @ToString(includeFieldNames = false)
 final class MapProperty<T, K>
         implements Property<T> {
+    @Nonnull
     private final Map<? super K, T> map;
     private final K key;
 

@@ -79,6 +79,8 @@ public final class PropertyMain {
         j.set(5);
         dump(t);
         dump(j);
+
+        final Property<Object> nullCheck = in((Object[]) null).at(0);
     }
 
     private static <T> void dump(final Property<T> property) {
