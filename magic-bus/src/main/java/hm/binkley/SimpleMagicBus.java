@@ -3,10 +3,10 @@ package hm.binkley;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,7 +24,7 @@ import static java.util.Objects.requireNonNull;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Synchronized, really?  First correct, then fast
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(staticName = "of")
 public final class SimpleMagicBus
         implements MagicBus {
     /**
@@ -93,7 +93,7 @@ public final class SimpleMagicBus
     }
 
     private static final class Subscribers {
-        private final ConcurrentNavigableMap<Class, Set<Mailbox>> subscribers
+        private final Map<Class, Set<Mailbox>> subscribers
                 = new ConcurrentSkipListMap<>(Subscribers::classOrder);
 
         private static int classOrder(final Class<?> a, final Class<?> b) {

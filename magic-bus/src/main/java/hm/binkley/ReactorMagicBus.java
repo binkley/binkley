@@ -26,7 +26,7 @@ import static reactor.bus.selector.Selectors.type;
  * @todo Caller-supplied event bus
  * @todo Asynchronous delivery - testing needs revisiting
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(staticName = "of")
 public final class ReactorMagicBus
         implements MagicBus {
     private final EventBus bus = new EventBusSpec().
@@ -36,7 +36,7 @@ public final class ReactorMagicBus
     private final Map<Subscription<?>, Registration<Object, reactor.fn.Consumer<? extends Event<?>>>>
             subscriptions = new ConcurrentHashMap<>();
 
-    /** Receives unsubscribed messages. */
+    /** Receives returned messages. */
     @Nonnull
     private final Consumer<? super ReturnedMessage> returned;
     /** Receives failed messages. */
@@ -60,12 +60,12 @@ public final class ReactorMagicBus
 
     public void post(@Nonnull final Object message) {
         final Class<?> type = message.getClass();
-        if (bus.respondsToKey(type)) {
-            bus.notify(type, wrap(message));
+        if (!bus.respondsToKey(type)) {
+            returned.accept(new ReturnedMessage(this, message));
             return;
         }
 
-        returned.accept(new ReturnedMessage(this, message));
+        bus.notify(type, wrap(message));
     }
 
     @SuppressWarnings("unchecked")

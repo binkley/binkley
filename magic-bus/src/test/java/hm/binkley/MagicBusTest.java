@@ -55,8 +55,8 @@ public class MagicBusTest {
 
     @Parameters(name = "{index}: {0}")
     public static Collection parameters() {
-        return asList(params(SimpleMagicBus.class, SimpleMagicBus::new),
-                params(ReactorMagicBus.class, ReactorMagicBus::new));
+        return asList(params(SimpleMagicBus.class, SimpleMagicBus::of),
+                params(ReactorMagicBus.class, ReactorMagicBus::of));
     }
 
     private static <T extends MagicBus> Object[] params(
