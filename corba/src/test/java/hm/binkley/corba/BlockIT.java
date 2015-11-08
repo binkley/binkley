@@ -7,9 +7,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
-import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
-import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
+import org.junit.contrib.java.lang.system.RestoreSystemProperties;
+import org.junit.contrib.java.lang.system.SystemErrRule;
+import org.junit.contrib.java.lang.system.SystemOutRule;
 import org.omg.CosNaming.NamingContextPackage.CannotProceed;
 import org.omg.CosNaming.NamingContextPackage.InvalidName;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
@@ -24,6 +24,7 @@ import java.util.List;
 import static hm.binkley.corba.BlockServer.runNameServer;
 import static hm.binkley.corba.CORBAHelper.jacorb;
 import static java.lang.String.format;
+import static java.lang.System.setProperty;
 import static java.lang.Thread.currentThread;
 import static java.net.InetAddress.getLocalHost;
 import static java.util.Arrays.asList;
@@ -50,24 +51,30 @@ public final class BlockIT {
     @Rule
     public final ProvidePort port = new ProvidePort();
     @Rule
-    public final ProvideSystemProperty sysprops = new ProvideSystemProperty().
-            and("org.omg.CORBA.ORBClass", "org.jacorb.orb.ORB").
-            and("org.omg.CORBA.ORBSingletonClass",
-                    "org.jacorb.orb.ORBSingleton").
-            and("ORBInitRef.NameService",
-                    format("corbaloc::localhost:%d/NameService", port.port())).
-            and("OAPort", String.valueOf(port.port()));
+    public final RestoreSystemProperties sysprops
+            = new RestoreSystemProperties();
 
     @Rule
-    public final StandardOutputStreamLog out = new StandardOutputStreamLog();
+    public final SystemOutRule sout = new SystemOutRule().
+            enableLog().
+            mute();
     @Rule
-    public final StandardErrorStreamLog err = new StandardErrorStreamLog();
+    public final SystemErrRule serr = new SystemErrRule().
+            enableLog().
+            mute();
 
     private CORBAHelper helper;
 
     @Before
     public void setUp()
             throws IOException {
+        setProperty("org.omg.CORBA.ORBClass", "org.jacorb.orb.ORB");
+        setProperty("org.omg.CORBA.ORBSingletonClass",
+                "org.jacorb.orb.ORBSingleton");
+        setProperty("ORBInitRef.NameService",
+                format("corbaloc::localhost:%d/NameService", port.port()));
+        setProperty("OAPort", String.valueOf(port.port()));
+
         commonPool().submit(() -> {
             currentThread().setName("CORBA Name Service");
             runNameServer(port.port());
