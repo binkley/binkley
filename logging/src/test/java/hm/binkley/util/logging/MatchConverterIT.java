@@ -37,9 +37,13 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public final class MatchConverterIT {
     @Rule
-    public final SystemOutRule sout = new SystemOutRule().enableLog();
+    public final SystemOutRule sout = new SystemOutRule().
+            enableLog().
+            mute();
     @Rule
-    public final SystemErrRule serr = new SystemErrRule().enableLog();
+    public final SystemErrRule serr = new SystemErrRule().
+            enableLog().
+            mute();
     @Rule
     public RestoreSystemProperties pattern = new RestoreSystemProperties();
     @Rule
