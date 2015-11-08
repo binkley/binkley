@@ -9,13 +9,12 @@ package hm.binkley.util.logging;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.core.status.Status;
 import org.hamcrest.Matcher;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.contrib.java.lang.system.RestoreSystemProperties;
-import org.junit.contrib.java.lang.system.StandardErrorStreamLog;
-import org.junit.contrib.java.lang.system.StandardOutputStreamLog;
+import org.junit.contrib.java.lang.system.SystemErrRule;
+import org.junit.contrib.java.lang.system.SystemOutRule;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -28,7 +27,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.contrib.java.lang.system.LogMode.LOG_ONLY;
 import static org.slf4j.LoggerFactory.getILoggerFactory;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -39,18 +37,15 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public final class MatchConverterIT {
     @Rule
-    public StandardOutputStreamLog sout = new StandardOutputStreamLog(LOG_ONLY);
+    public final SystemOutRule sout = new SystemOutRule().enableLog();
     @Rule
-    public StandardErrorStreamLog serr = new StandardErrorStreamLog(LOG_ONLY);
+    public final SystemErrRule serr = new SystemErrRule().enableLog();
     @Rule
-    public RestoreSystemProperties pattern = new RestoreSystemProperties("logback.pattern");
+    public RestoreSystemProperties pattern = new RestoreSystemProperties();
     @Rule
-    public final ProvideSystemProperty sysprops = new ProvideSystemProperty();
-
-    @Before
-    public void setUp() {
-        sysprops.setProperty(LOGBACK_CONFIGURATION_FILE.key(), "it-match-converter-logback.xml");
-    }
+    public final ProvideSystemProperty sysprops = new ProvideSystemProperty(
+            LOGBACK_CONFIGURATION_FILE.key(),
+            "it-match-converter-logback.xml");
 
     @Test
     public void shouldMatch() {
@@ -82,10 +77,12 @@ public final class MatchConverterIT {
             if (Status.ERROR == status.getLevel())
                 messages.add(status.getMessage());
 
-        assertThat("ERROR", messages, hasItem("Missing options for %match - missing options"));
+        assertThat("ERROR", messages,
+                hasItem("Missing options for %match - missing options"));
     }
 
     private void assertLogLine(final Matcher<String> matcher) {
-        assertThat("STDOUT", sout.getLog().trim(), matcher); // Remove trailing line ending
+        assertThat("STDOUT", sout.getLog().trim(),
+                matcher); // Remove trailing line ending
     }
 }
