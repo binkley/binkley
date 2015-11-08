@@ -1,5 +1,6 @@
 package hm.binkley.util;
 
+import hm.binkley.util.YamlHelper.Builder.BuilderConstructor;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.AbstractConstruct;
@@ -69,8 +70,8 @@ public interface YamlHelper<T> {
     /**
      * Converter for YAML constructors map.
      *
-     * @see Builder.BuilderConstructor#addImplicit(Class, Implicit)
-     * @see Builder.BuilderConstructor#addExplicit(Tag, Explicit)
+     * @see BuilderConstructor#addImplicit(Class, Implicit)
+     * @see BuilderConstructor#addExplicit(Tag, Explicit)
      */
     @Nonnull
     Function<String, T> valueOf();
@@ -227,7 +228,7 @@ public interface YamlHelper<T> {
             return new Tag("!" + type.getSimpleName());
         }
 
-        private static class BuilderConstructor
+        static class BuilderConstructor
                 extends Constructor {
             <T> void addImplicit(final Tag tag, final Implicit<T> implicit) {
                 yamlConstructors.put(tag, new BuilderConstruct<>(implicit));

@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static freemarker.template.Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS;
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.asList;
@@ -128,7 +129,8 @@ public class XMLFuzzyProcessor
     public boolean process(final Set<? extends TypeElement> annotations,
             final RoundEnvironment roundEnv) {
         final Filer filer = processingEnv.getFiler();
-        final Configuration configuration = new Configuration();
+        final Configuration configuration = new Configuration(
+                DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
         try {
             configuration.setDirectoryForTemplateLoading(new File(
                     filer.getResource(CLASS_PATH, getClass().getPackage().getName(), "fuzzy.ftl")
@@ -142,9 +144,8 @@ public class XMLFuzzyProcessor
             try {
                 final PackageElement packaj = processingEnv.getElementUtils().getPackageOf(element);
                 final Name simpleName = element.getSimpleName();
-                try (final Writer out = filer
-                        .createSourceFile(packaj + "." + simpleName + "Factory", element)
-                        .openWriter()) {
+                try (final Writer out = factoryWriterFor(filer, packaj,
+                        simpleName, element)) {
                     final Map<String, Object> model = new HashMap<>();
                     model.put("generator", XMLFuzzyProcessor.class.getName());
                     model.put("date", Instant.now());
@@ -187,6 +188,16 @@ public class XMLFuzzyProcessor
             }
         }
         return true;
+    }
+
+    private static Writer factoryWriterFor(final Filer filer,
+            final PackageElement packaj, final Name simpleName,
+            final Element element)
+            throws IOException {
+        return filer.
+                createSourceFile(format("%s.%sFactory", packaj, simpleName),
+                        element).
+                openWriter();
     }
 
     private String converterFor(final ExecutableElement methodElement,
