@@ -35,11 +35,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-/**
- * {@code ThreadNamedTest} tests {@link ThreadNamed}.
- *
- * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- */
 public final class ThreadNamedTest {
     private static final String newThreadName = "Bob the Builder";
 

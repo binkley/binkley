@@ -49,8 +49,7 @@ import static com.sun.tools.javac.code.Flags.ABSTRACT;
 import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.util.List.nil;
 import static lombok.core.handlers.HandlerUtil.handleFlagUsage;
-import static lombok.javac.handlers.JavacHandlerUtil
-        .deleteAnnotationIfNeccessary;
+import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 import static lombok.javac.handlers.JavacHandlerUtil.genJavaLangTypeRef;
 import static lombok.javac.handlers.JavacHandlerUtil.inNetbeansEditor;
 import static lombok.javac.handlers.JavacHandlerUtil.isConstructorCall;
@@ -68,11 +67,10 @@ import static lombok.javac.handlers.JavacHandlerUtil.setGeneratedBy;
 public class HandleThreadNamed
         extends JavacAnnotationHandler<ThreadNamed> {
     /**
-     * lombok configuration: {@code hm.binkley.lombok.threadNamed.flagUsage} =
-     * {@code WARNING} | {@code ERROR}.
-     * <p>
-     * If set, <em>any</em> usage of {@link @ThreadNamed} results in a warning /
-     * error.
+     * lombok configuration: <pre>
+     * hm.binkley.lombok.threadNamed.flagUsage} = WARNING | ERROR</pre>
+     * If set, <em>any</em> usage of &#64;{@link ThreadNamed} results in a
+     * warning/error.
      */
     public static final ConfigurationKey<FlagUsageType> THREAD_NAMED_FLAG_USAGE
             = new ConfigurationKey<FlagUsageType>(
