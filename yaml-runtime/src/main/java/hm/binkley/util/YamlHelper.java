@@ -44,6 +44,7 @@ import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.PLAIN;
  *
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  */
+@SuppressWarnings("ClassReferencesSubclass")
 public interface YamlHelper<T> {
     interface Implicit<T>
             extends YamlHelper<T> {

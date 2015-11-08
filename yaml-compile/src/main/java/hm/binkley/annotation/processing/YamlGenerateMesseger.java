@@ -11,6 +11,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static hm.binkley.util.YamlHelper.Builder.inOneLine;
 import static java.lang.System.arraycopy;
@@ -28,7 +29,7 @@ public final class YamlGenerateMesseger
     private final Resource ftl;
     private final Resource yml;
     // Block and template are exclusive
-    private final Map.Entry<String, ? extends Map<String, ?>> block;
+    private final Entry<String, ? extends Map<String, ?>> block;
     private final Template template;
 
     static YamlGenerateMesseger from(final Messager messager,
@@ -41,7 +42,7 @@ public final class YamlGenerateMesseger
             final Element element, final AnnotationMirror mirror,
             final AnnotationValue value, final Resource ftl,
             final Resource yml,
-            final Map.Entry<String, ? extends Map<String, ?>> block,
+            final Entry<String, ? extends Map<String, ?>> block,
             final Template template) {
         super(YamlGenerate.class, messager, element, mirror, value);
         this.ftl = ftl;
@@ -68,7 +69,7 @@ public final class YamlGenerateMesseger
     }
 
     public YamlGenerateMesseger atYamlBlock(
-            final Map.Entry<String, ? extends Map<String, ?>> block) {
+            final Entry<String, ? extends Map<String, ?>> block) {
         return new YamlGenerateMesseger(messager, element, mirror, value, ftl,
                 yml, block, template);
     }
