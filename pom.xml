@@ -98,7 +98,7 @@
     <properties>
         <!-- @formatter:off -->
         <commons-lang3.version>3.4</commons-lang3.version>
-        <curator.version>2.9.0</curator.version>
+        <curator.version>3.0.0</curator.version>
         <freemarker.version>2.3.23</freemarker.version>
         <generateBackupPoms>false</generateBackupPoms>
         <guava.version>18.0</guava.version>
@@ -113,8 +113,8 @@
         <java.charset>UTF-8</java.charset>
         <java.version>8</java.version>
         <jgitflow-maven-plugin.version>1.0-m5.1</jgitflow-maven-plugin.version>
-        <jmockit.version>1.19</jmockit.version>
-        <jnr.version>3.0.17</jnr.version>
+        <jmockit.version>1.20</jmockit.version>
+        <jnr.version>3.0.20</jnr.version>
         <jopt-simple.version>4.9</jopt-simple.version>
         <jsr305.version>3.0.1</jsr305.version>
         <junit.version>4.12</junit.version>
@@ -146,9 +146,9 @@
         <service-binder.version>0.3</service-binder.version>
         <slf4j.version>1.7.12</slf4j.version>
         <snakeyaml.version>1.16</snakeyaml.version>
-        <spring-boot.version>1.2.6.RELEASE</spring-boot.version>
-        <spring.version>4.2.1.RELEASE</spring.version>
-        <system-rules.version>1.12.1</system-rules.version>
+        <spring-boot.version>1.2.7.RELEASE</spring-boot.version>
+        <spring.version>4.2.2.RELEASE</spring.version>
+        <system-rules.version>1.13.0</system-rules.version>
         <versions-maven-plugin.version>2.2</versions-maven-plugin.version>
         <!-- @formatter:on -->
     </properties>
