@@ -43,6 +43,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.tools.Diagnostic.Kind;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
@@ -50,6 +51,7 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.time.Instant.now;
 import static java.util.regex.Pattern.compile;
 import static javax.lang.model.SourceVersion.RELEASE_8;
 import static javax.lang.model.element.ElementKind.INTERFACE;
@@ -75,13 +77,19 @@ public final class ValueTypeProcessor
     private static final Pattern baseVar = compile("\\$\\{base\\}");
     private static final Pattern typeVar = compile("\\$\\{type\\}");
     private static final Pattern modifyVar = compile("\\$\\{modify\\}");
+    private static final Pattern timestamp = compile("\\$\\{timestamp\\}");
 
     private final String template;
 
-    public ValueTypeProcessor() {
-        try (final Scanner scanner = new Scanner(getClass().getResourceAsStream("value-type.java"),
-                UTF_8.name())) {
-            template = scanner.useDelimiter("\\A").next();
+    public ValueTypeProcessor()
+            throws IOException {
+        final URL source = getClass().getResource("value-type.java");
+        try (final Scanner scanner = new Scanner(source.openStream(),
+                UTF_8.name()).useDelimiter("\\A")) {
+            if (!scanner.hasNext())
+                throw new IllegalStateException(
+                        format("Illegal template source: %s", source));
+            template = scanner.next();
         }
     }
 
@@ -115,7 +123,7 @@ public final class ValueTypeProcessor
                                 .error("@ValueType supports only static and default methods: %s",
                                         m));
 
-                // Rely on knowledge there is only the value field
+                // Rely on knowing there is only the value field
                 final AnnotationValue value = mirror.getElementValues().values().stream().
                         findFirst().get();
 
@@ -125,7 +133,7 @@ public final class ValueTypeProcessor
                 final String source = format("%s.%sValue", packaj, clazz);
                 final DeclaredType valueType = (DeclaredType) value.getValue();
                 final String type = valueType.toString();
-                final String modify = "java.lang.String".equals(type) ? ".intern()" : "";
+                final String modify = String.class.getName().equals(type) ? ".intern()" : "";
 
                 final boolean comparable = comparable(valueType);
                 final String base = comparable ? "ComparableValue" : "Value";
@@ -137,6 +145,7 @@ public final class ValueTypeProcessor
                     generated = baseVar.matcher(generated).replaceAll(base);
                     generated = typeVar.matcher(generated).replaceAll(type);
                     generated = modifyVar.matcher(generated).replaceAll(modify);
+                    generated = timestamp.matcher(generated).replaceAll(now().toString());
                     out.write(generated.getBytes(UTF_8));
                 } catch (final IOException e) {
                     messenger.error("Cannot generate source: %s", e);

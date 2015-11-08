@@ -1,6 +1,8 @@
 package ${package};
 
-@javax.annotation.Generated("hm.binkley.util.value.ValueTypeProcessor")
+@javax.annotation.Generated(
+        value = "hm.binkley.util.value.ValueTypeProcessor",
+        date = "${timestamp}")
 public final class ${class}Value
         extends hm.binkley.util.value.${base}<${type}, ${class}Value>
         implements ${class} {
