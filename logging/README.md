@@ -15,7 +15,7 @@ pattern: Imagine, Design, Construct, Integrate, Operate.  Each phase is
 backward-facing for inputs and forward-facing for outputs in the sense that
 requirements flow in one direction only.
 
-<Diagram>
+_Linear diagram of the 5 phases_
 
 We know this is not the best way to deliver value and change.  Modern software
 development has moved to Agile and Continuous Deployment to address the
@@ -23,8 +23,8 @@ mismatch between traditional methods and fluid business needs.  Delaying
 inputs and outputs between phases is costly and produces poor outcomes.
 Rather each area should inform and be informed by others.
 
-<Diagram = a loop captures the repeating cycle but does not show the
-interconnections.  How to project these onto a sphere?>
+_Non-linear diagram -  a loop captures the repeating cycle but does not show
+the interconnections.  Project these onto a sphere or spokes?_
 
 Operate and support and equal partners in this view.  Software that cannot be
 run effectively or efficiently fails to deliver value.  A strong support model
@@ -53,12 +53,11 @@ These mingled concerns might include:
 
 - Alerting, including capacity, performance, security and problem detection
 - Historic capture of same
+- Security, authentication, authorization and access controls
 - Real-time and post hoc problem analysis and resolution
 - Audit trails, including analytics and compliance
 - Integration with other systems
 - Maintenance and further development
-
-<Work in the 5 A's - authenticate, authorize, access, audit, accounting?>
 
 Logging as a solution ranges in value from fairly good to adequate to poor,
 and is akin to screen-scraping as a general purpose tool.  Mingling unrelated
@@ -136,20 +135,35 @@ those concerns.  The most obvious way to do that is for concerns to have
 dedicate logging streams configured and managed separately.  Each stream
 should reflect the needs of that concern.  Examples:
 
-Audit trail - this should use guaranteed delivery to durable storage.  If
-logging fails the application should ALERT operate immediately.  Example
+#### Audit trail
+
+Audit trails should use guaranteed delivery to durable storage.  If logging
+fails the application should ALERT operate immediately.  Example
 implementations include JMS or logging to database.  AUDIT logging stream
 should be synchronous to guarantee delivery and ensure better order
 preservation.  This stream may also be forked to provide a local on-disk
 record for regulatory reasons.
 
-Alerting - this should use guaranteed delivery to a monitoring system.  This
-might be an automated system with escalantion to manual intervention.  Example
+#### Alerting
+
+Alerting should use guaranteed delivery to a monitoring system.  This might be
+an automated system with escalantion to manual intervention.  Example
 implementations include JMS or an external alerting API to handle escalation,
 alert fan-outs, etc.  ALERT logging stream should be synchronous to guarantee
 delievery.
 
-Application - this should use the lowest-impact means available for recording
+#### Operate Runbook
+
+Audit trail and alerts should be documented in the Operate Runbook.  One
+approach is to use a custom javadoc tag, e.g., `@alert` or `@runbook`, however
+this is difficult to link to externally.  Another is to reference a common
+data source for systems and operate to share.
+
+_Needs discussion and follow up._
+
+#### Other
+
+Application logging should use the lowest-impact means available for recording
 logging events, typically asynchronous batched writes to local disk.  However,
 unlike traditional logging, OSI should have a greatly reduced volume of
 logging events for this stream, lessing system impact of logging.
@@ -170,9 +184,10 @@ ALERT streams.  Operate or support events should send only to the ALERT
 stream.
 
 WARN - Avoid using warnings.  They are by definition ambiguous.  Is the system
-failing?  Does it need immediate attention?  Prefer INFO or ERROR.  <More
-discussion needed - WARN audit events make sense, but it better handled by a
-consumer with BI.  However WARN alert events are problematic.>
+failing?  Does it need immediate attention?  Prefer INFO or ERROR.
+
+_More discussion needed - WARN audit events make sense, but it better
+handled by a consumer with BI.  However WARN alert events are problematic._
 
 INFO - Developers should use INFO to traditional logging streams.  This is the
 usual level for non-production logging.
@@ -182,13 +197,29 @@ worth logging at all.  To filter the logging use filters, not levels.  For
 developers needing finer grained logging, rely on tags or similar to
 seggregate logging events rather than level.
 
-TRACE - Oddly this is preferrable to DEBUG in some respects.  It provides the
+TRACE - Oddly this is preferable to DEBUG in some respects.  It provides the
 greatest possible number of logging events, and hence the most complete
 picture of system behavior.  This level should never be enabled by default,
 and should only be enabled through run-time changes, e.g. JMX, for limited
 periods.
 
-<Matrix table of stream vs level.>
+| Stream | Level | Example | Notes |
+|--------|-------|---------|-------|
+| ALERT | ERROR | Failed database connection | Operate condition requiring immediate attention |
+| ALERT | WARN | - | Use sparingly, if at all |
+| ALERT | Other | - | Alert supports no other levels |
+| AUDIT | ERROR | Failed login[1] | Auditable event requiring remediation |
+| AUDIT | WARN | Rejected customer as per business rules | Normal level for problematic auditable events |
+| AUDIT | INFO | Normal business events | Normal level for auditable events |
+| AUDIT | Other | Audit supports no other levels |
+| APPLICATION | ERROR | Failed database connection | Always use together with ALERT-ERROR |
+| APPLICATION | WARN | - | Use sparingly, if at all |
+| APPLICATION | INFO | Application start | Normal level for non-alert/audit events |
+| APPLICATION | DEBUG | - | Use sparingly, if at all |
+| APPLICATION | TRACE | Function calls | Use together with debugging |
+
+[1] OSI implementation may choose to separate security events from audit
+events
 
 ### Logging configuration
 
@@ -220,7 +251,7 @@ Similarly test logging extension points and implemention of other features.
 Suitable OSI logging implementations need to support debugging of logging,
 configuration, monitoring and extension points.
 
-Example Implementation with Logback
+### Example Implementation with Logback
 
 Java is the most common enterprise programming language.  Among the libraries
 for logging, Logback is the best combination of popular, well-supported and
@@ -229,42 +260,51 @@ simple extension.
 
 On Github is an example implementation of OSI logging with Logback:
 
-[binkley's Blog - logging](.)
+[binkley's Blog (Brian Oxley) - logging](https://github.com/binkley/binkley/tree/develop/logging)
 
-### Logback support of recommendations includes:
+### Logback support of recommendations
 
-- Use of fixed, shared, parameterized logger configuration with extension
-  points through a common "logback.xml" in the classpath, including run-time
-  warnings if systems provide a custom "logback.xml" ignoring the common one.
+- Use of fixed, shared, parameterized logging configuration with extension
+  points through a common `logback.xml` in the classpath, including run-time
+  warnings if systems provide a custom `logback.xml` ignoring the common one.
 
 - Custom logging streams, ALERT and AUDIT, supporting optional logging levels,
   e.g., INFO, WARN, ERROR.  The streams are independent and should be
   redirected appropriately such as to JMS, JDBC or an alerting system.
 
-- Global and custom logging levels appropriate to circumstance with a suitable
+- Global and custom logging levels appropriate to environment with a suitable
   default "Silence is Golden" approach for typical system logging.  Also
-  changeable both at start with a system property, e.g., "log.level", and
+  changeable both at start with a system property, e.g., `log.level`, and
   dynamically at runtime through JMX or programmatically.
 
 - Additional extension points such as duplicate filters to prevent ALERT
   spamming and programmable filters for custom logging stream routing (this is
-  how AUDIT and ALERT could be implemented).  This includes 3rd-party
+  how AUDIT and ALERT can be implemented).  This includes 3rd-party
   extensions such as Whisper.
 
+- Bundled support for logging to JMS, JDBC, SMTP and Syslog.  Other
+  3rd-parties provide integration, e.g., [Logstash
+  (ELK)](https://blog.codecentric.de/en/2014/10/log-management-spring-boot-applications-logstash-elastichsearch-kibana/).
+
 - Synchronous and asynchronous handling of logging events.  AUDIT and ALERT
-  events are best synchronous to guarantee delivery.  Other logging streams
-  are best asynchronous to lower system impact of logging.
+  events are best synchronous to require timely delivery.  Other logging
+  streams are best asynchronous to lower system impact.
+
+- Log event markers to categorize more accurately than by originating Java
+  class (used by AUDIT and ALERT streams).  Logging configuration can filter
+  and route based on markers.
 
 - Monitoring of logging implementation through JMX, including tracking of
   recent logging events, changing of logging levels.  Combined with Jolokia,
   this provides further remote management options.
 
 - Use of a system property to enable/disable debugging of logging
-  configuration, e.g., "-Dlogback.debug" on the command line.  The same flag
+  configuration, e.g., `-Dlogback.debug` on the command line.  The same flag
   can be used to set the developer logging stream to DEBUG level.
 
-- Tracing of logging during development with the "XLogger" facility.
+- Tracing of logging during development with the
+  [`XLogger`](http://www.slf4j.org/extensions.html#extended_logger) facility.
 
 - Logback itself can receive remote logging events and act as a consolidation
   service.  This is a suitable approach for combining logging for a master
-  overview of multiple systems.  Other approaches can be more suitable.
+  overview of multiple systems.  Other approaches may be more suitable.
