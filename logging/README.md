@@ -23,8 +23,7 @@ mismatch between traditional methods and fluid business needs.  Delaying
 inputs and outputs between phases is costly and produces poor outcomes.
 Rather each area should inform and be informed by others.
 
-_Non-linear diagram -  a loop captures the repeating cycle but does not show
-the interconnections.  Project these onto a sphere or spokes?_
+_Non-linear diagram - A hexagram diagram showing the interrelations_
 
 Operate and support and equal partners in this view.  Software that cannot be
 run effectively or efficiently fails to deliver value.  A strong support model
@@ -158,6 +157,12 @@ Audit trail and alerts should be documented in the Operate Runbook.  One
 approach is to use a custom javadoc tag, e.g., `@alert` or `@runbook`, however
 this is difficult to link to externally.  Another is to reference a common
 data source for systems and operate to share.
+
+Capture alert details in a common, shared format among systems, suitable for
+consolidation.  Give known audit and alert events a known identifier that may
+be cross-referenced against the runbook.  Capture enough information in
+messages that operate may diagnose a likely resolution, or know to quickly
+escalate.
 
 _Needs discussion and follow up._
 
