@@ -164,6 +164,25 @@ be cross-referenced against the runbook.  Capture enough information in
 messages that operate may diagnose a likely resolution, or know to quickly
 escalate.
 
+An example format in YAML.  Note alert messages are suitable for use with
+[`MessageFormat`](https://docs.oracle.com/javase/8/docs/api/java/text/MessageFormat.html):
+
+```yaml
+errors:
+  your-system-name:
+    - some-problem:
+      code: 1
+      message: >
+        ({0}) Widget '{1}' missing {2} wheel: {3}.  Please replace and
+        restart.
+    - some-other-problem:
+      code: 2
+      message: >
+        ({0}) Widget '{1}' on fire: {2}.  Escalate to support team.
+```
+
+One drawback to `MessageFormat` is parameters are indexed, not named.
+
 _Needs discussion and follow up._
 
 #### Other
