@@ -1,6 +1,5 @@
 package hm.binkley.util.function;
 
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.hamcrest.Matcher;
 
@@ -16,6 +15,7 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import static java.lang.String.format;
+import static java.lang.Thread.currentThread;
 import static java.util.Arrays.copyOfRange;
 import static java.util.function.Predicate.isEqual;
 import static java.util.regex.Pattern.compile;
@@ -52,7 +52,7 @@ import static lombok.AccessLevel.PRIVATE;
  * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
  * @todo Enforce type safety - prevent cases which are impossible
  */
-@NoArgsConstructor(access = PRIVATE)
+@RequiredArgsConstructor(access = PRIVATE)
 public final class Matching<T, U>
         implements Function<T, Optional<U>> {
     // Careful editing me - need to ignored stack frames starting with
@@ -63,6 +63,7 @@ public final class Matching<T, U>
                     Matching.class.getName()));
 
     private final List<Case> cases = new ArrayList<>();
+    private final StackTraceElement caller;
 
     /**
      * Begins pattern matching with a new pattern matcher where input and
@@ -80,22 +81,24 @@ public final class Matching<T, U>
     @SuppressWarnings("UnusedParameters")
     public static <T, U> Matching<T, U> matching(
             @Nonnull final Class<T> inType, @Nonnull final Class<U> outType) {
-        return new Matching<>();
+        return new Matching<>(currentThread().getStackTrace()[2]);
     }
 
     /**
      * Begins pattern matching with a new pattern matcher where input and
      * output types are the same.
      *
-     * @param type the input/output type token, never {@code null}
+     * @param inOutType the input/output type token, never {@code null}
      * @param <T> the input/output type to match against
      *
      * @return the pattern matcher, never {@code null}
      *
      * @todo Avoid the type tokens
      */
-    public static <T> Matching<T, T> matching(@Nonnull final Class<T> type) {
-        return matching(type, type);
+    @SuppressWarnings("UnusedParameters")
+    public static <T> Matching<T, T> matching(
+            @Nonnull final Class<T> inOutType) {
+        return new Matching<>(currentThread().getStackTrace()[2]);
     }
 
     /**
@@ -224,7 +227,7 @@ public final class Matching<T, U>
                 filter(c -> c.p.test(in)).
                 findFirst();
         if (!match.isPresent())
-            cleanAndThrow(new IllegalStateException("No match"));
+            cleanAndThrow(new IllegalStateException("No match"), caller);
         return match.
                 map(c -> c.q.apply(in));
     }
@@ -238,14 +241,21 @@ public final class Matching<T, U>
      * "when" and friends, but cannot use a fixed count of frames to ignore as
      * the exact details are JVM-make and -version dependent.
      */
-    private static <U, E extends Exception> U cleanAndThrow(final E e)
+    private static <U, E extends Exception> U cleanAndThrow(final E e,
+            final StackTraceElement caller)
             throws E {
         final StackTraceElement[] frames = e.getStackTrace();
         int i = 0;
-        while (ignoreStackFrames.matcher(frames[i].getClassName()).find())
+        while (!nearest(caller, frames[i]))
             ++i;
         e.setStackTrace(copyOfRange(frames, i, frames.length));
         throw e;
+    }
+
+    private static boolean nearest(final StackTraceElement caller,
+            final StackTraceElement current) {
+        return caller.getClassName().equals(current.getClassName()) && caller
+                .getMethodName().equals(current.getMethodName());
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
@@ -356,7 +366,8 @@ public final class Matching<T, U>
         @Nonnull
         public Matching<T, U> thenThrow(
                 @Nonnull final Supplier<? extends RuntimeException> then) {
-            cases.add(new Case(when, __ -> cleanAndThrow(then.get())));
+            cases.add(
+                    new Case(when, __ -> cleanAndThrow(then.get(), caller)));
             return Matching.this;
         }
     }
