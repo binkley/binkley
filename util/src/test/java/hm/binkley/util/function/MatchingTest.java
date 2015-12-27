@@ -17,11 +17,6 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-/**
- * {@code MatchingTest} tests {@code Matching}.
- *
- * @author <a href="mailto:binkley@alumni.rice.edu">B. K. Oxley (binkley)</a>
- */
 public final class MatchingTest {
     @Test
     public void shouldMatchExactValueForPrimitive() {
@@ -159,7 +154,7 @@ public final class MatchingTest {
         return t.getStackTrace()[0];
     }
 
-    static abstract class Ex {
+    abstract static class Ex {
         static final Ex ONE = new Ex() {
             @Override
             Ex next() {

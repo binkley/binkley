@@ -13,9 +13,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
+import static java.lang.String.format;
 import static java.util.Arrays.copyOfRange;
 import static java.util.function.Predicate.isEqual;
+import static java.util.regex.Pattern.compile;
 import static lombok.AccessLevel.PRIVATE;
 
 /**
@@ -52,6 +55,13 @@ import static lombok.AccessLevel.PRIVATE;
 @NoArgsConstructor(access = PRIVATE)
 public final class Matching<T, U>
         implements Function<T, Optional<U>> {
+    // Careful editing me - need to ignored stack frames starting with
+    // ourselves or our inner classes, but NOT ignore our test class which
+    // begins with us as a prefix
+    private static final Pattern ignoreStackFrames = compile(
+            format("^(java\\.|javax\\.|sun\\.|com\\.sun\\.|%s(\\$|$))",
+                    Matching.class.getName()));
+
     private final List<Case> cases = new ArrayList<>();
 
     /**
@@ -214,7 +224,7 @@ public final class Matching<T, U>
                 filter(c -> c.p.test(in)).
                 findFirst();
         if (!match.isPresent())
-            cleanAndThrow(new IllegalStateException("No match"), 1);
+            cleanAndThrow(new IllegalStateException("No match"));
         return match.
                 map(c -> c.q.apply(in));
     }
@@ -223,24 +233,23 @@ public final class Matching<T, U>
         return when(__ -> true);
     }
 
-    private static <U, E extends Exception> U cleanAndThrow(final E e,
-            final int firstCallerFrame)
+    /**
+     * Tricky as we want to clean up the stack trace to point at the use of
+     * "when" and friends, but cannot use a fixed count of frames to ignore as
+     * the exact details are JVM-make and -version dependent.
+     */
+    private static <U, E extends Exception> U cleanAndThrow(final E e)
             throws E {
         final StackTraceElement[] frames = e.getStackTrace();
-        e.setStackTrace(copyOfRange(frames, firstCallerFrame, frames.length));
+        int i = 0;
+        while (ignoreStackFrames.matcher(frames[i].getClassName()).find())
+            ++i;
+        e.setStackTrace(copyOfRange(frames, i, frames.length));
         throw e;
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
     public final class When {
-        /**
-         * Number of frames to discard when creating an exception for a match.
-         * Very sensitive to implementation.  This aids in understanding stack
-         * traces from matching, discarding internal machinery and leaving the
-         * actual throwing call at the top of the stack.  We are not Spring
-         * Framework.
-         */
-        private static final int FIRST_CALLER_FRAME = 4;
         private final Predicate<? super T> when;
 
         /**
@@ -347,8 +356,7 @@ public final class Matching<T, U>
         @Nonnull
         public Matching<T, U> thenThrow(
                 @Nonnull final Supplier<? extends RuntimeException> then) {
-            cases.add(new Case(when,
-                    __ -> cleanAndThrow(then.get(), FIRST_CALLER_FRAME)));
+            cases.add(new Case(when, __ -> cleanAndThrow(then.get())));
             return Matching.this;
         }
     }
