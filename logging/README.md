@@ -168,8 +168,8 @@ An example format in YAML.  Note alert messages are suitable for use with
 [`MessageFormat`](https://docs.oracle.com/javase/8/docs/api/java/text/MessageFormat.html):
 
 ```yaml
-errors:
-  your-system-name:
+your-system-name:
+  errors:
     - some-problem:
       code: 1
       message: >
@@ -179,6 +179,24 @@ errors:
       code: 2
       message: >
         ({0}) Widget '{1}' on fire: {2}.  Escalate to support team.
+```
+
+In the `some-problem` example, alerting may look like:
+
+```java
+@ConfigurationProperties(prefix = "your-system-name")
+class Foo {
+    Map<String, Map<String, String>> errors;
+    void exampleFail() {
+        Map<String, String> props = errors.get("some-problem");
+        try {
+            failingCall();
+        } catch (SomeException e) {
+            ALERT.error(MessageFormat.format(props.get("message"),
+                    props.get("code"), e.getWheel(), e));
+        }
+    }
+}
 ```
 
 One drawback to `MessageFormat` is parameters are indexed, not named.
