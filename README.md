@@ -34,6 +34,7 @@ Current released version is 6.  [View javadoc](https://binkley.github.io/binkley
 
 ### 7
 
+* Update deployment to Maven Central
 * Add magic bus
 * Add dynafig
 * Lombok module fixed at lombok 1.14.x.  Internals changed in lombok, this
