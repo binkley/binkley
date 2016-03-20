@@ -10,12 +10,6 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>9</version>
-    </parent>
-
     <groupId>hm.binkley</groupId>
     <artifactId>binkley-blog</artifactId>
     <version>7-SNAPSHOT</version>
@@ -172,22 +166,19 @@
             <groupId>com.intellij</groupId>
             <artifactId>annotations</artifactId>
             <version>${intellij.version}</version>
-            <scope>compile</scope>
-            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>${jsr305.version}</version>
-            <scope>compile</scope>
-            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
-            <scope>compile</scope>
-            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.jmockit</groupId>
@@ -340,15 +331,13 @@
                 <groupId>javax.inject</groupId>
                 <artifactId>javax.inject</artifactId>
                 <version>1</version>
-                <scope>compile</scope>
-                <optional>true</optional>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.kohsuke.metainf-services</groupId>
                 <artifactId>metainf-services</artifactId>
                 <version>${metainf-services.version}</version>
-                <scope>compile</scope>
-                <optional>true</optional>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
@@ -580,7 +569,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <!-- Sonatype OSS parent pom breaks intermodule dependencies otherwise -->
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>${maven-enforcer-plugin.version}</version>
             </plugin>
@@ -794,7 +782,7 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
-                        <phase>verify</phase>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>sign</goal>
                         </goals>

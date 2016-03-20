@@ -6,7 +6,10 @@ This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
 
 Current released version is 6.  [View javadoc](https://binkley.github.io/binkley/).
 
-[![License](https://img.shields.io/badge/license-PD-blue.svg)](http://unlicense.org) [![Build Status](https://img.shields.io/travis/binkley/binkley.svg)](https://travis-ci.org/binkley/binkley) [![Issues](https://img.shields.io/github/issues/binkley/binkley.svg)](https://github.com/binkley/binkley/issues) [![maven-central](https://img.shields.io/maven-central/v/hm.binkley/binkley-blog.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22hm.binkley%22)
+[![License](https://img.shields.io/badge/license-PD-blue.svg)](http://unlicense.org)
+[![Build Status](https://img.shields.io/travis/binkley/binkley.svg)](https://travis-ci.org/binkley/binkley)
+[![Issues](https://img.shields.io/github/issues/binkley/binkley.svg)](https://github.com/binkley/binkley/issues)
+[![maven-central](https://img.shields.io/maven-central/v/hm.binkley/binkley-blog.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22hm.binkley%22)
 
 ## Modules
 
@@ -34,6 +37,7 @@ Current released version is 6.  [View javadoc](https://binkley.github.io/binkley
 
 ### 7
 
+* Quieter build
 * Update deployment to Maven Central
 * Add magic bus
 * Add dynafig
