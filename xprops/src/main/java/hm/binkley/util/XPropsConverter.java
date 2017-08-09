@@ -75,7 +75,7 @@ public final class XPropsConverter {
         register("address", value -> {
             final HostAndPort parsed = HostAndPort.fromString(value)
                     .requireBracketsForIPv6();
-            return createUnresolved(parsed.getHostText(), parsed.getPort());
+            return createUnresolved(parsed.getHost(), parsed.getPort());
         });
         register("bundle", ResourceBundle::getBundle);
         register("byte", Byte::valueOf);

@@ -147,7 +147,7 @@ public final class XPropertiesTest {
     @Test
     public void shouldReplaceGetPropertyFromEnvironment() {
         new MockUp<System>() {
-            @Mock(invocations = 1)
+            @Mock
             public String getenv(final String key) {
                 return "found";
             }

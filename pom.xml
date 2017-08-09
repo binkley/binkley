@@ -105,44 +105,44 @@
     <properties>
         <!-- @formatter:off -->
         <buildplan-maven-plugin.version>1.2</buildplan-maven-plugin.version>
-        <commons-lang3.version>3.4</commons-lang3.version>
-        <curator.version>3.2.0</curator.version>
-        <freemarker.version>2.3.25-incubating</freemarker.version>
+        <commons-lang3.version>3.6</commons-lang3.version>
+        <curator.version>4.0.0</curator.version>
+        <freemarker.version>2.3.26-incubating</freemarker.version>
         <generateBackupPoms>false</generateBackupPoms>
-        <guava.version>19.0</guava.version>
-        <guice.version>4.0</guice.version>
+        <guava.version>23.0-android</guava.version>
+        <guice.version>3.0</guice.version>
         <hamcrest.version>2.0.0.0</hamcrest.version>
-        <idlj-maven-plugin.version>1.2.1</idlj-maven-plugin.version>
+        <idlj-maven-plugin.version>1.2.2</idlj-maven-plugin.version>
         <ini4j.version>0.5.4</ini4j.version>
         <intellij.version>12.0</intellij.version>
-        <jacorb.version>3.6.1</jacorb.version>
-        <janino.version>3.0.0</janino.version>
-        <jansi.version>1.13</jansi.version>
+        <jacorb.version>3.8</jacorb.version>
+        <janino.version>3.0.7</janino.version>
+        <jansi.version>1.11</jansi.version>
         <java.charset>UTF-8</java.charset>
         <java.version>8</java.version>
         <jgitflow-maven-plugin.version>1.0-m5.1</jgitflow-maven-plugin.version>
-        <jmockit.version>1.26</jmockit.version>
-        <jnr.version>3.0.29</jnr.version>
-        <jopt-simple.version>5.0.2</jopt-simple.version>
-        <jsr305.version>3.0.1</jsr305.version>
+        <jmockit.version>1.33</jmockit.version>
+        <jnr.version>3.0.41</jnr.version>
+        <jopt-simple.version>5.0.4</jopt-simple.version>
+        <jsr305.version>3.0.2</jsr305.version>
         <junit.version>4.12</junit.version>
-        <logback.version>1.1.7</logback.version>
-        <lombok.version>1.16.10</lombok.version>
-        <maven-clean-plugin.version>2.6.1</maven-clean-plugin.version>
-        <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
-        <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
+        <logback.version>1.2.3</logback.version>
+        <lombok.version>1.16.18</lombok.version>
+        <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
+        <maven-compiler-plugin.version>3.6.0</maven-compiler-plugin.version>
+        <maven-dependency-plugin.version>3.0.0</maven-dependency-plugin.version>
         <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
-        <maven-testing-plugins.version>2.18.1</maven-testing-plugins.version>
+        <maven-testing-plugins.version>2.19.1</maven-testing-plugins.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
+        <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
         <maven-java-formatter-plugin.version>0.4</maven-java-formatter-plugin.version>
-        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
-        <maven-release-plugin.version>2.5.2</maven-release-plugin.version>
-        <maven-source-plugin.version>2.4</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven.version>3.1</maven.version>
         <metainf-services.version>1.7</metainf-services.version>
-        <mockito.version>2.0.43-beta</mockito.version>
-        <nexus-staging-maven-plugin.version>1.6.6</nexus-staging-maven-plugin.version>
+        <mockito.version>2.8.47</mockito.version>
+        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <owner.version>1.0.9</owner.version>
         <okhttp.version>2.7.5</okhttp.version>
         <pojo-mbean.version>1.1</pojo-mbean.version>
@@ -152,12 +152,12 @@
         <project.reporting.sourceEncoding>${java.charset}</project.reporting.sourceEncoding>
         <reactor.version>2.0.8.RELEASE</reactor.version>
         <service-binder.version>0.3</service-binder.version>
-        <slf4j.version>1.7.21</slf4j.version>
-        <snakeyaml.version>1.17</snakeyaml.version>
-        <spring-boot.version>1.4.0.RELEASE</spring-boot.version>
-        <spring.version>4.3.2.RELEASE</spring.version>
-        <system-rules.version>1.16.0</system-rules.version>
-        <versions-maven-plugin.version>2.2</versions-maven-plugin.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <snakeyaml.version>1.18</snakeyaml.version>
+        <spring-boot.version>1.5.6.RELEASE</spring-boot.version>
+        <spring.version>4.3.10.RELEASE</spring.version>
+        <system-rules.version>1.16.1</system-rules.version>
+        <versions-maven-plugin.version>2.3</versions-maven-plugin.version>
         <!-- @formatter:on -->
     </properties>
 

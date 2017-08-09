@@ -2,6 +2,7 @@ package hm.binkley.net.http;
 
 import com.squareup.okhttp.HttpUrl;
 import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.ExtensionMethod;
 
 import javax.annotation.Nonnegative;
@@ -25,6 +26,7 @@ import static java.util.regex.Pattern.compile;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
+import static lombok.AccessLevel.PACKAGE;
 
 /**
  * {@code HttpUrlExtensions} is a Lombok <a href="https://projectlombok.org/features/experimental/ExtensionMethod.html">method
@@ -79,6 +81,7 @@ public final class HttpUrlExtensions {
     }
 
     @EqualsAndHashCode
+    @RequiredArgsConstructor(access = PACKAGE)
     public static final class PathSegment {
         private static final Pattern semicolon = compile(";");
         private static final Pattern equals = compile("=");
@@ -87,14 +90,6 @@ public final class HttpUrlExtensions {
         private final int position;
         private final String name;
         private final Map<String, List<String>> parameters;
-
-        /** Package scope for testing. */
-        PathSegment(final int position, final String name,
-                final Map<String, List<String>> parameters) {
-            this.position = position;
-            this.name = name;
-            this.parameters = parameters;
-        }
 
         private PathSegment(final int position, final String segment) {
             this.position = position;

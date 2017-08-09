@@ -99,7 +99,7 @@ public final class Converter {
         register(InetSocketAddress.class, value -> {
             final HostAndPort parsed = HostAndPort.fromString(value)
                     .requireBracketsForIPv6();
-            return createUnresolved(parsed.getHostText(), parsed.getPort());
+            return createUnresolved(parsed.getHost(), parsed.getPort());
         });
         register(Path.class, Paths::get);
         register(Pattern.class, Pattern::compile);
