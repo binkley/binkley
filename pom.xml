@@ -110,7 +110,7 @@
         <freemarker.version>2.3.26-incubating</freemarker.version>
         <generateBackupPoms>false</generateBackupPoms>
         <guava.version>23.0-android</guava.version>
-        <guice.version>3.0</guice.version>
+        <guice.version>4.1.0</guice.version>
         <hamcrest.version>2.0.0.0</hamcrest.version>
         <idlj-maven-plugin.version>1.2.2</idlj-maven-plugin.version>
         <ini4j.version>0.5.4</ini4j.version>
@@ -121,7 +121,7 @@
         <java.charset>UTF-8</java.charset>
         <java.version>8</java.version>
         <jgitflow-maven-plugin.version>1.0-m5.1</jgitflow-maven-plugin.version>
-        <jmockit.version>1.33</jmockit.version>
+        <jmockit.version>1.34</jmockit.version>
         <jnr.version>3.0.41</jnr.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <jsr305.version>3.0.2</jsr305.version>
@@ -141,7 +141,7 @@
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven.version>3.1</maven.version>
         <metainf-services.version>1.7</metainf-services.version>
-        <mockito.version>2.8.47</mockito.version>
+        <mockito.version>2.9.0</mockito.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <owner.version>1.0.9</owner.version>
         <okhttp.version>2.7.5</okhttp.version>
