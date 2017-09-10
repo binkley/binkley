@@ -10,7 +10,7 @@
     <parent>
         <groupId>hm.binkley</groupId>
         <artifactId>binkley-blog</artifactId>
-        <version>6</version>
+        <version>7-SNAPSHOT</version>
     </parent>
 
     <artifactId>binkley-convert</artifactId>
