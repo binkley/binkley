@@ -15,7 +15,7 @@
 
     <groupId>hm.binkley</groupId>
     <artifactId>binkley-blog</artifactId>
-    <version>7-SNAPSHOT</version>
+    <version>8-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>binkley's BLOG</name>
@@ -69,16 +69,12 @@
     <modules>
         <module>testing</module>
         <module>logging</module>
-        <module>guice</module>
-        <module>spring</module>
         <module>mixin</module>
         <module>net</module>
         <module>util</module>
         <module>annotation</module>
         <module>concurrent</module>
         <module>convert</module>
-        <module>corba</module>
-        <module>lombok</module>
         <module>value-type</module>
         <module>xio</module>
         <module>xml</module>
